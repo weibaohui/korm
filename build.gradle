@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 buildscript {
@@ -44,6 +41,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven'//添加Maven发布插件
+apply plugin: 'maven-publish'//添加Maven发布插件
 
 
 def siteUrl = 'https://github.com/weibaohui/korm'    // Git项目主页
@@ -134,4 +132,38 @@ dependencies {
     runtime 'mysql:mysql-connector-java:6.0.6'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
+}
+
+
+
+
+//打包源代码
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+task javadocJar(type: Jar, dependsOn: dokka) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
+
+}
+
+
+//上传到nexus
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom.version = "${version}"
+            pom.artifactId = "korm"
+            pom.groupId = "com.sdibt"
+            repository(url: "http://maven.sdibt.com:8081/repository/thirdparty") {
+                authentication(userName: "thirdpatry_op", password: "thirdpatry_op")
+            }
+        }
+    }
 }
