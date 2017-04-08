@@ -41,7 +41,7 @@ class KormFactoryBean<T> : KormDaoSupport, FactoryBean<T> {
     @Throws(Exception::class)
     override fun getObject(): T {
 //        println("mapperInterface = ${mapperInterface}")
-        return this.sqlSession!!.mapperBuilder.getMapper(mapperInterface)
+        return this.sqlSession!!.mapperBuilder.getMapper(mapperInterface!!)
     }
 
     override fun getObjectType(): Class<T> {

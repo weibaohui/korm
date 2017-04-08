@@ -18,9 +18,9 @@
  *
  */
 
-package com.sdibt.korm.core.mapper;
+package com.sdibt.korm.core.mapper
 
-public interface MapperBuilder {
-    <T> T getMapper(Class<T> mapperInterface);
+interface MapperBuilder {
+    fun <T> getMapper(mapperInterface: Class<T>): T
 
 }

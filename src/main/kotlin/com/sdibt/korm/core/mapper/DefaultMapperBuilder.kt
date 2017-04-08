@@ -22,11 +22,12 @@ package com.sdibt.korm.core.mapper
 
 import com.sdibt.korm.core.db.KormSqlSession
 import java.lang.reflect.Proxy
+import java.util.concurrent.ConcurrentHashMap
 
 
 class DefaultMapperBuilder(private var db: KormSqlSession) : MapperBuilder {
 
-    private var cache: MutableMap<Class<*>, Any> = HashMap()
+    private var cache: MutableMap<Class<*>, Any> = ConcurrentHashMap()
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> getMapper(mapperInterface: Class<T>): T {

@@ -23,7 +23,7 @@ package com.sdibt.korm.core.idworker
 enum class SnowFlakeGenerator {
     instance;
 
-    protected var sf: SnowFlake = SnowFlake()
+    var sf: SnowFlake = SnowFlake()
 
 
     fun nextId(): Long {
