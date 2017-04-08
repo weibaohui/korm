@@ -41,6 +41,8 @@ class KormSqlSessionTest {
     @Test
     fun testBatchInsertEntitys() {
 
+        this.testBatchDeleteEntitysByPk()
+
         var book1 = TestBook()
         book1.testName = "abc"
         book1.testId = "666"
@@ -125,8 +127,6 @@ class KormSqlSessionTest {
     }
 
 
-
-
     @Test
     fun testInsertEntity() {
         var book2 = TestBook()
@@ -136,7 +136,6 @@ class KormSqlSessionTest {
         book2.testCount = 0
         db.insert(book2, true, false)
     }
-
 
 
     @Test
@@ -157,7 +156,6 @@ class KormSqlSessionTest {
         book2.testURL = "SaveEntity"
         db.save(book2)
     }
-
 
 
     @Test
@@ -235,7 +233,7 @@ class KormSqlSessionTest {
 
 
     @Test
-    fun testSave() {
+    fun testUpdateOQL() {
         var user = User()
         user.name = "abc"
         user.age = 19
@@ -248,7 +246,6 @@ class KormSqlSessionTest {
         db.update(q)
 
     }
-
 
 
     @Test
@@ -279,7 +276,6 @@ class KormSqlSessionTest {
     }
 
 
-
     @Test
     fun testCountSelect() {
 
@@ -298,7 +294,6 @@ class KormSqlSessionTest {
         var ss = db.select<Map<String, Any?>>(q)
         println("ss = ${ss}")
     }
-
 
 
     @Test
@@ -357,7 +352,6 @@ class KormSqlSessionTest {
     }
 
 
-
     @Test
     fun testInsertFrom() {
         var book = TestBook()
@@ -378,7 +372,6 @@ class KormSqlSessionTest {
     }
 
 
-
     @Test
     fun testReadWithPage() {
         var book = TestBook()
@@ -397,7 +390,6 @@ class KormSqlSessionTest {
         }
 
     }
-
 
 
 }
