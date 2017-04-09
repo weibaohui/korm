@@ -1,5 +1,4 @@
 ﻿/*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,13 +13,12 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.oql
 
 
+import com.google.common.eventbus.Subscribe
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.entity.JoinEntity
 import com.sdibt.korm.core.enums.EntityMapType.Table
@@ -28,7 +26,6 @@ import com.sdibt.korm.core.idworker.IdWorkerType
 import com.sdibt.korm.core.idworker.getIdGen
 import com.sdibt.korm.core.property.EventManager.INSTANCE
 import com.sdibt.korm.core.property.event.GettingEvent
-import com.google.common.eventbus.Subscribe
 import java.util.*
 
 
@@ -186,15 +183,13 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      */
     fun getOqlFieldName(tnf: TableNameField): String {
         if (this.dictAliases.isEmpty()) {
-            return String.format(" [%1\$s]", this.currEntity.nameConvert.dbColumnName(tnf.field))
+            return String.format(" [%1\$s]", tnf.field)
         } else {
             var aliases = this.dictAliases[tnf.entity]
             if (!aliases.isNullOrBlank()) {
-                return String.format(" %1\$s.[%2\$s]", aliases,
-                        this.currEntity.nameConvert.dbColumnName(tnf.field)) //关联查询，此处可能需要考虑字段AS别名 问题
+                return String.format(" %1\$s.[%2\$s]", aliases, tnf.field) //关联查询，此处可能需要考虑字段AS别名 问题
             } else {
-                return String.format(" M.[%1\$s]",
-                        this.currEntity.nameConvert.dbColumnName(tnf.field))
+                return String.format(" M.[%1\$s]", tnf.field)
             }
         }
     }
@@ -733,7 +728,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             val Value = currEntity.getFieldValue(realField)
             this.currEntity.autoIdFields.forEach { t, u ->
                 //设置了autoID属性，并且用户已经赋值，那么就不再处理
-                if (this.currEntity.nameConvert.dbColumnName(t) == realField && Value != null) {
+                if (t == realField && Value != null) {
                     autoIDAssigned.add(t)//未做nameConver的原始值
                     //已经赋值了，那么添加到变量中
                     insertFieldsString.add(selectedFieldNames[i])
@@ -749,7 +744,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             val b = selectedFieldNames[i].indexOf(']')
             val realField: String = selectedFieldNames[i].substring(a + 1, a + 1 + b - a - 1)
             val Value = currEntity.getFieldValue(realField)
-            if (!this.currEntity.autoIdFields.keys.map { this.currEntity.nameConvert.dbColumnName(it) }
+            if (!this.currEntity.autoIdFields.keys.map {it }
                     .contains(realField)) {
                 //不在已赋值的autoId类型中的话，就参与sql语句处理
                 insertFieldsString.add(selectedFieldNames[i])
@@ -762,7 +757,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         this.currEntity.autoIdFields.filter { !autoIDAssigned.contains(it.key) }.forEach { field, type ->
             //设置了autoID，并且用户没有设置值
 
-            val realField = this.currEntity.nameConvert.dbColumnName(field)
+            val realField =field
             when (type) {
 
                 IdWorkerType.SnowFlake     -> {
@@ -853,9 +848,9 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             for (tnf in selectedFieldInfo) {
                 aliases = dictAliases[tnf.entity]
                 if (!aliases.isNullOrEmpty()) {
-                    sql_fields += ",\t\r\n" + String.format(" %1\$s.[%2\$s] AS [%1\$s_%2\$s]", aliases, this.currEntity.nameConvert.dbColumnName(tnf.field)) //关联查询，此处可能需要考虑字段AS别名 问题
+                    sql_fields += ",\t\r\n" + String.format(" %1\$s.[%2\$s] AS [%1\$s_%2\$s]", aliases, tnf.field) //关联查询，此处可能需要考虑字段AS别名 问题
                 } else {
-                    sql_fields += ",\t\r\n" + String.format(" M.[%1\$s]", this.currEntity.nameConvert.dbColumnName(tnf.field))
+                    sql_fields += ",\t\r\n" + String.format(" M.[%1\$s]", tnf.field)
                 }
             }
 
@@ -881,7 +876,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 } else {
 
                     this.currEntity.fieldNames.forEach {
-                        sql_fields += "[${this.currEntity.nameConvert.dbColumnName(it)}],"
+                        sql_fields += "[${it}],"
                     }
                     sql_fields = sql_fields.trimEnd(',')
 
@@ -922,7 +917,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             for (pk in this.currEntity.primaryKeys) {
                 val tnf = TableNameField(field = pk, entity = this.currEntity)
                 val paraName = createParameter(tnf, currEntity.getFieldValue(pk))
-                whereString += " And [${this.currEntity.nameConvert.dbColumnName(pk)}] =$paraName "
+                whereString += " And [${pk}] =$paraName "
 
             }
             //去除下一次生成重复的条件

@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,29 +13,27 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.mapper
 
 import com.sdibt.korm.core.db.KormSqlSession
-import com.sdibt.korm.core.mapping.CamelCaseNameConvert
+import com.sdibt.korm.core.entity.EntityBase
+import com.sdibt.korm.core.entity.EntityFieldsCache
 
-//todo:实体初始化设置的nameconver在反射中无法使用，在这里使用默认的，如需处理，需要增加interceptor处理
 class NameDsl(private var sqlSession: KormSqlSession,
               private var entityClass: Class<*>,
               private var name: String,
               private var args: Array<Any>?,
               private var returnType: Class<*>) {
 
-    val nc = CamelCaseNameConvert()
+    val nc = sqlSession.nameConvert
 
     fun exec(): Any? {
-        val table = nc.dbTableName(entityClass.simpleName)
+        val entity = EntityFieldsCache.Item(entityClass.newInstance() as EntityBase)
+        val table = entity.tableName ?: nc.dbTableName(entityClass.simpleName)
         var (sql, params, _) = NameProcessBuilder(this.name)
                 .setDBMSType(sqlSession.dbType)
-                .setNameConvert(nc)
                 .getExecType()
                 .getOrder()
                 .getWhere()

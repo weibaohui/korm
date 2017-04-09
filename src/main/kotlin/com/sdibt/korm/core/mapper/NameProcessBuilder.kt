@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,22 +13,17 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.mapper
 
 import com.sdibt.korm.core.enums.DBMSType
-import com.sdibt.korm.core.mapping.BaseNameConvert
-import com.sdibt.korm.core.mapping.CamelCaseNameConvert
 import com.sdibt.korm.core.page.SQLPage
 import java.lang.StringBuilder
 import java.util.regex.Pattern
 
 
 class NameProcessBuilder(private var name: String) {
-    private var nc: BaseNameConvert = CamelCaseNameConvert()
     private var dbType: DBMSType = DBMSType.MySql
     private var commandType = SqlCommandType.UNKNOWN
     private var orderStr: String = ""
@@ -38,11 +32,6 @@ class NameProcessBuilder(private var name: String) {
     private var fetchCount: Int = 0
     private var params: MutableList<String> = mutableListOf()
 
-
-    fun setNameConvert(nc: CamelCaseNameConvert): NameProcessBuilder {
-        this.nc = nc
-        return this
-    }
 
     fun setDBMSType(dbType: DBMSType): NameProcessBuilder {
         this.dbType = dbType
@@ -318,7 +307,7 @@ class NameProcessBuilder(private var name: String) {
 
     private fun getRealField(f: String, action: String): String {
 
-        return nc.dbColumnName(f.substring(0, f.length - action.length))
+        return f.substring(0, f.length - action.length)
     }
 
     //截取数字

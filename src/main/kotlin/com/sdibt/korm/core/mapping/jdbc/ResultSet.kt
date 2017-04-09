@@ -1,3 +1,20 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.sdibt.korm.core.mapping.jdbc
 
 import com.sdibt.korm.core.mapping.BaseNameConvert
@@ -5,7 +22,6 @@ import com.sdibt.korm.core.mapping.EnumTypeHandler
 import com.sdibt.korm.core.mapping.type.TypeHandler
 import java.beans.Introspector
 import java.sql.ResultSet
-import java.sql.SQLException
 import java.util.*
 
 /**
@@ -49,12 +65,14 @@ fun ResultSet.toMap(): Map<String, Any?> {
     return result
 }
 
+/**ResultSet转换第一列为指定类型
+ * <功能详细描述>
+ * @param type 要转换的类型.
+ *
+ * @return ResultSet转换后的值
+ */
 fun <T> ResultSet.toType(type: Class<T>): T? {
-
-    val count = this.metaData.columnCount
-    if (count != 1) {
-        throw SQLException("查询期望返回一列，返回类型为" + type + " 但返回了" + count + "列")
-    }
+//    默认转换第一列
 
     val handler: TypeHandler =
             EnumTypeHandler.instance.typeHandlers[type.simpleName.toLowerCase()] ?:
@@ -90,7 +108,7 @@ fun <T> ResultSet.toBean(rs: ResultSet, nc: BaseNameConvert, type: Class<T>): T 
     Arrays.fill(columnPropsIndex, -1)//默认填充-1
     for (col in 1..rsw.columnCount) {
         for (i in props.indices) {
-            val propName=nc.dbColumnName(props[i].name)
+            val propName = nc.dbColumnName(props[i].name)
             if (propName.equals(rsw.getColumnName(col), true)) {
                 columnPropsIndex[col] = i
                 break

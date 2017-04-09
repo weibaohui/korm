@@ -1,5 +1,4 @@
 ﻿/*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.entity
@@ -82,27 +79,15 @@ class EntityFields {
             val fieldValueList: MutableList<Any?> = mutableListOf()
             val typeNameList: MutableList<Class<*>> = mutableListOf()
             val autoIdFieldsList: MutableMap<String, IdWorkerType> = mutableMapOf()
-//			entityType.fields.forEach {
-//				println("fields = ${it}")
-//			}
-//			//class 自身及继承得到的方法
-//			entityType.methods.filter { it.name.startsWith("get", ignoreCase = true) }.forEach {
-//				println("get methods = ${it.name}")
-//				println("it.returnType.simpleName = ${it.returnType.simpleName}")
-//			}
 
-            //class 自身的方法定义，得到的是数据库字段属性
-            entityType.declaredMethods.filter { it.name.startsWith("get", ignoreCase = true) }.forEach {
-                //              println("declared methods = ${it.name.replace("get", "", ignoreCase = true)}")
-//				println("declared.returnType.simpleName = ${it.returnType.simpleName}")
-//				println("it.declaredAnnotations.contentToString() = ${it.declaredAnnotations.contentToString()}")
-//				println("it.Annotations.contentToString() = ${it.annotations.contentToString()}")
-                fieldNameList.add(entity.nameConvert.dbTableName(it.name.replace("get", "", ignoreCase = true)))
-                typeNameList.add(it.returnType)
+
+
+            entityType.declaredFields.forEach {
+                fieldNameList.add(it.name)
+                typeNameList.add(it.type)
                 //todo根据类型设置初始值，int->0,boolean->false
                 fieldValueList.add(null)//设置初始值
             }
-
 
             //寻找AutoID
 

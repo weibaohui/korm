@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,13 +13,13 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.interceptor
 
+import com.sdibt.korm.core.mapping.CamelCaseNameConvert
 import com.sdibt.korm.core.oql.TableNameField
+import java.util.regex.Pattern
 
 /**
  * Usage:
@@ -29,6 +28,8 @@ import com.sdibt.korm.core.oql.TableNameField
  * Time: 14:24
  */
 class Context {
+
+    private val nc = CamelCaseNameConvert()
     var params: Map<String, Any?> = hashMapOf()
     var sqlString: String = ""
     var result: Any? = null //执行结果
@@ -40,17 +41,35 @@ class Context {
     var endTime: Long = 0L//sql结束时间
 
     constructor(sqlString: String, parameters: Map<String, Any?>) {
+
+        //sqlString 正则查找字段，字段均以[]包围，替换为nc以后的字段
         this.sqlString = sqlString
+        val fields: MutableList<String> = mutableListOf()
+        //找到[field]
+        searchFields(fields, "\\[(.*?)\\]")
+        //找到@field
+        searchFields(fields, "(?<!')(@[\\w]+)(?!')")
+        fields.forEach { this.sqlString = this.sqlString.replace(it, nc.dbColumnName(it)) }
+
 
         val mutParams: MutableMap<String, Any?> = mutableMapOf()
         parameters.forEach { t, u ->
+            val field = nc.dbColumnName(t)
             if (u is TableNameField) {
-                mutParams.put(t, u.fieldValue)
+                mutParams.put(field, u.fieldValue)
             } else {
-                mutParams.put(t, u)
+                mutParams.put(field, u)
             }
         }
         this.params = mutParams.toMap()
+    }
+
+    private fun searchFields(fields: MutableList<String>, patternStr: String = "\\[(.*?)\\]") {
+        val findParametersPattern = Pattern.compile(patternStr)
+        val matcher = findParametersPattern.matcher(this.sqlString)
+        while (matcher.find()) {
+            fields.add(matcher.group().trimStart('[').trimEnd(']'))
+        }
     }
 
 

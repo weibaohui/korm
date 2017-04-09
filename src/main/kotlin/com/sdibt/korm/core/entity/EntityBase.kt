@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,25 +13,18 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.entity
 
 import com.sdibt.korm.core.enums.EntityMapType
 import com.sdibt.korm.core.idworker.IdWorkerType
-import com.sdibt.korm.core.mapping.BaseNameConvert
-import com.sdibt.korm.core.mapping.CamelCaseNameConvert
 import com.sdibt.korm.core.oql.TableNameField
 import com.sdibt.korm.core.property.EventManager
 import com.sdibt.korm.core.property.event.ChangingEvent
 import com.sdibt.korm.core.property.event.GettingEvent
 
 abstract class EntityBase {
-
-
-    var nameConvert: BaseNameConvert = CamelCaseNameConvert()
 
 
     var entityMap = EntityMapType.Table
@@ -60,7 +52,7 @@ abstract class EntityBase {
     var tableName: String = ""
         private set
         get() {
-            return EntityFieldsCache.Item(this).tableName ?: this.nameConvert.dbTableName(this.javaClass.simpleName)
+            return EntityFieldsCache.Item(this).tableName ?: this.javaClass.simpleName
         }
 
     var schema: String = ""
@@ -201,8 +193,8 @@ abstract class EntityBase {
             return -1
         }
         return fieldNames.indices.firstOrNull {
-            //经过nameConvert后一致的列名
-            fieldNames[it].equals(this.nameConvert.dbColumnName(propertyFieldName), ignoreCase = true)
+
+            fieldNames[it].equals(propertyFieldName, ignoreCase = true)
         } ?: -1
     }
 

@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.db
@@ -34,7 +31,6 @@ import com.sdibt.korm.core.mapping.BaseNameConvert
 import com.sdibt.korm.core.mapping.CamelCaseNameConvert
 import com.sdibt.korm.core.mapping.jdbc.*
 import com.sdibt.korm.core.oql.OQL
-import com.sdibt.korm.core.oql.TableNameField
 import com.sdibt.korm.core.page.SQLPage
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.sql.Connection
@@ -56,6 +52,8 @@ open class KormSqlSession {
     var interceptors: List<Interceptor> = listOf()
     var dbType: DBMSType = MySql
     var mapperBuilder: MapperBuilder = DefaultMapperBuilder(this)
+    //默认名称转换器
+    var nameConvert: BaseNameConvert = CamelCaseNameConvert()
 
     constructor()
     constructor(dataSource: DataSource) {
@@ -92,7 +90,7 @@ open class KormSqlSession {
         val sql = ctx.sqlString
         val params = ctx.params
 
-        val result: T
+
         var rs: ResultSet? = null
         val conn = this.dataSource?.connection ?: throw SQLException("无链接")
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
@@ -192,15 +190,15 @@ open class KormSqlSession {
 
     fun <T> select(clazz: Class<T>, q: OQL): List<T>? {
 
-        val mutParams: MutableMap<String, Any?> = mutableMapOf()
-        q.parameters.forEach { t, u ->
-            if (u is TableNameField) {
-                mutParams.put(t, u.fieldValue)
-            } else {
-                mutParams.put(t, u)
-            }
-        }
-        val params = mutParams.toMap()
+//        val mutParams: MutableMap<String, Any?> = mutableMapOf()
+//        q.parameters.forEach { t, u ->
+//            if (u is TableNameField) {
+//                mutParams.put(t, u.fieldValue)
+//            } else {
+//                mutParams.put(t, u)
+//            }
+//        }
+//        val params = mutParams.toMap()
 
 
         var sql = q.toString()
@@ -209,7 +207,7 @@ open class KormSqlSession {
             var pageCount = q.PageWithAllRecordCount
             if (pageCount == 0) {
                 val pageCountSql = SQLPage.makePageSQL(this.dbType, sql, "", q.PageSize, q.PageNumber, 0)
-                pageCount = selectSingle<Int>(pageCountSql, params, q.currEntity.nameConvert) ?: 0
+                pageCount = selectSingle<Int>(pageCountSql, q.parameters) ?: 0
                 if (pageCount == 0) {
                     //没有数据
                     return null
@@ -219,7 +217,7 @@ open class KormSqlSession {
         }
 
 
-        return select(clazz, sql, params, q.currEntity.nameConvert)
+        return select(clazz, sql, q.parameters)
     }
 
     inline fun <reified T> select(q: OQL): List<T>? {
@@ -352,7 +350,7 @@ open class KormSqlSession {
     //region 内部方法
 
     private fun getSqlUpdate(entity: EntityBase, onlyChangedParam: Boolean = false): String {
-        val nc = entity.nameConvert
+
 
         var sqlUpdate = "UPDATE " + entity.tableName + " SET "
         var sqlWhere = ""
@@ -362,13 +360,13 @@ open class KormSqlSession {
             params.forEach {
                 field, _ ->
                 val isPk = pks.indices.any {
-                    nc.dbColumnName(field).equals(nc.dbColumnName(pks[it]), false)
+                    field.equals(pks[it], false)
                 }
                 //不更新主键,主键放到where 条件中
                 if (!isPk) {
-                    sqlUpdate += " [${nc.dbColumnName(field)}]=@$field ,"
+                    sqlUpdate += " [${field}]=@$field ,"
                 } else {
-                    sqlWhere += " And [${nc.dbColumnName(field)}]=@$field "
+                    sqlWhere += " And [${field}]=@$field "
                 }
             }
             sqlUpdate = sqlUpdate.trimEnd(',') + " WHERE 1=1 " + sqlWhere
@@ -380,7 +378,6 @@ open class KormSqlSession {
     }
 
     private fun getSqlDeleteByPk(entity: EntityBase): String {
-        val nc = entity.nameConvert
 
 
         var sqlWhere = ""
@@ -389,13 +386,13 @@ open class KormSqlSession {
             entity.fieldNames.forEach {
                 field ->
                 val isPk = pks.indices.any {
-                    nc.dbColumnName(field).equals(nc.dbColumnName(pks[it]), false)
+                    field.equals(pks[it], false)
                 }
                 //主键放到where 条件中
                 if (isPk) {
                     val pkValue = entity.parameters[field]?.fieldValue
                     if (pkValue != null) {
-                        sqlWhere += " And [${nc.dbColumnName(field)}]='$pkValue' "
+                        sqlWhere += " And [${field}]='$pkValue' "
                     }
                 }
             }
@@ -411,18 +408,17 @@ open class KormSqlSession {
     }
 
     private fun getSqlDelete(entity: EntityBase): String {
-        val nc = entity.nameConvert
 
         var sqlDelete = "DELETE FROM " + entity.tableName + " WHERE 1=1 "
         entity.changedFields.forEach {
             field, _ ->
-            sqlDelete += " And [${nc.dbColumnName(field)}]=@$field "
+            sqlDelete += " And [${field}]=@$field "
         }
         return sqlDelete
     }
 
     private fun getSqlInsert(entity: EntityBase, onlyChangedParam: Boolean = false): String {
-        val nc = entity.nameConvert
+
 
         var Items = ""
         var ItemValues = ""
@@ -434,11 +430,11 @@ open class KormSqlSession {
         if (onlyChangedParam) {
             entity.changedFields.forEach {
                 field, _ ->
-                Items += "[${nc.dbColumnName(field)}],"
+                Items += "[${field}],"
                 ItemValues += "@$field,"
 
                 entity.autoIdFields.forEach { t, _ ->
-                    if (nc.dbColumnName(field) == nc.dbColumnName(t)) {
+                    if (field == t) {
                         //设置了autoID属性，那么采用用户设置的值，不再赋值
                         autoIDAssigned.add(t)//未做nameConver的原始值
                     }
@@ -451,17 +447,17 @@ open class KormSqlSession {
             entity.parameters.forEach {
                 field, _ ->
                 entity.autoIdFields.forEach { t, type ->
-                    if (nc.dbColumnName(field) == nc.dbColumnName(t) && entity.getFieldValue(field) != null) {
+                    if (field == t && entity.getFieldValue(field) != null) {
                         //设置了autoID属性，但null，进行赋值替换
                         autoIDAssigned.add(t)//未做nameConver的原始值
                     }
                 }
 
             }
-            entity.parameters.filterKeys { !entity.autoIdFields.keys.map { nc.dbColumnName(it) }.contains(it) }
+            entity.parameters.filterKeys { !entity.autoIdFields.keys.map { it }.contains(it) }
                     .forEach {
                         field, _ ->
-                        Items += "[${nc.dbColumnName(field)}],"
+                        Items += "[${field}],"
                         ItemValues += "@$field,"
                     }
         }
@@ -473,13 +469,13 @@ open class KormSqlSession {
             when (type) {
 
                 IdWorkerType.SnowFlake     -> {
-                    Items += "[${nc.dbColumnName(field)}],"
+                    Items += "[${field}],"
                     ItemValues += "${IdWorkerType.SnowFlake.getIdGen()},"
                 }
                 IdWorkerType.AutoIncrement -> {
                 }
                 IdWorkerType.GUID          -> {
-                    Items += "[${nc.dbColumnName(field)}],"
+                    Items += "[${field}],"
                     ItemValues += "${IdWorkerType.GUID.getIdGen()},"
                 }
             }
