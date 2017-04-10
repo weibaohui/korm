@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.db
@@ -23,6 +20,7 @@ package com.sdibt.korm.core.db
 import com.sdibt.korm.core.annotatoin.AutoID
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.idworker.IdWorkerType
+import javax.persistence.Id
 import javax.persistence.Table
 
 /**
@@ -35,6 +33,7 @@ import javax.persistence.Table
 class TestBook : EntityBase() {
 
     @AutoID(IdWorkerType.SnowFlake)
+    @Id
     var testId: String? = null
         get() {
             getField("testId")

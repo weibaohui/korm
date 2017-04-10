@@ -408,27 +408,14 @@ class KormSqlSessionTest {
 
     }
 
-    var DefaultCallBack: Callback
 
-    init {
-        DefaultCallBack = Callback()
-    }
 
     @Test
     fun testfuntest() {
 
-        var scope = Scope()
-        DefaultCallBack.Delete().reg("beforeDelete") { beforeDeleteCallback(scope) }
 
-        DefaultCallBack.deletes.forEach {
-            scope = it.invoke(scope)
-        }
-
-        println("scope = ${scope.param}")
-
-
-//        val xx = testfun(1) { bodyfun(it) }
-//        println("xx = ${xx}")
+        val xx = testfun(1) { bodyfun(it) }
+        println("xx = ${xx}")
     }
 
 
@@ -441,62 +428,8 @@ class KormSqlSessionTest {
     }
 
 
-    class Callback {
-        var processors: MutableList<CallBackProcessors> = mutableListOf()
-        var creates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-        var updates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-        var deletes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-        var queries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-        var rowQueries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-
-    }
-
-    fun Callback.Delete(): CallBackProcessors {
-        return CallBackProcessors("delete", this)
-    }
 
 
 
-    fun CallBackProcessors.reg(callBackName: String, block: (scope: Scope) -> Scope) {
-        this.name = callBackName
-        this.processor = block
-        this.parent?.processors?.add(this)
-        when (this.kind) {
-            "delete" -> this.parent?.deletes?.add(block)
-        }
-    }
 
-
-    class CallBackProcessors {
-        var name: String? = null              // current callback's name
-        var before: String? = null            // register current callback before a callback
-        var after: String? = null             // register current callback after a callback
-        var replace: Boolean? = null               // replace callbacks with same name
-        var remove: Boolean? = null               // delete callbacks with same name
-        var kind: String? = null            // callback type: create, update, delete, query, row_query
-        var processor: ((scope: Scope) -> Scope)? = null // callback handler
-        var parent: Callback? = null
-
-        constructor(kind: String?, parent: Callback?) {
-            this.kind = kind
-            this.parent = parent
-        }
-    }
-
-    class Scope {
-        var param: String = "init"
-        fun CallMethod(s: String): Scope {
-            println("s = ${s}")
-            param = s
-            println("param = ${s}")
-
-            return this
-        }
-
-    }
-
-    fun beforeDeleteCallback(scope: Scope): Scope {
-        val scope = scope.CallMethod("BeforeDelete")
-        return scope
-    }
 }
