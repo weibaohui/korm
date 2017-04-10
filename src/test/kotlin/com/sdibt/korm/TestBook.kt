@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.db
 
 import com.sdibt.korm.core.annotatoin.AutoID
+import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.idworker.IdWorkerType
 import javax.persistence.Id
@@ -63,6 +64,7 @@ class TestBook : EntityBase() {
             setField("testURL", value)
             field = value
         }
+
     var testCount: Int? = null
         get() {
             getField("testCount")
@@ -72,4 +74,16 @@ class TestBook : EntityBase() {
             setField("testCount", value)
             field = value
         }
+
+
+    fun beforeDelete(scope: Scope): Scope {
+        scope.skipLeft = false
+        return scope
+    }
+
+    override fun afterDelete(scope: Scope): Scope {
+        println("override scope.sqlString = ${scope.sqlString}")
+        println("override scope.rowsAffected = ${scope.rowsAffected}")
+        return scope
+    }
 }

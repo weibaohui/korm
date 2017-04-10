@@ -24,52 +24,54 @@ class CallBackDelete {
     fun init() {
         defaultCallBack.Delete().reg("beforeDelete") { beforeDeleteCallback(it) }
         defaultCallBack.Delete().reg("delete") { deleteCallback(it) }
+        defaultCallBack.Delete().reg("afterDelete") { afterDeleteCallback(it) }
     }
 
 
     fun beforeDeleteCallback(scope: Scope): Scope {
-        val scope = scope.callMethod("BeforeDelete")
-        return scope
+        return if (!scope.hasError) scope.callMethod("beforeDelete") else scope
     }
 
+    fun afterDeleteCallback(scope: Scope): Scope {
+        return if (!scope.hasError) scope.callMethod("afterDelete") else scope
+    }
 
     fun deleteCallback(scope: Scope): Scope {
 
         val entity = scope.entity
 
 
-        entity?.primaryKeys?.isNotEmpty().apply {
+        entity.primaryKeys.isNotEmpty().apply {
             var sqlWhere = ""
-            val pks = entity?.primaryKeys
-            entity?.fieldNames?.forEach {
+            val pks = entity.primaryKeys
+            entity.fieldNames.forEach {
                 field ->
-                val isPk = pks?.indices?.any {
+                val isPk = pks.indices.any {
                     field.equals(pks[it], false)
                 }
                 //主键放到where 条件中
-                if (isPk == true) {
+                if (isPk) {
                     val pkValue = entity.parameters[field]?.fieldValue
                     if (pkValue != null) {
-                        sqlWhere += " And [${field}]='$pkValue' "
+                        sqlWhere += " And [$field] = @$field"
+                        scope.sqlParam.put(field, pkValue)
                     }
                 }
             }
             if (sqlWhere == "") {
-                throw RuntimeException("表" + entity?.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
+                throw RuntimeException("表" + entity.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
             }
-            scope.sqlString = "DELETE FROM ${entity?.tableName}  WHERE 1=1 $sqlWhere"
-
-
+            scope.sqlString = "DELETE FROM ${entity.tableName}  WHERE 1=1 $sqlWhere"
         }
 
 
-        if (scope.db?.Error == null) {
-            scope.db?.Exec(scope.sqlString, scope.sqlParam)
+        if (scope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
+            scope.rowsAffected = rowsAffected
+            scope.generatedKeys = generatedKeys
+            scope.result = rowsAffected
         }
 
-
-        println("scope.sqlTableName = ${scope.sqlTableName}")
-        println("${scope.db?.RowsAffected}")
         return scope
     }
 }

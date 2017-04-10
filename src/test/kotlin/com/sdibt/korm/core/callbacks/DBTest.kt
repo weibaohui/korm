@@ -17,18 +17,43 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.alibaba.druid.pool.DruidDataSource
 import com.sdibt.korm.core.db.TestBook
 import org.junit.Test
 
 
 internal class DBTest {
+    var dbURL = "jdbc:mysql://a.com:3306/test?useUnicode=true&characterEncoding=UTF-8"
+    var userName = "root"
+    var password = "root"
+
+
+    var db: DB
+
+    init {
+        var dds = DruidDataSource()
+        dds.url = dbURL
+        dds.username = userName
+        dds.password = password
+
+
+        db = DB(dds)
+    }
+
+    @Test
+    fun deleteEntity() {
+        val tb = TestBook()
+        tb.testId = "dd"
+        db.Delete(tb)
+    }
 
 
     @Test
-    fun delete() {
+    fun updateEntity() {
         val tb = TestBook()
         tb.testId = "dd"
-        DB().Delete(tb)
+        tb.testName = "test"
+        db.Update(tb)
+        db.Update(tb, false)
     }
-
 }

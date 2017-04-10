@@ -20,22 +20,46 @@ package com.sdibt.korm.core.callbacks
 import com.sdibt.korm.core.entity.EntityBase
 
 
-class Scope {
-    var entity: EntityBase? = null
-    var sqlTableName = ""
+class Scope(val entity: EntityBase, var db: DB) {
+
     var sqlString = ""
-    var sqlParam: Map<String, Any?> = mutableMapOf()
+    var sqlParam: MutableMap<String, Any?> = mutableMapOf()
     var skipLeft = false
-    var param: String = "init"
-    var fields: List<Field> = listOf()
-    var db: DB? = null
-    fun callMethod(s: String): Scope {
-        println("s = ${s}")
-        this.param = s
-        println("param = ${s}")
-        println("this.sqlTableName = ${this.sqlTableName}")
+    var fields: MutableList<Field> = mutableListOf()
+    var result: Any? = null //执行结果
+
+    var generatedKeys: Any? = null //返回的ID值，数据库自增
+    var rowsAffected: Int = 0//影响行数
+    var errors: MutableList<String> = mutableListOf()//错误
+    var startTime: Long = 0L//sql开始时间
+    var endTime: Long = 0L//sql结束时间
+    var saveChangedOnly = true//默认只保存变化了的字段
+
+    val hasError: Boolean
+        get() = db.Error != null
+
+    /** 调用entity中定义的Method
+     * <功能详细描述>
+     * @param methodName 方法名称.
+     *
+     * @return Scope
+     */
+    fun callMethod(methodName: String): Scope {
+
+        val clazz = entity::class.java
+        clazz.methods.forEach {
+            if (it.name == methodName) {
+                val method = clazz.getMethod(methodName, Scope::class.java)
+                val returnType = method.returnType
+                if (method != null && returnType == Scope::class.java) {
+                    return method.invoke(entity, this) as Scope
+                }
+            }
+        }
+
 
         return this
+
     }
 
     fun callCallbacks(funcs: List<(scope: Scope) -> Scope>): Scope {
@@ -48,5 +72,10 @@ class Scope {
         return scope
     }
 
+
+    fun saveChangedOnly(changed: Boolean): Scope {
+        this.saveChangedOnly = changed
+        return this
+    }
 
 }

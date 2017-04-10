@@ -17,6 +17,7 @@
 
 package com.sdibt.korm.core.entity
 
+import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.enums.EntityMapType
 import com.sdibt.korm.core.idworker.IdWorkerType
 import com.sdibt.korm.core.oql.TableNameField
@@ -61,6 +62,7 @@ abstract class EntityBase {
             return EntityFieldsCache.Item(this).schema ?: ""
         }
     // sql statement 需要的parameters
+    //todo 去掉TableNameField，直接取值
     var parameters: Map<String, TableNameField> = mutableMapOf()
         get() {
             val params: MutableMap<String, TableNameField> = mutableMapOf()
@@ -72,7 +74,14 @@ abstract class EntityBase {
             }
             return params
         }
-
+    var sqlParams: Map<String, Any?> = mutableMapOf()
+        get() {
+            val params: MutableMap<String, Any?> = mutableMapOf()
+            for (i in this.fieldNames.indices) {
+                params.put(this.fieldNames[i], this.fieldValues[i])
+            }
+            return params
+        }
     //更改过的字段表
     var changedFields: Map<String, TableNameField> = mutableMapOf()
         get() {
@@ -87,7 +96,17 @@ abstract class EntityBase {
             }
             return params
         }
-
+    //更改过的字段表
+    var changedSqlParams: Map<String, Any?> = mutableMapOf()
+        get() {
+            val params: MutableMap<String, Any?> = mutableMapOf()
+            for (i in this.fieldNames.indices) {
+                if (changedList[i]) {
+                    params.put(this.fieldNames[i], this.fieldValues[i])
+                }
+            }
+            return params
+        }
 
     var primaryKeys: List<String> = listOf()
         private set
@@ -400,5 +419,19 @@ abstract class EntityBase {
     private fun onPropertyGeting(name: String) {
         channel.post(GettingEvent(this, name))
 //		println(" OnPropertyGeting name = ${name}")
+    }
+
+
+    open fun afterDelete(scope: Scope): Scope {
+        println("afterDelete scope.sqlString = ${scope.sqlString}")
+        println("afterDelete scope.rowsAffected = ${scope.rowsAffected}")
+        return scope
+    }
+
+    open fun afterUpdate(scope: Scope): Scope {
+        println("afterUpdate scope.sqlString = ${scope.sqlString}")
+        println("afterUpdate scope.sqlParam = ${scope.sqlParam}")
+        println("afterUpdate scope.rowsAffected = ${scope.rowsAffected}")
+        return scope
     }
 }

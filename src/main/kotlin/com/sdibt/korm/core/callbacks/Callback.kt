@@ -19,15 +19,19 @@ package com.sdibt.korm.core.callbacks
 
 
 class Callback {
-    var processors: MutableList<CallBackProcessors> = mutableListOf()
-    var creates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-    var updates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-    var deletes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-    var queries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-    var rowQueries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+     var processors: MutableList<CallBackProcessors> = mutableListOf()
+     var creates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+     var updates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+     var deletes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+     var queries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+     var rowQueries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
 
 }
 
 fun Callback.Delete(): CallBackProcessors {
     return CallBackProcessors("delete", this)
+}
+
+fun Callback.Update(): CallBackProcessors {
+    return CallBackProcessors("update", this)
 }

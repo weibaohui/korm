@@ -17,52 +17,61 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.NamedParamStatement
 import com.sdibt.korm.core.entity.EntityBase
-import java.sql.PreparedStatement
-import java.sql.ResultSet
+import com.sdibt.korm.core.enums.DBMSType
+import com.sdibt.korm.core.interceptor.SqlProcess
+import com.sdibt.korm.core.mapping.BaseNameConvert
+import com.sdibt.korm.core.mapping.CamelCaseNameConvert
+import javax.sql.DataSource
 
-class DB : SQLCommon {
-    var Value: Any? = null
+class DB(var dataSource: DataSource) {
+    //默认名称转换器
+    var nameConvert: BaseNameConvert = CamelCaseNameConvert()
+    var dbType: DBMSType = DBMSType.MySql
+
+
     var Error: Any? = null
-    var RowsAffected: Int = 0
 
     // single db
-    var db: SQLCommon? = null
+    var db: DB = this
 
     var callbacks: Callback = DefaultCallBack.instance.callBack
 
     init {
         CallBackDelete().init()
+        CallBackUpdate().init()
     }
 
-    override fun Exec(query: String, params: Map<String, Any?>): sqlResult {
-        println("query = ${query}")
-        println("params = ${params}")
-        this.RowsAffected = 1
-        return sqlResult(111111, 1)
+
+    fun executeUpdate(sql: String, params: Map<String, Any?>): sqlResult {
+
+
+        val sp = SqlProcess(sql, params, nameConvert)
+        println("SqlProcess sql = ${sp.sqlString}")
+        println("SqlProcess params = ${sp.sqlParams}")
+
+        var rowsAffected = 0
+        var generatedKeys: Any? = null
+
+        val conn = this.dataSource.connection
+        val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sp.sqlString)
+        for ((key, fieldValue) in sp.sqlParams) {
+            statement.setObject(key, "$fieldValue")
+        }
+
+        rowsAffected = statement.executeUpdate()
+        val rs = statement.generatedKeys
+        if (rs.next()) {
+            generatedKeys = rs.getObject(1)
+        }
+
+        return sqlResult(rowsAffected, generatedKeys)
     }
 
-    override fun Prepare(query: String): PreparedStatement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun Query(query: String, params: Map<String, Any?>): ResultSet {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 
     fun NewScope(entity: EntityBase): Scope {
-        val scope = Scope()
-        scope.entity = entity
-        scope.sqlTableName = "test"
-        scope.db = this
-
-        val idField = Field()
-        idField.Name = "id"
-        idField.Value = "1"
-        val nameField = Field()
-        nameField.Name = "name"
-        nameField.Value = "zhangsan"
-        scope.fields = listOf(idField, nameField)
+        val scope = Scope(entity, this)
         return scope
     }
 
@@ -70,5 +79,12 @@ class DB : SQLCommon {
         this.NewScope(entity).callCallbacks(this.callbacks.deletes)
     }
 
+    fun Update(entity: EntityBase) {
+        this.Update(entity, true)
+    }
+
+    fun Update(entity: EntityBase, saveChangedOnly: Boolean = true) {
+        this.NewScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.updates)
+    }
 
 }

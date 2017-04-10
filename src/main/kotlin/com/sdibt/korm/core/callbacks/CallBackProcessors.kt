@@ -16,6 +16,7 @@
  */
 
 package com.sdibt.korm.core.callbacks
+
 class CallBackProcessors {
     var name: String? = null              // current callback's name
     var before: String? = null            // register current callback before a callback
@@ -24,22 +25,21 @@ class CallBackProcessors {
     var remove: Boolean? = null               // delete callbacks with same name
     var kind: String? = null            // callback type: create, update, delete, query, row_query
     var processor: ((scope: Scope) -> Scope)? = null // callback handler
-    var parent: Callback? = null
+    var parent: Callback
 
-    constructor(kind: String?, parent: Callback?) {
+    constructor(kind: String?, parent: Callback) {
         this.kind = kind
         this.parent = parent
     }
 }
 
 
-
-
 fun CallBackProcessors.reg(callBackName: String, block: (scope: Scope) -> Scope) {
     this.name = callBackName
     this.processor = block
-    this.parent?.processors?.add(this)
+    this.parent.processors.add(this)
     when (this.kind) {
-        "delete" -> this.parent?.deletes?.add(block)
+        "delete" -> this.parent.deletes.add(block)
+        "update" -> this.parent.updates.add(block)
     }
 }

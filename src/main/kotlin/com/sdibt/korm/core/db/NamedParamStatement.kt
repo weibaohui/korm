@@ -1,3 +1,20 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.sdibt.korm.core.db
 
 import com.sdibt.korm.core.enums.DBMSType
@@ -30,6 +47,7 @@ constructor(dbmsType: DBMSType, conn: Connection, sql: String) : PreparedStateme
             this.parameterChar = ':'
         }
 
+
         //(?!\\B'[^']*)(:\\w+)(?![^']*'\\B)
         //"(?<!')(@[\\w]+)(?!')"
         val findParametersPattern = Pattern.compile("(?<!')(@[\\w]+)(?!')")
@@ -38,9 +56,16 @@ constructor(dbmsType: DBMSType, conn: Connection, sql: String) : PreparedStateme
             fields.add(matcher.group().substring(1))
         }
 
-        //只是在创建ps的时候替换@符合，在这之前的操作都统一使用@
+        //只是在创建ps的时候替换@符号，在这之前的操作都统一使用@
+        var sqlString = sql.replace('@', this.parameterChar).replace(findParametersPattern.pattern().toRegex(), "?")
+
+        when (dbmsType) {
+            DBMSType.MySql -> sqlString = sqlString.replace('[', '`').replace(']', '`')
+            else           -> sqlString = sqlString.replace('[', '"').replace(']', '"')
+        }
+
         ps = conn.prepareStatement(
-                sql.replace('@', this.parameterChar).replace(findParametersPattern.pattern().toRegex(), "?"),
+                sqlString,
                 Statement.RETURN_GENERATED_KEYS
         )
     }
