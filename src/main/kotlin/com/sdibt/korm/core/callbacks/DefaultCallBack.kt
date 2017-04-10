@@ -23,7 +23,7 @@ enum class DefaultCallBack {
     private val callBackMap: MutableMap<DB, Callback> = mutableMapOf()
     fun getCallBack(db: DB): Callback {
         if (callBackMap.containsKey(db)) {
-            return callBackMap.get(db)!!
+            return callBackMap[db]!!
         } else {
             val cb = Callback()
             callBackMap.put(db, cb)
