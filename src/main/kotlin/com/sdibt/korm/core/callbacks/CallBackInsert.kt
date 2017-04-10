@@ -17,33 +17,33 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackUpdate {
+class CallBackInsert {
 
     val defaultCallBack = DefaultCallBack.instance.callBack
 
     fun init() {
-        defaultCallBack.Update().reg("beforeUpdate") { beforeUpdateCallback(it) }
-        defaultCallBack.Update().reg("updateDateTime") { updateDateTimeCallback(it) }
-        defaultCallBack.Update().reg("update") { updateCallback(it) }
-        defaultCallBack.Update().reg("afterUpdate") { afterUpdateCallback(it) }
+        defaultCallBack.Insert().reg("beforeInsert") { beforeInsertCallback(it) }
+        defaultCallBack.Insert().reg("InsertDateTime") { insertDateTimeCallback(it) }
+        defaultCallBack.Insert().reg("Insert") { insertCallback(it) }
+        defaultCallBack.Insert().reg("afterInsert") { afterInsertCallback(it) }
     }
 
 
-    fun beforeUpdateCallback(scope: Scope): Scope {
+    fun beforeInsertCallback(scope: Scope): Scope {
         var execScope = scope
         if (!execScope.hasError) {
             execScope = scope.callMethod("beforeSave")
         }
         if (!execScope.hasError) {
-            execScope = scope.callMethod("beforeUpdate")
+            execScope = scope.callMethod("beforeInsert")
         }
         return execScope
     }
 
-    fun afterUpdateCallback(scope: Scope): Scope {
+    fun afterInsertCallback(scope: Scope): Scope {
         var execScope = scope
         if (!execScope.hasError) {
-            execScope = scope.callMethod("afterUpdate")
+            execScope = scope.callMethod("afterInsert")
         }
         if (!execScope.hasError) {
             execScope = scope.callMethod("afterSave")
@@ -52,47 +52,54 @@ class CallBackUpdate {
 
     }
 
-    fun updateDateTimeCallback(scope: Scope): Scope {
-
+    fun insertDateTimeCallback(scope: Scope): Scope {
 
 
 //        scope.sqlParam.put("CreateAt", "2017-08-08")
 //
         return scope
     }
-    fun updateCallback(scope: Scope): Scope {
+
+    fun insertCallback(scope: Scope): Scope {
 
         val entity = scope.entity
         val params = if (scope.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
         params.forEach { t, u -> scope.sqlParam.put(t, u) }
 
 
-        if (entity.primaryKeys.isNotEmpty()) {
-            var sqlUpdate = "UPDATE " + entity.tableName + " SET "
-            var sqlWhere = ""
-            val pks = entity.primaryKeys
-            scope.sqlParam.forEach {
-                field, _ ->
-                val isPk = pks.indices.any {
-                    field.equals(pks[it], true)
+        var Items = ""
+        var ItemValues = ""
+        var sqlInsert = "INSERT INTO " + entity.tableName
+
+        //主键未设置
+        entity.autoIdFields
+                .filterNot { it.key in scope.sqlParam.keys }
+                .forEach { id, idType ->
+                    //主键值未设置
+                    val nextId = idType.getNextId()
+                    nextId?.apply {
+                        scope.sqlParam.put(id, nextId)
+                    }
                 }
-                //不更新主键,主键放到where 条件中
-                if (!isPk) {
-                    sqlUpdate += " [$field]=@$field ,"
-                } else {
-                    sqlWhere += " And [$field]=@$field "
+
+        //主键值是null
+        entity.autoIdFields
+                .filter { it.key in scope.sqlParam.keys && scope.sqlParam[it.key] == null }
+                .forEach { id, idType ->
+                    //主键值设置为null
+                    val nextId = idType.getNextId()
+                    nextId?.apply {
+                        scope.sqlParam.put(id, nextId)
+                    }
                 }
-            }
-            sqlUpdate = sqlUpdate.trimEnd(',') + " WHERE 1=1 " + sqlWhere
 
-            scope.sqlString = sqlUpdate
-
-
-        } else {
-            throw RuntimeException("表" + entity.tableName + "没有指定主键，无法生成Update语句！")
+        scope.sqlParam.forEach {
+            pkey, _ ->
+            Items += "[$pkey],"
+            ItemValues += "@$pkey,"
         }
-
-
+        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+        scope.sqlString = sqlInsert
 
         if (scope.db.Error == null) {
             val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)

@@ -56,4 +56,27 @@ internal class DBTest {
         db.Update(tb)
         db.Update(tb, false)
     }
+
+
+    @Test
+    fun insertEntity() {
+        val tb = TestBook()
+//        tb.testId = "11"
+        tb.testName = "test"
+        db.Insert(tb)
+        tb.testCount = 9
+        db.Insert(tb, false)
+    }
+
+
+    @Test
+    fun saveEntity() {
+        val tb = TestBook()
+        tb.testId = "11"
+        tb.testName = "test"
+        db.Delete(tb)
+        db.Save(tb)
+        tb.testCount = 9
+        db.Save(tb, false)
+    }
 }

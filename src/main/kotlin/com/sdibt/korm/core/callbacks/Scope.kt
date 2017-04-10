@@ -31,7 +31,7 @@ class Scope(val entity: EntityBase, var db: DB) {
     var generatedKeys: Any? = null //返回的ID值，数据库自增
     var rowsAffected: Int = 0//影响行数
     var errors: MutableList<String> = mutableListOf()//错误
-    var startTime: Long = 0L//sql开始时间
+    var startTime: Long = System.currentTimeMillis()//sql开始时间
     var endTime: Long = 0L//sql结束时间
     var saveChangedOnly = true//默认只保存变化了的字段
 

@@ -434,4 +434,18 @@ abstract class EntityBase {
         println("afterUpdate scope.rowsAffected = ${scope.rowsAffected}")
         return scope
     }
+
+    open fun afterInsert(scope: Scope): Scope {
+        println("afterInsert scope.sqlString = ${scope.sqlString}")
+        println("afterInsert scope.sqlParam = ${scope.sqlParam}")
+        println("afterInsert scope.rowsAffected = ${scope.rowsAffected}")
+        return scope
+    }
+
+    open fun afterSave(scope: Scope): Scope {
+        println("afterSave scope.sqlString = ${scope.sqlString}")
+        println("afterSave scope.sqlParam = ${scope.sqlParam}")
+        println("afterSave scope.rowsAffected = ${scope.rowsAffected}")
+        return scope
+    }
 }

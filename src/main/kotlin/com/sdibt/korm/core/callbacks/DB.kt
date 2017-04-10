@@ -41,6 +41,7 @@ class DB(var dataSource: DataSource) {
     init {
         CallBackDelete().init()
         CallBackUpdate().init()
+        CallBackInsert().init()
     }
 
 
@@ -75,16 +76,37 @@ class DB(var dataSource: DataSource) {
         return scope
     }
 
-    fun Delete(entity: EntityBase) {
-        this.NewScope(entity).callCallbacks(this.callbacks.deletes)
+    fun Delete(entity: EntityBase): Int {
+        return this.NewScope(entity).callCallbacks(this.callbacks.deletes).rowsAffected
     }
 
-    fun Update(entity: EntityBase) {
-        this.Update(entity, true)
+    fun Update(entity: EntityBase): Int {
+        return this.Update(entity, true)
     }
 
-    fun Update(entity: EntityBase, saveChangedOnly: Boolean = true) {
-        this.NewScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.updates)
+    fun Update(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
+        return this.NewScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.updates).rowsAffected
+    }
+
+    fun Insert(entity: EntityBase): Int {
+        return this.Insert(entity, true)
+    }
+
+    fun Insert(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
+        return this.NewScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.inserts).rowsAffected
+    }
+
+    fun Save(entity: EntityBase): Int {
+        return this.Save(entity, true)
+    }
+
+    fun Save(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
+        val scope = this.NewScope(entity).saveChangedOnly(saveChangedOnly)
+        scope.callCallbacks(this.callbacks.updates)
+        if (scope.db.Error == null && scope.rowsAffected == 0) {
+            scope.callCallbacks(this.callbacks.inserts)
+        }
+        return scope.rowsAffected
     }
 
 }
