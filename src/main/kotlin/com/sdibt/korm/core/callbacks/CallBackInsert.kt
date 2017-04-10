@@ -17,9 +17,9 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackInsert {
+class CallBackInsert (db: DB) {
 
-    val defaultCallBack = DefaultCallBack.instance.callBack
+    val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
         defaultCallBack.Insert().reg("beforeInsert") { beforeInsertCallback(it) }
@@ -62,6 +62,8 @@ class CallBackInsert {
 
     fun insertCallback(scope: Scope): Scope {
 
+        println("insertCallback() start")
+
         val entity = scope.entity
         val params = if (scope.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
         params.forEach { t, u -> scope.sqlParam.put(t, u) }
@@ -77,6 +79,7 @@ class CallBackInsert {
                 .forEach { id, idType ->
                     //主键值未设置
                     val nextId = idType.getNextId()
+                    println("主键未设置nextId =$id ${nextId}")
                     nextId?.apply {
                         scope.sqlParam.put(id, nextId)
                     }
@@ -84,12 +87,18 @@ class CallBackInsert {
 
         //主键值是null
         entity.autoIdFields
-                .filter { it.key in scope.sqlParam.keys && scope.sqlParam[it.key] == null }
                 .forEach { id, idType ->
-                    //主键值设置为null
-                    val nextId = idType.getNextId()
-                    nextId?.apply {
-                        scope.sqlParam.put(id, nextId)
+                    println("id = ${id}")
+                    println(" scope.sqlParam.keys = ${ scope.sqlParam.keys}")
+                    println("$id in scope.sqlParam.keys = ${id in scope.sqlParam.keys}")
+                    println("scope.sqlParam[$id] = ${scope.sqlParam[id]}")
+                    if (id in scope.sqlParam.keys && scope.sqlParam[id] == null) {
+                        //主键值设置为null
+                        val nextId = idType.getNextId()
+                        println("主键值是null = $id= ${nextId}")
+                        nextId?.apply {
+                            scope.sqlParam.put(id, nextId)
+                        }
                     }
                 }
 
@@ -107,6 +116,8 @@ class CallBackInsert {
             scope.generatedKeys = generatedKeys
             scope.result = rowsAffected
         }
+
+        println("insertCallback() end")
 
         return scope
     }

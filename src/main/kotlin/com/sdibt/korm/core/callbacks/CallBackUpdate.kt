@@ -17,9 +17,9 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackUpdate {
+class CallBackUpdate (db: DB) {
 
-    val defaultCallBack = DefaultCallBack.instance.callBack
+    val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
         defaultCallBack.Update().reg("beforeUpdate") { beforeUpdateCallback(it) }

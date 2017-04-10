@@ -15,9 +15,7 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.idworker;import java.util.concurrent.ThreadLocalRandom;
-
-/**
+package com.sdibt.korm.core.idworker; /**
  * Twitter_Snowflake<br>
  * SnowFlake的结构如下(每部分用-分开):<br>
  * 0 - 0000000000 0000000000 0000000000 0000000000 0 - 000 - 0000000 - 000000000000 <br>
@@ -122,10 +120,10 @@ public class SnowFlake {
     }
 
     public SnowFlake() {
-        Long workerId= ThreadLocalRandom.current().nextLong(7);
-        Long dataCenterId= ThreadLocalRandom.current().nextLong(3);
-//        Long workerId     = 1010101L;
-//        Long dataCenterId = 101L;
+//        Long workerId= ThreadLocalRandom.current().nextLong(7);
+//        Long dataCenterId= ThreadLocalRandom.current().nextLong(3);
+        Long workerId     = 1010101L;
+        Long dataCenterId = 101L;
         this.workerId = workerId;
         this.dataCenterId = dataCenterId;
     }

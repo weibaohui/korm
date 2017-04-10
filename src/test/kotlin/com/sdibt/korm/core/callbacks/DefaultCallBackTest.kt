@@ -17,17 +17,11 @@
 
 package com.sdibt.korm.core.callbacks
 
-enum class DefaultCallBack {
-    instance;
+import org.junit.Before
 
-    private val callBackMap: MutableMap<DB, Callback> = mutableMapOf()
-    fun getCallBack(db: DB): Callback {
-        if (callBackMap.containsKey(db)) {
-            return callBackMap.get(db)!!
-        } else {
-            val cb = Callback()
-            callBackMap.put(db, cb)
-            return cb
-        }
+class DefaultCallBackTest {
+    @Before
+    fun setUp() {
     }
+
 }

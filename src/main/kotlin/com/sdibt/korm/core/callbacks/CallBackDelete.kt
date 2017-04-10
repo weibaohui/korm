@@ -17,9 +17,9 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackDelete {
+class CallBackDelete(db: DB) {
 
-    val defaultCallBack = DefaultCallBack.instance.callBack
+    val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
         defaultCallBack.Delete().reg("beforeDelete") { beforeDeleteCallback(it) }

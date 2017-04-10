@@ -37,12 +37,13 @@ class DB(var dataSource: DataSource) {
     // single db
     var db: DB = this
 
-    var callbacks: Callback = DefaultCallBack.instance.callBack
+    var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
 
     init {
-        CallBackDelete().init()
-        CallBackUpdate().init()
-        CallBackInsert().init()
+//        callbacks.reset()
+        CallBackDelete(this).init()
+        CallBackUpdate(this).init()
+        CallBackInsert(this).init()
     }
 
 
@@ -61,12 +62,16 @@ class DB(var dataSource: DataSource) {
         for ((key, fieldValue) in sp.sqlParams) {
             statement.setObject(key, "$fieldValue")
         }
-
-        rowsAffected = statement.executeUpdate()
-        val rs = statement.generatedKeys
-        if (rs.next()) {
-            generatedKeys = rs.getObject(1)
+        try {
+            rowsAffected = statement.executeUpdate()
+            val rs = statement.generatedKeys
+            if (rs.next()) {
+                generatedKeys = rs.getObject(1)
+            }
+        } catch (ex: Exception) {
+            this.Error = ex
         }
+
 
         return sqlResult(rowsAffected, generatedKeys)
     }
@@ -77,13 +82,20 @@ class DB(var dataSource: DataSource) {
         return scope
     }
 
-
-    fun Delete(q: OQL): Int {
-        val scope = this.NewScope(q.currEntity)
+    fun NewScope(q: OQL): Scope {
+        val scope = Scope(q.currEntity, this)
         scope.sqlString = q.toString()
         scope.sqlParam = q.sqlParam
         scope.actionType = ActionType.OQL
-        return scope.callCallbacks(this.callbacks.deletes).rowsAffected
+        return scope
+    }
+
+    fun Delete(q: OQL): Int {
+        return this.NewScope(q).callCallbacks(this.callbacks.deletes).rowsAffected
+    }
+
+    fun Update(q: OQL): Int {
+        return this.NewScope(q).callCallbacks(this.callbacks.updates).rowsAffected
     }
 
     fun Delete(entity: EntityBase): Int {

@@ -20,6 +20,8 @@ package com.sdibt.korm.core.callbacks
 import com.alibaba.druid.pool.DruidDataSource
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.oql.OQL
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 
 
@@ -29,23 +31,32 @@ internal class DBTest {
     var password = "root"
 
 
-    var db: DB
+    fun getDB(): DB {
 
-    init {
         var dds = DruidDataSource()
         dds.url = dbURL
         dds.username = userName
         dds.password = password
+        return DB(dds)
+    }
 
+    @Before
+    fun setUp() {
 
-        db = DB(dds)
+        println("Start ")
+    }
+
+    @After
+    fun tearDown() {
+        getDB()
+        println("over")
     }
 
     @Test
     fun deleteEntity() {
         val tb = TestBook()
         tb.testId = "dd"
-        db.Delete(tb)
+        getDB().Delete(tb)
     }
 
 
@@ -54,19 +65,21 @@ internal class DBTest {
         val tb = TestBook()
         tb.testId = "dd"
         tb.testName = "test"
-        db.Update(tb)
-        db.Update(tb, false)
+        getDB().Update(tb)
+        getDB().Update(tb, false)
     }
 
 
     @Test
     fun insertEntity() {
         val tb = TestBook()
-//        tb.testId = "11"
         tb.testName = "test"
-        db.Insert(tb)
-        tb.testCount = 9
-        db.Insert(tb, false)
+        getDB().Insert(tb)
+
+        val tb1 = TestBook()
+        tb1.testName = "test"
+        tb1.testCount = 9
+        getDB().Insert(tb1, false)
     }
 
 
@@ -75,10 +88,10 @@ internal class DBTest {
         val tb = TestBook()
         tb.testId = "11"
         tb.testName = "test"
-        db.Delete(tb)
-        db.Save(tb)
+        getDB().Delete(tb)
+        getDB().Save(tb)
         tb.testCount = 9
-        db.Save(tb, false)
+        getDB().Save(tb, false)
     }
 
 
@@ -94,7 +107,7 @@ internal class DBTest {
                     cmp.Comparer(book2.testName, "=", "abcInsertOQLWidthKeys")
                 }
                 .END
-        db.Delete(q)
+        getDB().Delete(q)
     }
 
 }
