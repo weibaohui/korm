@@ -38,9 +38,31 @@ class CallBackDelete {
 
     fun deleteCallback(scope: Scope): Scope {
 
+        var execScope: Scope
+
+        when (scope.actionType) {
+            ActionType.Entity -> {
+                execScope = deleteEntity(scope)
+            }
+            ActionType.OQL    -> {
+                execScope = scope
+            }
+        }
+
+
+
+        if (execScope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
+            execScope.rowsAffected = rowsAffected
+            execScope.generatedKeys = generatedKeys
+            execScope.result = rowsAffected
+        }
+
+        return execScope
+    }
+
+    private fun deleteEntity(scope: Scope): Scope {
         val entity = scope.entity
-
-
         entity.primaryKeys.isNotEmpty().apply {
             var sqlWhere = ""
             val pks = entity.primaryKeys
@@ -62,14 +84,6 @@ class CallBackDelete {
                 throw RuntimeException("表" + entity.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
             }
             scope.sqlString = "DELETE FROM ${entity.tableName}  WHERE 1=1 $sqlWhere"
-        }
-
-
-        if (scope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
-            scope.rowsAffected = rowsAffected
-            scope.generatedKeys = generatedKeys
-            scope.result = rowsAffected
         }
 
         return scope

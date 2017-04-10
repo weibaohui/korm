@@ -62,12 +62,12 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     /**
      * 是否排除重复记录
      */
-     var Distinct: Boolean = false
+    var Distinct: Boolean = false
 
     /**
      * 是否已经发生了连接操作
      */
-     var haveJoinOpt: Boolean = false
+    var haveJoinOpt: Boolean = false
     /**
      * 是否有排序操作
      */
@@ -107,7 +107,14 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      */
     val parameters: HashMap<String, TableNameField> = hashMapOf()
 
-
+    var sqlParam: MutableMap<String, Any?> = mutableMapOf()
+        get() {
+            val params: MutableMap<String, Any?> = mutableMapOf()
+            this.parameters.forEach {
+                params.put(it.key, it.value.fieldValue)
+            }
+            return params
+        }
     /**
      * 实体类映射的类型
      */
@@ -117,11 +124,11 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     private var dictAliases: HashMap<Any, String> = HashMap()
     private var mainTableName = ""
     private val selectedFieldNames = ArrayList<String>()
-     var groupByFieldNames: ArrayList<String> = arrayListOf()
+    var groupByFieldNames: ArrayList<String> = arrayListOf()
     private var sql_from = "" //Select时候的表名或者Upate，Insert的前缀语句
-    private  var sql_fields = ""
-    private  var sql_table = ""
-     var sql_condition = ""
+    private var sql_fields = ""
+    private var sql_table = ""
+    var sql_condition = ""
     private var updateSelfOptChar: Char = ' '
     private var paraIndex = 0
     private var optFlag = OQL_SELECT
@@ -744,7 +751,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             val b = selectedFieldNames[i].indexOf(']')
             val realField: String = selectedFieldNames[i].substring(a + 1, a + 1 + b - a - 1)
             val Value = currEntity.getFieldValue(realField)
-            if (!this.currEntity.autoIdFields.keys.map {it }
+            if (!this.currEntity.autoIdFields.keys.map { it }
                     .contains(realField)) {
                 //不在已赋值的autoId类型中的话，就参与sql语句处理
                 insertFieldsString.add(selectedFieldNames[i])
@@ -757,7 +764,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         this.currEntity.autoIdFields.filter { !autoIDAssigned.contains(it.key) }.forEach { field, type ->
             //设置了autoID，并且用户没有设置值
 
-            val realField =field
+            val realField = field
             when (type) {
 
                 IdWorkerType.SnowFlake     -> {

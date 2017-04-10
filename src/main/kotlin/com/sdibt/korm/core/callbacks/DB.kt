@@ -23,6 +23,7 @@ import com.sdibt.korm.core.enums.DBMSType
 import com.sdibt.korm.core.interceptor.SqlProcess
 import com.sdibt.korm.core.mapping.BaseNameConvert
 import com.sdibt.korm.core.mapping.CamelCaseNameConvert
+import com.sdibt.korm.core.oql.OQL
 import javax.sql.DataSource
 
 class DB(var dataSource: DataSource) {
@@ -76,6 +77,15 @@ class DB(var dataSource: DataSource) {
         return scope
     }
 
+
+    fun Delete(q: OQL): Int {
+        val scope = this.NewScope(q.currEntity)
+        scope.sqlString = q.toString()
+        scope.sqlParam = q.sqlParam
+        scope.actionType = ActionType.OQL
+        return scope.callCallbacks(this.callbacks.deletes).rowsAffected
+    }
+
     fun Delete(entity: EntityBase): Int {
         return this.NewScope(entity).callCallbacks(this.callbacks.deletes).rowsAffected
     }
@@ -109,4 +119,6 @@ class DB(var dataSource: DataSource) {
         return scope.rowsAffected
     }
 
+
 }
+

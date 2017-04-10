@@ -19,6 +19,7 @@ package com.sdibt.korm.core.callbacks
 
 import com.alibaba.druid.pool.DruidDataSource
 import com.sdibt.korm.core.db.TestBook
+import com.sdibt.korm.core.oql.OQL
 import org.junit.Test
 
 
@@ -79,4 +80,21 @@ internal class DBTest {
         tb.testCount = 9
         db.Save(tb, false)
     }
+
+
+    @Test
+    fun DeleteOQL() {
+
+        var book2 = TestBook()
+        book2.testName = "abcInsertOQLWidthKeys"
+        book2.testURL = "InsertOQLWidthKeys"
+        var q = OQL.From(book2).Delete()
+                .Where {
+                    cmp ->
+                    cmp.Comparer(book2.testName, "=", "abcInsertOQLWidthKeys")
+                }
+                .END
+        db.Delete(q)
+    }
+
 }

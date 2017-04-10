@@ -15,27 +15,13 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.idworker
+package com.sdibt.korm.core.callbacks
 
-enum class IdWorkerType {
-    AutoIncrement, SnowFlake, GUID, SEQ;
-
-    fun getNextId(): Any? {
-        when (this) {
-            IdWorkerType.SnowFlake     -> return SnowFlakeGenerator.instance.nextId()
-            IdWorkerType.AutoIncrement -> return null
-            IdWorkerType.GUID          -> return java.util.UUID.randomUUID()
-            else                       -> return null
-        }
-    }
-
-}
-
-fun IdWorkerType.getIdGen(): Any? {
-    when (this) {
-        IdWorkerType.SnowFlake     -> return SnowFlakeGenerator.instance.nextId()
-        IdWorkerType.AutoIncrement -> return null
-        IdWorkerType.GUID          -> return java.util.UUID.randomUUID()
-        else                       -> return null
-    }
+/** ActionType
+ * <功能详细描述>
+ *
+ * @return Entity, OQL
+ */
+enum class ActionType {
+    Entity, OQL
 }
