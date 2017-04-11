@@ -19,6 +19,7 @@ package com.sdibt.korm.core.callbacks
 
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.entity.EntityFieldsCache
+import java.time.LocalDateTime
 
 class CallBackUpdate(db: KormSqlSession) {
 
@@ -75,7 +76,7 @@ class CallBackUpdate(db: KormSqlSession) {
 
         val item = EntityFieldsCache.Item(scope.entity!!)
         item.lastModifiedDate?.apply {
-            scope.sqlParam.put("${item.lastModifiedDate}", "2017-09-09")
+            scope.sqlParam.put("${item.lastModifiedDate}", LocalDateTime.now())
         }
         return scope
     }

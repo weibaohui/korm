@@ -23,6 +23,8 @@ import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.oql.OQL
 import org.junit.After
+import org.junit.Assert
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -65,10 +67,10 @@ internal class DBTest {
     @Test
     fun updateEntity() {
         val tb = TestBook()
-        tb.testId = "dd"
+        tb.testId = "50"
         tb.testName = "test"
         getDB().update(tb)
-        getDB().update(tb, false)
+//        getDB().update(tb, false)
     }
 
 
@@ -103,13 +105,17 @@ internal class DBTest {
         var book2 = TestBook()
         book2.testName = "abcInsertOQLWidthKeys"
         book2.testURL = "InsertOQLWidthKeys"
+        val saveCount = getDB().save(book2)
+        Assert.assertTrue(saveCount > 0)
+
         var q = OQL.From(book2).Delete()
                 .Where {
                     cmp ->
                     cmp.Comparer(book2.testName, "=", "abcInsertOQLWidthKeys")
                 }
                 .END
-        getDB().delete(q)
+        val count = getDB().delete(q)
+        Assert.assertTrue(count > 0)
     }
 
 
@@ -173,11 +179,15 @@ internal class DBTest {
             cmp.Comparer(book.testName, "=", "671")
         }.END
 
-        book = getDB().selectSingle<TestBook>(q)!!
+        val book2 = getDB().selectSingle<TestBook>(q)
+        book2?.apply {
+            println("SelectSingleEntity = ${book2.testId}")
+            println("SelectSingleEntity = ${book2.testName}")
+            println("SelectSingleEntity = ${book2.testURL}")
+            println("SelectSingleEntity = ${book2.createdDate}")
+            println("SelectSingleEntity = ${book2.LastModifiedDate}")
+        }
 
-        println("SelectSingleEntity = ${book.testId}")
-        println("SelectSingleEntity = ${book.testName}")
-        println("SelectSingleEntity = ${book.testURL}")
     }
 
 
@@ -210,8 +220,10 @@ internal class DBTest {
         book.testName = "abc"
         book.testId = "777"
         book.testCount = 1
+        assertTrue(getDB().save(book) > 0)
         var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
-        getDB().update(q1)
+
+        assertTrue(getDB().update(q1) > 0)
     }
 
 

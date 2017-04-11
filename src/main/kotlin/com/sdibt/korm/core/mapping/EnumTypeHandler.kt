@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.mapping
@@ -26,6 +23,9 @@ import java.sql.SQLXML
 import java.sql.Time
 import java.sql.Timestamp
 import java.sql.Types
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.*
 
 /**
@@ -60,6 +60,10 @@ enum class EnumTypeHandler {
         handlers.put(String::class.java.simpleName.toLowerCase(), StringTypeHandler())
         handlers.put(Timestamp::class.java.simpleName.toLowerCase(), TimestampTypeHandler())
         handlers.put(Time::class.java.simpleName.toLowerCase(), TimeTypeHandler())
+        handlers.put(Date::class.java.simpleName.toLowerCase(), DateTypeHandler())
+        handlers.put(LocalDate::class.java.simpleName.toLowerCase(), DateTypeHandler())
+        handlers.put(LocalTime::class.java.simpleName.toLowerCase(), TimeTypeHandler())
+        handlers.put(LocalDateTime::class.java.simpleName.toLowerCase(), LocalDateTimeTypeHandler())
         handlers.put("default", DefaultTypeHandler())
         typeHandlers = handlers
 

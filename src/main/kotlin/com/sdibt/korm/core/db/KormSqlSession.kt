@@ -160,6 +160,7 @@ open class KormSqlSession(var dataSource: DataSource) {
                 generatedKeys = rs.getObject(1)
             }
         } catch (ex: Exception) {
+            println("ex.message = ${ex.message}")
             this.Error = ex
         }
 

@@ -19,6 +19,7 @@ package com.sdibt.korm.core.callbacks
 
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.entity.EntityFieldsCache
+import java.time.LocalDateTime
 
 class CallBackInsert(db: KormSqlSession) {
 
@@ -63,6 +64,9 @@ class CallBackInsert(db: KormSqlSession) {
         item.createdBy?.apply {
             scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
         }
+        item.lastModifiedBy?.apply {
+            scope.sqlParam.put("${item.lastModifiedBy}", "lisi")
+        }
         return scope
     }
 
@@ -70,9 +74,14 @@ class CallBackInsert(db: KormSqlSession) {
         if (scope.hasError) return scope
         if (scope.entity == null) return scope
         val item = EntityFieldsCache.Item(scope.entity!!)
+        val time = LocalDateTime.now()
         item.createdDate?.apply {
-            scope.sqlParam.put("${item.createdDate}", "2017-08-08")
+            scope.sqlParam.put("${item.createdDate}", time)
         }
+        item.lastModifiedDate?.apply {
+            scope.sqlParam.put("${item.lastModifiedDate}", time)
+        }
+
         return scope
     }
 

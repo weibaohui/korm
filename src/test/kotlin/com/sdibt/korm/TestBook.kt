@@ -23,7 +23,7 @@ import com.sdibt.korm.core.annotatoin.LastModifiedDate
 import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.idworker.IdWorkerType
-import java.util.*
+import java.time.LocalDateTime
 import javax.persistence.Table
 
 /**
@@ -88,7 +88,7 @@ class TestBook : EntityBase() {
 //            field = value
 //        }
     @CreatedDate
-    var createdDate: Date? = null
+    var createdDate:LocalDateTime? = null
         get() {
             getField("createdDate")
             return field
@@ -110,7 +110,7 @@ class TestBook : EntityBase() {
 //        }
 //
     @LastModifiedDate
-    var LastModifiedDate: Date? = null
+    var LastModifiedDate: LocalDateTime? = null
         get() {
             getField("LastModifiedDate")
             return field
