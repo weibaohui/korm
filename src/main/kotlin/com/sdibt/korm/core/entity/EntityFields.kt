@@ -17,7 +17,7 @@
 
 package com.sdibt.korm.core.entity
 
-import com.sdibt.korm.core.annotatoin.AutoID
+import com.sdibt.korm.core.annotatoin.*
 import com.sdibt.korm.core.idworker.IdWorkerType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -54,6 +54,11 @@ class EntityFields {
 
     var tableName: String? = null
     var schema: String? = null
+
+    var createdBy: String? = null
+    var createdDate: String? = null
+    var lastModifiedBy: String? = null
+    var lastModifiedDate: String? = null
 
     /**
      * 初始化实体类信息，必须确保单线程调用本方法
@@ -97,11 +102,12 @@ class EntityFields {
 //            （3）table生成策略是将主键的持久化在数据库中
             // 本项目中均采用snowflake替代，可以解决分布式问题,解决数据迁移问题
             entityType.declaredFields.forEach {
-                if (it.isAnnotationPresent(AutoID::class.java)) {
-//                    println("an value = ${it.getAnnotation(AutoID::class.java).name}")
-                    autoIdFieldsList.put(it.name, it.getAnnotation(AutoID::class.java).name)
-                } else {
-                    if (it.isAnnotationPresent(Id::class.java)) {
+
+                when {
+                    it.isAnnotationPresent(AutoID::class.java)           -> {
+                        autoIdFieldsList.put(it.name, it.getAnnotation(AutoID::class.java).name)
+                    }
+                    it.isAnnotationPresent(Id::class.java)               -> {
                         //兼容jpa @Id注解
                         if (it.isAnnotationPresent(GeneratedValue::class.java)) {
                             //有@GeneratedValue注解
@@ -114,10 +120,17 @@ class EntityFields {
                             autoIdFieldsList.put(it.name, IdWorkerType.SnowFlake)
                         }
                     }
+                    it.isAnnotationPresent(CreatedBy::class.java)        ->
+                        createdBy = it.getAnnotation(CreatedBy::class.java).name
+                    it.isAnnotationPresent(CreatedDate::class.java)      ->
+                        createdDate = it.getAnnotation(CreatedDate::class.java).name
+                    it.isAnnotationPresent(LastModifiedBy::class.java)   ->
+                        lastModifiedBy = it.getAnnotation(LastModifiedBy::class.java).name
+                    it.isAnnotationPresent(LastModifiedDate::class.java) ->
+                        lastModifiedDate = it.getAnnotation(LastModifiedDate::class.java).name
+
                 }
-
             }
-
 
             fields = fieldNameList.toTypedArray()
             fieldNames = fieldNameList.toTypedArray()

@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.callbacks
 
 import com.sdibt.korm.core.db.KormSqlSession
+import com.sdibt.korm.core.entity.EntityFieldsCache
 
 class CallBackUpdate(db: KormSqlSession) {
 
@@ -56,6 +57,21 @@ class CallBackUpdate(db: KormSqlSession) {
 
     fun updateDateTimeCallback(scope: Scope): Scope {
 
+        if (scope.entity != null) {
+            val item = EntityFieldsCache.Item(scope.entity!!)
+            item.createdDate?.apply {
+                scope.sqlParam.put("${item.createdDate}", "2017-08-08")
+            }
+            item.createdBy?.apply {
+                scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
+            }
+            item.lastModifiedBy?.apply {
+                scope.sqlParam.put("${item.lastModifiedBy}", "lisi")
+            }
+            item.lastModifiedDate?.apply {
+                scope.sqlParam.put("${item.lastModifiedDate}", "2017-09-09")
+            }
+        }
 
 //        scope.sqlParam.put("CreateAt", "2017-08-08")
 //

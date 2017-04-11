@@ -55,7 +55,7 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
 
-    constructor(dbmsType: DBMSType, ds: DataSource, nameConvert: BaseNameConvert=CamelCaseNameConvert()) : this(ds) {
+    constructor(dbmsType: DBMSType, ds: DataSource, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this(ds) {
         this.dbType = dbmsType
         this.nameConvert = nameConvert
     }
@@ -73,7 +73,7 @@ open class KormSqlSession(var dataSource: DataSource) {
     }
 
     fun newScope(q: OQL): Scope {
-        return Scope(q.currEntity, this).setSqlString(q.toString()).setSqlParam(q.sqlParam).setActionType(ActionType.OQL)
+        return Scope(q, this).setSqlString(q.toString()).setSqlParam(q.sqlParam).setActionType(ActionType.OQL)
     }
 
     fun newScope(sqlString: String, sqlParam: Map<String, Any?>): Scope {
@@ -184,7 +184,9 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     inline fun <reified T> selectSingle(q: OQL): T? {
         val result = this.newScope(q).resultType(T::class.java).callCallbacks(this.callbacks.selects).result
-        return result as T?
+
+        if (result != null) return result as T?
+        return null
     }
 
     fun <T> selectSingle(clazz: Class<T>, q: OQL): T? {

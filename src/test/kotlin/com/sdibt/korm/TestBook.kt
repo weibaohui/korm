@@ -17,11 +17,11 @@
 
 package com.sdibt.korm.core.db
 
-import com.sdibt.korm.core.annotatoin.AutoID
+import com.sdibt.korm.core.annotatoin.*
 import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.idworker.IdWorkerType
-import javax.persistence.Id
+import java.util.*
 import javax.persistence.Table
 
 /**
@@ -34,7 +34,6 @@ import javax.persistence.Table
 class TestBook : EntityBase() {
 
     @AutoID(IdWorkerType.SnowFlake)
-    @Id
     var testId: String? = null
         get() {
             getField("testId")
@@ -44,6 +43,7 @@ class TestBook : EntityBase() {
             setField("testId", value)
             field = value
         }
+
 
     var testName: String? = null
         get() {
@@ -75,11 +75,54 @@ class TestBook : EntityBase() {
             field = value
         }
 
+    @CreatedBy
+    var createdBy: String? = null
+        get() {
+            getField("createdBy")
+            return field
+        }
+        set(value) {
+            setField("createdBy", value)
+            field = value
+        }
+    @CreatedDate
+    var createdDate: Date? = null
+        get() {
+            getField("createdDate")
+            return field
+        }
+        set(value) {
+            setField("createdDate", value)
+            field = value
+        }
+
+    @LastModifiedBy
+    var LastModifiedBy: String? = null
+        get() {
+            getField("LastModifiedBy")
+            return field
+        }
+        set(value) {
+            setField("LastModifiedBy", value)
+            field = value
+        }
+
+    @LastModifiedDate
+    var LastModifiedDate: Date? = null
+        get() {
+            getField("LastModifiedDate")
+            return field
+        }
+        set(value) {
+            setField("LastModifiedDate", value)
+            field = value
+        }
 
     fun beforeDelete(scope: Scope): Scope {
         scope.skipLeft = false
         return scope
     }
+
 
     override fun afterDelete(scope: Scope): Scope {
         super.afterDelete(scope)
@@ -87,4 +130,6 @@ class TestBook : EntityBase() {
         println("override scope.rowsAffected = ${scope.rowsAffected}")
         return scope
     }
+
+
 }

@@ -52,8 +52,15 @@ class Scope(var db: KormSqlSession) {
     constructor(entity: EntityBase, db: KormSqlSession) : this(db) {
         this.db = db
         this.entity = entity
+        this.actionType = ActionType.Entity
     }
 
+    constructor(oql: OQL, db: KormSqlSession) : this(db) {
+        this.oql = oql
+        this.db = db
+        this.entity = oql.currEntity
+        this.actionType = ActionType.OQL
+    }
 
     /** 调用entity中定义的Method
      * <功能详细描述>

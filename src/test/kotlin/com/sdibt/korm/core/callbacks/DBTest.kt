@@ -133,7 +133,6 @@ internal class DBTest {
                 .OrderBy(user.id, "desc")
 
 
-
         var ss = getDB().select<Map<String, Any?>>(select1.END)
         println("ss = ${ss}")
     }
