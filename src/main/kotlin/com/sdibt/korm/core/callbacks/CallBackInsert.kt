@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.callbacks
 
 import com.sdibt.korm.core.db.KormSqlSession
+import com.sdibt.korm.core.entity.EntityFieldsCache
 
 class CallBackInsert(db: KormSqlSession) {
 
@@ -26,6 +27,7 @@ class CallBackInsert(db: KormSqlSession) {
     fun init() {
         defaultCallBack.insert().reg("beforeInsert") { beforeInsertCallback(it) }
         defaultCallBack.insert().reg("InsertDateTime") { insertDateTimeCallback(it) }
+        defaultCallBack.insert().reg("InsertOperator") { insertOperatorCallback(it) }
         defaultCallBack.insert().reg("Insert") { insertCallback(it) }
         defaultCallBack.insert().reg("afterInsert") { afterInsertCallback(it) }
     }
@@ -54,11 +56,23 @@ class CallBackInsert(db: KormSqlSession) {
 
     }
 
+    fun insertOperatorCallback(scope: Scope): Scope {
+        if (scope.hasError) return scope
+        if (scope.entity == null) return scope
+        val item = EntityFieldsCache.Item(scope.entity!!)
+        item.createdBy?.apply {
+            scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
+        }
+        return scope
+    }
+
     fun insertDateTimeCallback(scope: Scope): Scope {
-
-
-//        scope.sqlParam.put("CreateAt", "2017-08-08")
-//
+        if (scope.hasError) return scope
+        if (scope.entity == null) return scope
+        val item = EntityFieldsCache.Item(scope.entity!!)
+        item.createdDate?.apply {
+            scope.sqlParam.put("${item.createdDate}", "2017-08-08")
+        }
         return scope
     }
 

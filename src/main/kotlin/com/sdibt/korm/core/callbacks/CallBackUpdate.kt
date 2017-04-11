@@ -27,6 +27,7 @@ class CallBackUpdate(db: KormSqlSession) {
     fun init() {
         defaultCallBack.update().reg("beforeUpdate") { beforeUpdateCallback(it) }
         defaultCallBack.update().reg("updateDateTime") { updateDateTimeCallback(it) }
+        defaultCallBack.update().reg("updateOperator") { updateOperatorCallback(it) }
         defaultCallBack.update().reg("update") { updateCallback(it) }
         defaultCallBack.update().reg("afterUpdate") { afterUpdateCallback(it) }
     }
@@ -55,26 +56,27 @@ class CallBackUpdate(db: KormSqlSession) {
 
     }
 
-    fun updateDateTimeCallback(scope: Scope): Scope {
+    fun updateOperatorCallback(scope: Scope): Scope {
+        if (scope.hasError) return scope
+        if (scope.entity == null) return scope
 
-        if (scope.entity != null) {
-            val item = EntityFieldsCache.Item(scope.entity!!)
-            item.createdDate?.apply {
-                scope.sqlParam.put("${item.createdDate}", "2017-08-08")
-            }
-            item.createdBy?.apply {
-                scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
-            }
-            item.lastModifiedBy?.apply {
-                scope.sqlParam.put("${item.lastModifiedBy}", "lisi")
-            }
-            item.lastModifiedDate?.apply {
-                scope.sqlParam.put("${item.lastModifiedDate}", "2017-09-09")
-            }
+        val item = EntityFieldsCache.Item(scope.entity!!)
+        item.lastModifiedBy?.apply {
+            scope.sqlParam.put("${item.lastModifiedBy}", "lisi")
         }
 
-//        scope.sqlParam.put("CreateAt", "2017-08-08")
-//
+        return scope
+    }
+
+    fun updateDateTimeCallback(scope: Scope): Scope {
+
+        if (scope.hasError) return scope
+        if (scope.entity == null) return scope
+
+        val item = EntityFieldsCache.Item(scope.entity!!)
+        item.lastModifiedDate?.apply {
+            scope.sqlParam.put("${item.lastModifiedDate}", "2017-09-09")
+        }
         return scope
     }
 
