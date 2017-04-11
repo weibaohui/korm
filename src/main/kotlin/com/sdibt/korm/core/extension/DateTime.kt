@@ -15,7 +15,7 @@
  *  limitations under the License.
  */
 
-package com.chinaunicomlabs.kotlin.system.extension
+package com.sdibt.korm.core.extension
 
 import java.time.LocalDate
 import java.time.LocalDateTime
