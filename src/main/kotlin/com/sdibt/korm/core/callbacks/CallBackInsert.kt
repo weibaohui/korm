@@ -17,7 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackInsert (db: DB) {
+class CallBackInsert(db: DB) {
 
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
@@ -62,9 +62,35 @@ class CallBackInsert (db: DB) {
 
     fun insertCallback(scope: Scope): Scope {
 
-        println("insertCallback() start")
 
-        val entity = scope.entity
+        val execScope: Scope
+
+        when (scope.actionType) {
+            ActionType.Entity -> {
+                execScope = insertEntity(scope)
+            }
+            ActionType.OQL    -> {
+                execScope = scope
+            }
+        }
+
+
+
+        if (execScope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
+            execScope.rowsAffected = rowsAffected
+            execScope.generatedKeys = generatedKeys
+            execScope.result = rowsAffected
+        }
+
+        return execScope
+
+    }
+
+
+    private fun insertEntity(scope: Scope): Scope {
+
+        val entity = scope.entity ?: return scope
         val params = if (scope.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
         params.forEach { t, u -> scope.sqlParam.put(t, u) }
 
@@ -89,7 +115,7 @@ class CallBackInsert (db: DB) {
         entity.autoIdFields
                 .forEach { id, idType ->
                     println("id = ${id}")
-                    println(" scope.sqlParam.keys = ${ scope.sqlParam.keys}")
+                    println(" scope.sqlParam.keys = ${scope.sqlParam.keys}")
                     println("$id in scope.sqlParam.keys = ${id in scope.sqlParam.keys}")
                     println("scope.sqlParam[$id] = ${scope.sqlParam[id]}")
                     if (id in scope.sqlParam.keys && scope.sqlParam[id] == null) {
@@ -110,15 +136,8 @@ class CallBackInsert (db: DB) {
         sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
         scope.sqlString = sqlInsert
 
-        if (scope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
-            scope.rowsAffected = rowsAffected
-            scope.generatedKeys = generatedKeys
-            scope.result = rowsAffected
-        }
-
-        println("insertCallback() end")
 
         return scope
     }
+
 }

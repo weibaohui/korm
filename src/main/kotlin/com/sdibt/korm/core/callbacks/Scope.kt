@@ -20,13 +20,18 @@ package com.sdibt.korm.core.callbacks
 import com.sdibt.korm.core.entity.EntityBase
 
 
-class Scope(val entity: EntityBase, var db: DB) {
+class Scope(var db: DB) {
     var actionType: ActionType = ActionType.Entity
+    var entity: EntityBase? = null
     var sqlString = ""
     var sqlParam: MutableMap<String, Any?> = mutableMapOf()
     var skipLeft = false
     var saveChangedOnly = true//默认只保存变化了的字段
     var result: Any? = null //执行结果
+    var resultType: Class<*>? = null//结果类型
+        private set
+    var resultIsList: Boolean = false
+        private set
     var generatedKeys: Any? = null //返回的ID值，数据库自增
     var rowsAffected: Int = 0//影响行数
     var errors: MutableList<String> = mutableListOf()//错误
@@ -36,6 +41,13 @@ class Scope(val entity: EntityBase, var db: DB) {
     val hasError: Boolean
         get() = db.Error != null
 
+
+    constructor(entity: EntityBase, db: DB) : this(db) {
+        this.db = db
+        this.entity = entity
+    }
+
+
     /** 调用entity中定义的Method
      * <功能详细描述>
      * @param methodName 方法名称.
@@ -44,7 +56,9 @@ class Scope(val entity: EntityBase, var db: DB) {
      */
     fun callMethod(methodName: String): Scope {
 
-        val clazz = entity::class.java
+        if (entity == null) return this
+
+        val clazz = entity!!::class.java
         clazz.methods.forEach {
             if (it.name == methodName) {
                 val method = clazz.getMethod(methodName, Scope::class.java)
@@ -61,7 +75,6 @@ class Scope(val entity: EntityBase, var db: DB) {
     }
 
     fun callCallbacks(funcs: List<(scope: Scope) -> Scope>): Scope {
-
         var scope = this
         for (i in funcs.indices) {
             scope = funcs[i].invoke(scope)
@@ -73,6 +86,17 @@ class Scope(val entity: EntityBase, var db: DB) {
 
     fun saveChangedOnly(changed: Boolean): Scope {
         this.saveChangedOnly = changed
+        return this
+    }
+
+
+    fun resultType(clazz: Class<*>): Scope {
+        this.resultType = clazz
+        return this
+    }
+
+    fun returnList(isList: Boolean = true): Scope {
+        this.resultIsList = isList
         return this
     }
 

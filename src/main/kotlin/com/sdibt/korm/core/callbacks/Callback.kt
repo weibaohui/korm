@@ -23,7 +23,7 @@ class Callback {
     var inserts: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var updates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var deletes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-    var queries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+    var selects: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var rowQueries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
 
     fun reset() {
@@ -31,7 +31,7 @@ class Callback {
         inserts.clear()
         updates.clear()
         deletes.clear()
-        queries.clear()
+        selects.clear()
         rowQueries.clear()
     }
 }
@@ -47,4 +47,8 @@ fun Callback.Update(): CallBackProcessors {
 
 fun Callback.Insert(): CallBackProcessors {
     return CallBackProcessors("insert", this)
+}
+
+fun Callback.Select(): CallBackProcessors {
+    return CallBackProcessors("select", this)
 }

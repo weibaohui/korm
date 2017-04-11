@@ -168,7 +168,7 @@ open class KormSqlSession {
         try {
             rs = statement.executeQuery()
             if (Map::class.java.isAssignableFrom(clazz)) {
-                resultList = rs.toMapList()
+                resultList = rs.toMapListT()
             } else {
                 resultList = rs.toBeanList(rs, nc, clazz)
 

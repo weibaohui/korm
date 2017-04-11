@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.callbacks
 
 import com.alibaba.druid.pool.DruidDataSource
+import com.sdibt.korm.core.User
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.oql.OQL
 import org.junit.After
@@ -109,5 +110,151 @@ internal class DBTest {
                 .END
         getDB().Delete(q)
     }
+
+
+    @Test
+    fun testJoinTable() {
+        var user = User()
+        user.name = "abc"
+        user.age = 19
+
+
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+
+
+        var select1 = OQL.From(user)
+                .LeftJoin(book).On(book.testName, user.name)
+                .Limit(10, 1, true)
+                .Select(user.id, book.testId, user.name, book.testName)
+                .Where(book.testName, user.name)
+                .OrderBy(user.id, "desc")
+//
+        println("\r\n testSelect \r\n ${select1.END.toString()}")
+        println("\r\n testSelect \r\n ${select1.END.PrintParameterInfo()}")
+
+
+        var ss = getDB().Select<Map<String, Any?>>(select1.END)
+        println("ss = ${ss}")
+    }
+
+
+    @Test
+    fun testCountSelect() {
+
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+//		var q = OQL.From(book).Select().Sum(book.testName, "count").GroupBy(book.testName).END
+//		var q = OQL.From(book).Select(book.testName).Sum(book.testName, "count").GroupBy(book.testName).END
+//		var q = OQL.From(book).Select().Sum(book.testName, "count").END
+        var q = OQL.From(book).Select().Sum(book.testName, "count").Where {
+            cmp ->
+            cmp.Comparer(book.testId, ">", "50")
+        }.END
+
+
+        var ss = getDB().SelectSingle<Map<String, Any?>>(q)
+        println("ss = ${ss}")
+    }
+
+
+    @Test
+    fun testSelectSingleEntity() {
+        var book = TestBook()
+        book.testName = "671"
+        book.testId = "17"
+        book.testURL = "www"
+        getDB().Delete(book)
+//         getDB().DeleteByPk(book)
+        getDB().Insert(book)
+
+        var q = OQL.From(book).Limit(1, 1).Select().Where {
+            cmp ->
+            cmp.Comparer(book.testName, "=", "671")
+        }.END
+
+        book = getDB().SelectSingle<TestBook>(q)!!
+
+        println("SelectSingleEntity = ${book.testId}")
+        println("SelectSingleEntity = ${book.testName}")
+        println("SelectSingleEntity = ${book.testURL}")
+    }
+
+
+    @Test
+    fun testCountSelectSingle() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+//		var q = OQL.From(book).Select().Sum(book.testName, "count").GroupBy(book.testName).END
+//		var q = OQL.From(book).Select(book.testName).Sum(book.testName, "count").GroupBy(book.testName).END
+//		var q = OQL.From(book).Select().Sum(book.testName, "count").END
+        var q = OQL.From(book).Select().Sum(book.testName, "count").Where {
+            cmp ->
+            cmp.Comparer(book.testId, ">", "50")
+        }.END
+        var q1 = OQL.From(book).Select().Avg(book.testId, "avgid").END
+
+
+        var ss: Map<String, Any?> = mapOf()
+        ss = getDB().SelectSingle<Map<String, Any?>>(q)!!
+        println("ss = ${ss}")
+        var intcount = getDB().SelectSingle<Float>(q1)
+        println("ss = ${intcount}")
+    }
+
+
+    @Test
+    fun testSelfupdate() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+        book.testCount = 1
+        var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
+        getDB().Update(q1)
+    }
+
+
+    @Test
+    fun testInsertFrom() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+        book.testCount = 1
+        var child = OQL.From(book).Select(book.testName, book.testCount).Where {
+            cmp ->
+            cmp.Comparer(book.testId, "=", "777")
+        }.END
+
+        var q = OQL.From(book)
+                .InsertFrom(child, book.testName, book.testCount)
+                .END
+
+        getDB().Insert(q)
+
+    }
+
+
+    @Test
+    fun testReadWithPage() {
+        var book = TestBook()
+        var q = OQL.From(book).Limit(10, 3, true).Select()
+//				.Where {
+//					cmp ->
+//					cmp.Comparer(user.age, ">", "50")
+//				}
+
+                .END
+        q.selectStar = true
+        var resultList = getDB().Select<TestBook>(q)
+
+        resultList?.forEach {
+            println("it = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
+        }
+
+    }
+
 
 }

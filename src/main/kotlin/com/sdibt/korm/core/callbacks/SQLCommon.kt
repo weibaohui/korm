@@ -20,7 +20,7 @@ package com.sdibt.korm.core.callbacks
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-data class sqlResult(val rowsAffected: Int, val generatedKeys: Any?)
+data class sqlResult(val rowsAffected: Int, val generatedKeys: Any?, val result: Any?)
 interface SQLCommon {
     fun Exec(sql: String, params: Map<String, Any?>): sqlResult
     fun Prepare(query: String): PreparedStatement

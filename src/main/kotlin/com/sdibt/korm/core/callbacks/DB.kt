@@ -23,7 +23,9 @@ import com.sdibt.korm.core.enums.DBMSType
 import com.sdibt.korm.core.interceptor.SqlProcess
 import com.sdibt.korm.core.mapping.BaseNameConvert
 import com.sdibt.korm.core.mapping.CamelCaseNameConvert
+import com.sdibt.korm.core.mapping.jdbc.*
 import com.sdibt.korm.core.oql.OQL
+import java.sql.ResultSet
 import javax.sql.DataSource
 
 class DB(var dataSource: DataSource) {
@@ -44,8 +46,60 @@ class DB(var dataSource: DataSource) {
         CallBackDelete(this).init()
         CallBackUpdate(this).init()
         CallBackInsert(this).init()
+        CallBackSelect(this).init()
     }
 
+    fun executeQuery(clazz: Class<*>, sql: String, params: Map<String, Any?>, returnList: Boolean = false): sqlResult {
+
+        val isList: Boolean = List::class.java.isAssignableFrom(clazz)
+        val isMap: Boolean = Map::class.java.isAssignableFrom(clazz)
+        val isEntity: Boolean = EntityBase::class.java.isAssignableFrom(clazz)
+
+        val sp = SqlProcess(sql, params, nameConvert)
+        println("SqlProcess sql = ${sp.sqlString}")
+        println("SqlProcess params = ${sp.sqlParams}")
+
+        var rowsAffected = 0
+        var generatedKeys: Any? = null
+        var result: Any? = null
+
+
+        val conn = this.dataSource.connection
+        val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sp.sqlString)
+        for ((key, fieldValue) in sp.sqlParams) {
+            statement.setObject(key, "$fieldValue")
+        }
+        try {
+            var rs: ResultSet? = null
+            rs = statement.executeQuery()
+            when {
+                isList || returnList -> {
+                    var resultList = listOf<Any>()
+                    when {
+                        isMap -> resultList = rs.toMapList()
+                        else  -> resultList = rs.toBeanList(rs, nameConvert, clazz)
+                    }
+                    rowsAffected = resultList.size
+                    result = resultList
+                }
+                else                 -> {
+                    if (rs.next()) {
+                        when {
+                            isMap    -> result = rs.toMap()
+                            isEntity -> result = rs.toBean(rs, nameConvert, clazz)
+                            else     -> result = rs.toType(clazz)
+                        }
+                        rowsAffected = 1
+                    }
+                }
+            }
+
+        } catch (ex: Exception) {
+            this.Error = ex
+        }
+
+        return sqlResult(rowsAffected, generatedKeys, result)
+    }
 
     fun executeUpdate(sql: String, params: Map<String, Any?>): sqlResult {
 
@@ -73,7 +127,7 @@ class DB(var dataSource: DataSource) {
         }
 
 
-        return sqlResult(rowsAffected, generatedKeys)
+        return sqlResult(rowsAffected, generatedKeys, null)
     }
 
 
@@ -90,12 +144,49 @@ class DB(var dataSource: DataSource) {
         return scope
     }
 
+    fun NewScope(sqlString: String, sqlParam: Map<String, Any?>): Scope {
+        val scope = Scope(this)
+        scope.sqlString = sqlString
+        scope.sqlParam = sqlParam.toMutableMap()
+        scope.actionType = ActionType.OQL
+        return scope
+    }
+
     fun Delete(q: OQL): Int {
         return this.NewScope(q).callCallbacks(this.callbacks.deletes).rowsAffected
     }
 
     fun Update(q: OQL): Int {
         return this.NewScope(q).callCallbacks(this.callbacks.updates).rowsAffected
+    }
+
+    fun Insert(q: OQL): Int {
+        return this.NewScope(q).callCallbacks(this.callbacks.inserts).rowsAffected
+    }
+
+    fun <T> Select(clazz: Class<T>, sqlString: String, sqlParam: Map<String, Any?>): List<T>? {
+        val result = this.NewScope(sqlString, sqlParam)
+                .resultType(clazz)
+                .returnList(true)
+                .callCallbacks(this.callbacks.selects).result
+        return result as List<T>?
+    }
+
+    fun <T> selectSingle(clazz: Class<T>, sqlString: String, sqlParam: Map<String, Any?>): T? {
+        val result = this.NewScope(sqlString, sqlParam).resultType(clazz).callCallbacks(this.callbacks.selects).result
+        return result as T?
+    }
+
+    inline fun <reified T> SelectSingle(q: OQL): T? {
+        val result = this.NewScope(q).resultType(T::class.java).callCallbacks(this.callbacks.selects).result
+        return result as T?
+    }
+
+    inline fun <reified T> Select(q: OQL): List<T>? {
+        val result = this.NewScope(q).resultType(T::class.java)
+                .returnList(true)
+                .callCallbacks(this.callbacks.selects).result
+        return result as List<T>?
     }
 
     fun Delete(entity: EntityBase): Int {
@@ -106,12 +197,12 @@ class DB(var dataSource: DataSource) {
         return this.Update(entity, true)
     }
 
-    fun Update(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
-        return this.NewScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.updates).rowsAffected
-    }
-
     fun Insert(entity: EntityBase): Int {
         return this.Insert(entity, true)
+    }
+
+    fun Update(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
+        return this.NewScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.updates).rowsAffected
     }
 
     fun Insert(entity: EntityBase, saveChangedOnly: Boolean = true): Int {

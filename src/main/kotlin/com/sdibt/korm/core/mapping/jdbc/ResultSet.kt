@@ -31,7 +31,7 @@ import java.util.*
  * Time: 21:33
  */
 
-fun <T> ResultSet.toMapList(): List<T> {
+fun <T> ResultSet.toMapListT(): List<T> {
     if (!this.next()) {
         return ArrayList(0)
     }
@@ -43,7 +43,18 @@ fun <T> ResultSet.toMapList(): List<T> {
     return results
 
 }
+fun  ResultSet.toMapList(): List<Any> {
+    if (!this.next()) {
+        return ArrayList(0)
+    }
+    val results = mutableListOf<Any>()
+    do {
+        results.add(this.toMap())
+    } while (this.next())
 
+    return results.toList()
+
+}
 fun ResultSet.toMap(): Map<String, Any?> {
     val result = mutableMapOf<String, Any?>()
     for (i in 1..this.metaData.columnCount) {
@@ -73,6 +84,10 @@ fun ResultSet.toMap(): Map<String, Any?> {
  */
 fun <T> ResultSet.toType(type: Class<T>): T? {
 //    默认转换第一列
+
+    //todo,增加按列名取列值功能
+    //单列直接返回所需类型
+    val count = this.metaData.columnCount
 
     val handler: TypeHandler =
             EnumTypeHandler.instance.typeHandlers[type.simpleName.toLowerCase()] ?:

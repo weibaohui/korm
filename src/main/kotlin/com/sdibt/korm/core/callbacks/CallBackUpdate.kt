@@ -17,7 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackUpdate (db: DB) {
+class CallBackUpdate(db: DB) {
 
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
@@ -55,14 +55,43 @@ class CallBackUpdate (db: DB) {
     fun updateDateTimeCallback(scope: Scope): Scope {
 
 
-
 //        scope.sqlParam.put("CreateAt", "2017-08-08")
 //
         return scope
     }
+
     fun updateCallback(scope: Scope): Scope {
 
-        val entity = scope.entity
+
+        val execScope: Scope
+
+        when (scope.actionType) {
+            ActionType.Entity -> {
+                execScope = updateEntity(scope)
+            }
+            ActionType.OQL    -> {
+                execScope = scope
+            }
+        }
+
+
+
+        if (execScope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
+            execScope.rowsAffected = rowsAffected
+            execScope.generatedKeys = generatedKeys
+            execScope.result = rowsAffected
+        }
+
+        return execScope
+
+    }
+
+
+    private fun updateEntity(scope: Scope): Scope {
+
+
+        val entity = scope.entity ?: return scope
         val params = if (scope.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
         params.forEach { t, u -> scope.sqlParam.put(t, u) }
 
@@ -91,16 +120,7 @@ class CallBackUpdate (db: DB) {
         } else {
             throw RuntimeException("表" + entity.tableName + "没有指定主键，无法生成Update语句！")
         }
-
-
-
-        if (scope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
-            scope.rowsAffected = rowsAffected
-            scope.generatedKeys = generatedKeys
-            scope.result = rowsAffected
-        }
-
         return scope
     }
+
 }

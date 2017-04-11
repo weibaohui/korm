@@ -38,7 +38,7 @@ class CallBackDelete(db: DB) {
 
     fun deleteCallback(scope: Scope): Scope {
 
-        var execScope: Scope
+        val execScope: Scope
 
         when (scope.actionType) {
             ActionType.Entity -> {
@@ -62,7 +62,7 @@ class CallBackDelete(db: DB) {
     }
 
     private fun deleteEntity(scope: Scope): Scope {
-        val entity = scope.entity
+        val entity = scope.entity ?: return scope
         entity.primaryKeys.isNotEmpty().apply {
             var sqlWhere = ""
             val pks = entity.primaryKeys

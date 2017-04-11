@@ -42,5 +42,6 @@ fun CallBackProcessors.reg(callBackName: String, block: (scope: Scope) -> Scope)
         "insert" -> this.parent.inserts.add(block)
         "delete" -> this.parent.deletes.add(block)
         "update" -> this.parent.updates.add(block)
+        "select" -> this.parent.selects.add(block)
     }
 }
