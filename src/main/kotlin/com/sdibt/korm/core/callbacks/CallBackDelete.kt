@@ -17,14 +17,16 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackDelete(db: DB) {
+import com.sdibt.korm.core.db.KormSqlSession
+
+class CallBackDelete(db: KormSqlSession) {
 
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
-        defaultCallBack.Delete().reg("beforeDelete") { beforeDeleteCallback(it) }
-        defaultCallBack.Delete().reg("delete") { deleteCallback(it) }
-        defaultCallBack.Delete().reg("afterDelete") { afterDeleteCallback(it) }
+        defaultCallBack.delete().reg("beforeDelete") { beforeDeleteCallback(it) }
+        defaultCallBack.delete().reg("delete") { deleteCallback(it) }
+        defaultCallBack.delete().reg("afterDelete") { afterDeleteCallback(it) }
     }
 
 

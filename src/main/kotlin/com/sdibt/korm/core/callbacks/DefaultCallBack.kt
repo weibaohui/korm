@@ -17,11 +17,13 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.KormSqlSession
+
 enum class DefaultCallBack {
     instance;
 
-    private val callBackMap: MutableMap<DB, Callback> = mutableMapOf()
-    fun getCallBack(db: DB): Callback {
+    private val callBackMap: MutableMap<KormSqlSession, Callback> = mutableMapOf()
+    fun getCallBack(db: KormSqlSession): Callback {
         if (callBackMap.containsKey(db)) {
             return callBackMap[db]!!
         } else {

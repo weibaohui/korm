@@ -17,16 +17,22 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.entity.EntityBase
+import com.sdibt.korm.core.oql.OQL
 
 
-class Scope(var db: DB) {
+class Scope(var db: KormSqlSession) {
     var actionType: ActionType = ActionType.Entity
     var entity: EntityBase? = null
+    var oql: OQL? = null
+
     var sqlString = ""
     var sqlParam: MutableMap<String, Any?> = mutableMapOf()
-    var skipLeft = false
     var saveChangedOnly = true//默认只保存变化了的字段
+
+    var skipLeft = false//跳过callbacks
+
     var result: Any? = null //执行结果
     var resultType: Class<*>? = null//结果类型
         private set
@@ -35,6 +41,7 @@ class Scope(var db: DB) {
     var generatedKeys: Any? = null //返回的ID值，数据库自增
     var rowsAffected: Int = 0//影响行数
     var errors: MutableList<String> = mutableListOf()//错误
+
     var startTime: Long = System.currentTimeMillis()//sql开始时间
     var endTime: Long = 0L//sql结束时间
 
@@ -42,7 +49,7 @@ class Scope(var db: DB) {
         get() = db.Error != null
 
 
-    constructor(entity: EntityBase, db: DB) : this(db) {
+    constructor(entity: EntityBase, db: KormSqlSession) : this(db) {
         this.db = db
         this.entity = entity
     }
@@ -100,4 +107,18 @@ class Scope(var db: DB) {
         return this
     }
 
+    fun setActionType(type: ActionType): Scope {
+        this.actionType = type
+        return this
+    }
+
+    fun setSqlString(sql: String): Scope {
+        this.sqlString = sql
+        return this
+    }
+
+    fun setSqlParam(param: Map<String, Any?>): Scope {
+        this.sqlParam = param.toMutableMap()
+        return this
+    }
 }

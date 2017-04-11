@@ -17,15 +17,17 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackUpdate(db: DB) {
+import com.sdibt.korm.core.db.KormSqlSession
+
+class CallBackUpdate(db: KormSqlSession) {
 
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
-        defaultCallBack.Update().reg("beforeUpdate") { beforeUpdateCallback(it) }
-        defaultCallBack.Update().reg("updateDateTime") { updateDateTimeCallback(it) }
-        defaultCallBack.Update().reg("update") { updateCallback(it) }
-        defaultCallBack.Update().reg("afterUpdate") { afterUpdateCallback(it) }
+        defaultCallBack.update().reg("beforeUpdate") { beforeUpdateCallback(it) }
+        defaultCallBack.update().reg("updateDateTime") { updateDateTimeCallback(it) }
+        defaultCallBack.update().reg("update") { updateCallback(it) }
+        defaultCallBack.update().reg("afterUpdate") { afterUpdateCallback(it) }
     }
 
 

@@ -34,21 +34,23 @@ class Callback {
         selects.clear()
         rowQueries.clear()
     }
+
+
+    fun delete(): CallBackProcessors {
+        return CallBackProcessors("delete", this)
+    }
+
+    fun update(): CallBackProcessors {
+        return CallBackProcessors("update", this)
+    }
+
+    fun insert(): CallBackProcessors {
+        return CallBackProcessors("insert", this)
+    }
+
+    fun select(): CallBackProcessors {
+        return CallBackProcessors("select", this)
+    }
 }
 
 
-fun Callback.Delete(): CallBackProcessors {
-    return CallBackProcessors("delete", this)
-}
-
-fun Callback.Update(): CallBackProcessors {
-    return CallBackProcessors("update", this)
-}
-
-fun Callback.Insert(): CallBackProcessors {
-    return CallBackProcessors("insert", this)
-}
-
-fun Callback.Select(): CallBackProcessors {
-    return CallBackProcessors("select", this)
-}

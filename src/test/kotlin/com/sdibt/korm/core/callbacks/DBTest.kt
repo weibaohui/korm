@@ -19,6 +19,7 @@ package com.sdibt.korm.core.callbacks
 
 import com.alibaba.druid.pool.DruidDataSource
 import com.sdibt.korm.core.User
+import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.oql.OQL
 import org.junit.After
@@ -32,13 +33,13 @@ internal class DBTest {
     var password = "root"
 
 
-    fun getDB(): DB {
+    fun getDB(): KormSqlSession {
 
         var dds = DruidDataSource()
         dds.url = dbURL
         dds.username = userName
         dds.password = password
-        return DB(dds)
+        return KormSqlSession(dds)
     }
 
     @Before
@@ -57,7 +58,7 @@ internal class DBTest {
     fun deleteEntity() {
         val tb = TestBook()
         tb.testId = "dd"
-        getDB().Delete(tb)
+        getDB().delete(tb)
     }
 
 
@@ -66,8 +67,8 @@ internal class DBTest {
         val tb = TestBook()
         tb.testId = "dd"
         tb.testName = "test"
-        getDB().Update(tb)
-        getDB().Update(tb, false)
+        getDB().update(tb)
+        getDB().update(tb, false)
     }
 
 
@@ -75,12 +76,12 @@ internal class DBTest {
     fun insertEntity() {
         val tb = TestBook()
         tb.testName = "test"
-        getDB().Insert(tb)
+        getDB().insert(tb)
 
         val tb1 = TestBook()
         tb1.testName = "test"
         tb1.testCount = 9
-        getDB().Insert(tb1, false)
+        getDB().insert(tb1, false)
     }
 
 
@@ -89,10 +90,10 @@ internal class DBTest {
         val tb = TestBook()
         tb.testId = "11"
         tb.testName = "test"
-        getDB().Delete(tb)
-        getDB().Save(tb)
+        getDB().delete(tb)
+        getDB().save(tb)
         tb.testCount = 9
-        getDB().Save(tb, false)
+        getDB().save(tb, false)
     }
 
 
@@ -108,7 +109,7 @@ internal class DBTest {
                     cmp.Comparer(book2.testName, "=", "abcInsertOQLWidthKeys")
                 }
                 .END
-        getDB().Delete(q)
+        getDB().delete(q)
     }
 
 
@@ -135,7 +136,7 @@ internal class DBTest {
         println("\r\n testSelect \r\n ${select1.END.PrintParameterInfo()}")
 
 
-        var ss = getDB().Select<Map<String, Any?>>(select1.END)
+        var ss = getDB().select<Map<String, Any?>>(select1.END)
         println("ss = ${ss}")
     }
 
@@ -155,7 +156,7 @@ internal class DBTest {
         }.END
 
 
-        var ss = getDB().SelectSingle<Map<String, Any?>>(q)
+        var ss = getDB().selectSingle<Map<String, Any?>>(q)
         println("ss = ${ss}")
     }
 
@@ -166,16 +167,16 @@ internal class DBTest {
         book.testName = "671"
         book.testId = "17"
         book.testURL = "www"
-        getDB().Delete(book)
+        getDB().delete(book)
 //         getDB().DeleteByPk(book)
-        getDB().Insert(book)
+        getDB().insert(book)
 
         var q = OQL.From(book).Limit(1, 1).Select().Where {
             cmp ->
             cmp.Comparer(book.testName, "=", "671")
         }.END
 
-        book = getDB().SelectSingle<TestBook>(q)!!
+        book = getDB().selectSingle<TestBook>(q)!!
 
         println("SelectSingleEntity = ${book.testId}")
         println("SelectSingleEntity = ${book.testName}")
@@ -199,9 +200,9 @@ internal class DBTest {
 
 
         var ss: Map<String, Any?> = mapOf()
-        ss = getDB().SelectSingle<Map<String, Any?>>(q)!!
+        ss = getDB().selectSingle<Map<String, Any?>>(q)!!
         println("ss = ${ss}")
-        var intcount = getDB().SelectSingle<Float>(q1)
+        var intcount = getDB().selectSingle<Float>(q1)
         println("ss = ${intcount}")
     }
 
@@ -213,7 +214,7 @@ internal class DBTest {
         book.testId = "777"
         book.testCount = 1
         var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
-        getDB().Update(q1)
+        getDB().update(q1)
     }
 
 
@@ -232,7 +233,7 @@ internal class DBTest {
                 .InsertFrom(child, book.testName, book.testCount)
                 .END
 
-        getDB().Insert(q)
+        getDB().insert(q)
 
     }
 
@@ -248,7 +249,7 @@ internal class DBTest {
 
                 .END
         q.selectStar = true
-        var resultList = getDB().Select<TestBook>(q)
+        var resultList = getDB().select<TestBook>(q)
 
         resultList?.forEach {
             println("it = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
@@ -256,5 +257,13 @@ internal class DBTest {
 
     }
 
+    @Test
+    fun testInsertEntityWidthKeys() {
+        var book2 = TestBook()
+        book2.testName = "abc"
+        book2.testURL = "22222"
+        val keysInserted = getDB().insert(book2, true, true)
+        println("InsertEntity新插入条目的ID = ${keysInserted}")
+    }
 
 }

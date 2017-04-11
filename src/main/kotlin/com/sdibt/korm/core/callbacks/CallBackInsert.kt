@@ -17,15 +17,17 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackInsert(db: DB) {
+import com.sdibt.korm.core.db.KormSqlSession
+
+class CallBackInsert(db: KormSqlSession) {
 
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
-        defaultCallBack.Insert().reg("beforeInsert") { beforeInsertCallback(it) }
-        defaultCallBack.Insert().reg("InsertDateTime") { insertDateTimeCallback(it) }
-        defaultCallBack.Insert().reg("Insert") { insertCallback(it) }
-        defaultCallBack.Insert().reg("afterInsert") { afterInsertCallback(it) }
+        defaultCallBack.insert().reg("beforeInsert") { beforeInsertCallback(it) }
+        defaultCallBack.insert().reg("InsertDateTime") { insertDateTimeCallback(it) }
+        defaultCallBack.insert().reg("Insert") { insertCallback(it) }
+        defaultCallBack.insert().reg("afterInsert") { afterInsertCallback(it) }
     }
 
 
@@ -105,7 +107,7 @@ class CallBackInsert(db: DB) {
                 .forEach { id, idType ->
                     //主键值未设置
                     val nextId = idType.getNextId()
-                    println("主键未设置nextId =$id ${nextId}")
+//                    println("主键未设置nextId =$id ${nextId}")
                     nextId?.apply {
                         scope.sqlParam.put(id, nextId)
                     }
@@ -121,7 +123,7 @@ class CallBackInsert(db: DB) {
                     if (id in scope.sqlParam.keys && scope.sqlParam[id] == null) {
                         //主键值设置为null
                         val nextId = idType.getNextId()
-                        println("主键值是null = $id= ${nextId}")
+//                        println("主键值是null = $id= ${nextId}")
                         nextId?.apply {
                             scope.sqlParam.put(id, nextId)
                         }

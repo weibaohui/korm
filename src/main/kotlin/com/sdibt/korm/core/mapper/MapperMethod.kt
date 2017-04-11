@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.mapper
@@ -53,13 +50,13 @@ class MapperMethod(private val mapperInterface: Class<*>, private val method: Me
                 "selectSingle"    -> return execSelectSingle(sqlSession, entityClass, args)
                 "save"            -> return execSave(sqlSession, args)
                 "update"          -> return execUpdate(sqlSession, args)
-                "execute"         -> return execExecute(sqlSession, args)
+//                "execute"         -> return execExecute(sqlSession, args)
                 "insert"          -> return execInsert(sqlSession, args)
                 "delete"          -> return execDelete(sqlSession, args)
-                "deleteByPk"      -> return execDeleteByPk(sqlSession, args)
-                "deleteBatchByPk" -> return execDeleteBatchByPk(sqlSession, args)
-                "insertBatch"     -> return execInsertBatch(sqlSession, args)
-                "updateBatch"     -> return execUpdateBatch(sqlSession, args)
+//                "deleteByPk"      -> return execDeleteByPk(sqlSession, args)
+//                "deleteBatchByPk" -> return execDeleteBatchByPk(sqlSession, args)
+//                "insertBatch"     -> return execInsertBatch(sqlSession, args)
+//                "updateBatch"     -> return execUpdateBatch(sqlSession, args)
                 else              -> return NameDsl(sqlSession, entityClass, methodSignature.name, args, methodSignature.returnType).exec()
             }
         } else {
@@ -169,49 +166,49 @@ class MapperMethod(private val mapperInterface: Class<*>, private val method: Me
         return null
     }
 
-    private fun execDeleteBatchByPk(sqlSession: KormSqlSession, args: Array<Any>): Any? {
-        args.forEach {
-            when (it) {
-                is List<*> -> return sqlSession.deleteBatchByPk(it as List<EntityBase>)
-                else       -> println("no matches in DeleteBatchByPk func $it")
-            }
-        }
-
-        return null
-    }
-
-    private fun execInsertBatch(sqlSession: KormSqlSession, args: Array<Any>): Any? {
-        args.forEach {
-            when (it) {
-                is List<*> -> return sqlSession.insertBatch(it as List<EntityBase>)
-                else       -> println("no matches in InsertBatch func $it")
-            }
-        }
-
-        return null
-    }
-
-    private fun execUpdateBatch(sqlSession: KormSqlSession, args: Array<Any>): Any? {
-        args.forEach {
-            when (it) {
-                is List<*> -> return sqlSession.updateBatch(it as List<EntityBase>)
-                else       -> println("no matches in UpdateBatch func $it")
-            }
-        }
-
-        return null
-    }
-
-    private fun execDeleteByPk(sqlSession: KormSqlSession, args: Array<Any>): Any? {
-        args.forEach {
-            when (it) {
-                is EntityBase -> return sqlSession.deleteByPk(it)
-                else          -> println("no matches in DeleteByPk func $it")
-            }
-        }
-
-        return null
-    }
+//    private fun execDeleteBatchByPk(sqlSession: KormSqlSession, args: Array<Any>): Any? {
+//        args.forEach {
+//            when (it) {
+//                is List<*> -> return sqlSession.deleteBatchByPk(it as List<EntityBase>)
+//                else       -> println("no matches in DeleteBatchByPk func $it")
+//            }
+//        }
+//
+//        return null
+//    }
+//
+//    private fun execInsertBatch(sqlSession: KormSqlSession, args: Array<Any>): Any? {
+//        args.forEach {
+//            when (it) {
+//                is List<*> -> return sqlSession.insertBatch(it as List<EntityBase>)
+//                else       -> println("no matches in InsertBatch func $it")
+//            }
+//        }
+//
+//        return null
+//    }
+//
+//    private fun execUpdateBatch(sqlSession: KormSqlSession, args: Array<Any>): Any? {
+//        args.forEach {
+//            when (it) {
+//                is List<*> -> return sqlSession.updateBatch(it as List<EntityBase>)
+//                else       -> println("no matches in UpdateBatch func $it")
+//            }
+//        }
+//
+//        return null
+//    }
+//
+//    private fun execDeleteByPk(sqlSession: KormSqlSession, args: Array<Any>): Any? {
+//        args.forEach {
+//            when (it) {
+//                is EntityBase -> return sqlSession.deleteByPk(it)
+//                else          -> println("no matches in DeleteByPk func $it")
+//            }
+//        }
+//
+//        return null
+//    }
 
     private fun execSave(sqlSession: KormSqlSession, args: Array<Any>): Any? {
         args.forEach {

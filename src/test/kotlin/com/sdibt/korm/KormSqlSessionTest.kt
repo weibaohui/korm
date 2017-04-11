@@ -23,8 +23,6 @@ import com.sdibt.korm.core.User
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.enums.DBMSType
-import com.sdibt.korm.core.interceptor.impl.DefaultLogInterceptor
-import com.sdibt.korm.core.interceptor.impl.MysqlInterceptor
 import com.sdibt.korm.core.oql.OQL
 import org.junit.Test
 
@@ -49,79 +47,77 @@ class KormSqlSessionTest {
 //        dds.username = "system"
 //        dds.password = "oracle"
 
-        val logger = DefaultLogInterceptor()
-        val mysqlIntercept = MysqlInterceptor()
-        db = KormSqlSession(DBMSType.MySql, dds, arrayListOf(mysqlIntercept, logger))
+        db = KormSqlSession(DBMSType.MySql, dds)
     }
 
-
-    @Test
-    fun testBatchInsertEntitys() {
-
-        this.testBatchDeleteEntitysByPk()
-
-        var book1 = TestBook()
-        book1.testName = "abc"
-        book1.testId = "666"
-        book1.testURL = "22222"
-        var book2 = TestBook()
-        book2.testName = "abc"
-        book2.testId = "667"
-        book2.testURL = "22222"
-        var book3 = TestBook()
-        book3.testName = "abc"
-        book3.testId = "668"
-        book3.testURL = "22222"
-
-
-        var list = arrayListOf<TestBook>(book1, book2, book3)
-        var restult = db.insertBatch(list)
-        println("BatchInsertEntitys restult = ${restult}")
-    }
-
-    @Test
-    fun testBatchUpdateEntitys() {
-        var book1 = TestBook()
-        book1.testName = "abc"
-        book1.testId = "666"
-        book1.testURL = "22222"
-        var book2 = TestBook()
-        book2.testName = "abc"
-        book2.testId = "667"
-        book2.testURL = "22222"
-        var book3 = TestBook()
-        book3.testName = "abc"
-        book3.testId = "668"
-        book3.testURL = "22222"
-
-
-        var list = arrayListOf<TestBook>(book1, book2, book3)
-
-        var restult = db.updateBatch(list)
-        println("BatchUpdateEntitys restult = ${restult}")
-    }
-
-
-    @Test
-    fun testBatchDeleteEntitysByPk() {
-        var book1 = TestBook()
-        book1.testName = "abc"
-        book1.testId = "666"
-        book1.testURL = "22222"
-        var book2 = TestBook()
-        book2.testName = "abc"
-        book2.testId = "667"
-        book2.testURL = "22222"
-        var book3 = TestBook()
-        book3.testName = "abc"
-        book3.testId = "668"
-        book3.testURL = "22222"
-
-
-        var list = arrayListOf<TestBook>(book1, book2, book3)
-        var restult = db.deleteBatchByPk(list)
-        println("BatchDeleteEntitys restult = ${restult}")
-    }
+//
+//    @Test
+//    fun testBatchInsertEntitys() {
+//
+//        this.testBatchDeleteEntitysByPk()
+//
+//        var book1 = TestBook()
+//        book1.testName = "abc"
+//        book1.testId = "666"
+//        book1.testURL = "22222"
+//        var book2 = TestBook()
+//        book2.testName = "abc"
+//        book2.testId = "667"
+//        book2.testURL = "22222"
+//        var book3 = TestBook()
+//        book3.testName = "abc"
+//        book3.testId = "668"
+//        book3.testURL = "22222"
+//
+//
+//        var list = arrayListOf<TestBook>(book1, book2, book3)
+//        var restult = db.insertBatch(list)
+//        println("BatchInsertEntitys restult = ${restult}")
+//    }
+//
+//    @Test
+//    fun testBatchUpdateEntitys() {
+//        var book1 = TestBook()
+//        book1.testName = "abc"
+//        book1.testId = "666"
+//        book1.testURL = "22222"
+//        var book2 = TestBook()
+//        book2.testName = "abc"
+//        book2.testId = "667"
+//        book2.testURL = "22222"
+//        var book3 = TestBook()
+//        book3.testName = "abc"
+//        book3.testId = "668"
+//        book3.testURL = "22222"
+//
+//
+//        var list = arrayListOf<TestBook>(book1, book2, book3)
+//
+//        var restult = db.updateBatch(list)
+//        println("BatchUpdateEntitys restult = ${restult}")
+//    }
+//
+//
+//    @Test
+//    fun testBatchDeleteEntitysByPk() {
+//        var book1 = TestBook()
+//        book1.testName = "abc"
+//        book1.testId = "666"
+//        book1.testURL = "22222"
+//        var book2 = TestBook()
+//        book2.testName = "abc"
+//        book2.testId = "667"
+//        book2.testURL = "22222"
+//        var book3 = TestBook()
+//        book3.testName = "abc"
+//        book3.testId = "668"
+//        book3.testURL = "22222"
+//
+//
+//        var list = arrayListOf<TestBook>(book1, book2, book3)
+//        var restult = db.deleteBatchByPk(list)
+//        println("BatchDeleteEntitys restult = ${restult}")
+//    }
 
 
     @Test
@@ -134,14 +130,14 @@ class KormSqlSessionTest {
     }
 
 
-    @Test
-    fun testDeleteEntityByPk() {
-        var book2 = TestBook()
-        book2.testName = "abc"
-        book2.testId = "56"
-        book2.testURL = "22222"
-        db.deleteByPk(book2)
-    }
+//    @Test
+//    fun testDeleteEntityByPk() {
+//        var book2 = TestBook()
+//        book2.testName = "abc"
+//        book2.testId = "56"
+//        book2.testURL = "22222"
+//        db.deleteByPk(book2)
+//    }
 
 
     @Test
@@ -320,7 +316,7 @@ class KormSqlSessionTest {
         book.testId = "17"
         book.testURL = "www"
         db.delete(book)
-        db.deleteByPk(book)
+//        db.deleteByPk(book)
         db.insert(book)
 
         var q = OQL.From(book).Limit(1, 1).Select().Where {
@@ -365,7 +361,7 @@ class KormSqlSessionTest {
         book.testId = "777"
         book.testCount = 1
         var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
-        db.execute(q1)
+        db.update(q1)
     }
 
 
@@ -384,7 +380,7 @@ class KormSqlSessionTest {
                 .InsertFrom(child, book.testName, book.testCount)
                 .END
 
-        db.execute(q)
+        db.insert(q)
 
     }
 
@@ -409,7 +405,6 @@ class KormSqlSessionTest {
     }
 
 
-
     @Test
     fun testfuntest() {
 
@@ -426,10 +421,6 @@ class KormSqlSessionTest {
     fun testfun(x: Int, body: (Int) -> Int): Int {
         return body(x)
     }
-
-
-
-
 
 
 }

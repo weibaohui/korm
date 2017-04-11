@@ -17,14 +17,16 @@
 
 package com.sdibt.korm.core.callbacks
 
-class CallBackSelect(db: DB) {
+import com.sdibt.korm.core.db.KormSqlSession
+
+class CallBackSelect(db: KormSqlSession) {
 
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
-        defaultCallBack.Select().reg("beforeSelect") { beforeSelectCallback(it) }
-        defaultCallBack.Select().reg("select") { selectCallback(it) }
-        defaultCallBack.Select().reg("afterSelect") { afterSelectCallback(it) }
+        defaultCallBack.select().reg("beforeSelect") { beforeSelectCallback(it) }
+        defaultCallBack.select().reg("select") { selectCallback(it) }
+        defaultCallBack.select().reg("afterSelect") { afterSelectCallback(it) }
     }
 
 
@@ -37,6 +39,7 @@ class CallBackSelect(db: DB) {
     }
 
     fun selectCallback(scope: Scope): Scope {
+
 
 
         if (scope.db.Error == null) {

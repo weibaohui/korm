@@ -22,8 +22,6 @@ import com.google.common.eventbus.Subscribe
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.entity.JoinEntity
 import com.sdibt.korm.core.enums.EntityMapType.Table
-import com.sdibt.korm.core.idworker.IdWorkerType
-import com.sdibt.korm.core.idworker.getIdGen
 import com.sdibt.korm.core.property.EventManager.INSTANCE
 import com.sdibt.korm.core.property.event.GettingEvent
 import java.util.*
@@ -720,82 +718,46 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         var sql = sqlStr
         parameters.clear()
 
-        //存放已经赋值了的AutoId字段
-        val autoIDAssigned: MutableList<String> = mutableListOf()
 
-        val count = selectedFieldNames.size
-        val insertFieldsString: MutableList<String> = mutableListOf()
-        val valuesString: MutableList<String> = mutableListOf()
+        //主键未设置
+        currEntity.autoIdFields
+                .filterNot { it.key in this.sqlParam.keys }
+                .forEach { id, idType ->
+                    //主键值未设置
+                    val nextId = idType.getNextId()
+                    println("主键未设置nextId =$id ${nextId}")
+                    if (nextId != null) this.sqlParam.put(id, nextId)
 
-        //寻找AutoId注解的字段，并且已经赋值了的字段
-        for (i in 0..count - 1) {
-            val a = selectedFieldNames[i].indexOf('[')
-            val b = selectedFieldNames[i].indexOf(']')
-            val realField: String = selectedFieldNames[i].substring(a + 1, a + 1 + b - a - 1)
-            val Value = currEntity.getFieldValue(realField)
-            this.currEntity.autoIdFields.forEach { t, u ->
-                //设置了autoID属性，并且用户已经赋值，那么就不再处理
-                if (t == realField && Value != null) {
-                    autoIDAssigned.add(t)//未做nameConver的原始值
-                    //已经赋值了，那么添加到变量中
-                    insertFieldsString.add(selectedFieldNames[i])
-                    val tnf = TableNameField(field = realField, entity = this.currEntity, index = i, fieldValue = Value)
-                    valuesString.add(createParameter(tnf))
-                }
-            }
-        }
-
-        //处理不带AutoId注解的字段
-        for (i in 0..count - 1) {
-            val a = selectedFieldNames[i].indexOf('[')
-            val b = selectedFieldNames[i].indexOf(']')
-            val realField: String = selectedFieldNames[i].substring(a + 1, a + 1 + b - a - 1)
-            val Value = currEntity.getFieldValue(realField)
-            if (!this.currEntity.autoIdFields.keys.map { it }
-                    .contains(realField)) {
-                //不在已赋值的autoId类型中的话，就参与sql语句处理
-                insertFieldsString.add(selectedFieldNames[i])
-                val tnf = TableNameField(field = realField, entity = this.currEntity, index = i, fieldValue = Value)
-                valuesString.add(createParameter(tnf))
-            }
-        }
-
-        //处理设置了AutoId注解，又没有赋值的字段，不能采用entity.setField是为了避免使用同一个entity的字段缓存，造成主键重复。
-        this.currEntity.autoIdFields.filter { !autoIDAssigned.contains(it.key) }.forEach { field, type ->
-            //设置了autoID，并且用户没有设置值
-
-            val realField = field
-            when (type) {
-
-                IdWorkerType.SnowFlake     -> {
-                    insertFieldsString.add("[$realField]")
-                    valuesString.add("${IdWorkerType.SnowFlake.getIdGen()}")
-                }
-                IdWorkerType.AutoIncrement -> {
-                }
-                IdWorkerType.GUID          -> {
-                    insertFieldsString.add("[$realField]")
-                    valuesString.add("${IdWorkerType.GUID.getIdGen()}")
                 }
 
-            }
+        //主键值是null
+        currEntity.autoIdFields
+                .forEach { id, idType ->
+                    println("id = ${id}")
+                    println(" scope.sqlParam.keys = ${this.sqlParam.keys}")
+                    println("$id in scope.sqlParam.keys = ${id in this.sqlParam.keys}")
+                    println("scope.sqlParam[$id] = ${this.sqlParam[id]}")
+                    if (id in this.sqlParam.keys && this.sqlParam[id] == null) {
+                        //主键值设置为null
+                        val nextId = idType.getNextId()
+                        println("主键值是null = $id= ${nextId}")
+                        if (nextId != null) this.sqlParam.put(id, nextId)
+                    }
+                }
+        var Items = ""
+        var ItemValues = ""
+        this.sqlParam.forEach {
+            pkey, _ ->
+            Items += "[$pkey],"
+            ItemValues += "@$pkey,"
         }
 
 
-        sql = "INSERT INTO $mainTableName (${insertFieldsString.joinToString(",")}) \r\nVALUES\r\n    ("
-        valuesString.forEach {
+        var sqlInsert = "INSERT INTO " + this.currEntity.tableName
 
-            if (it.startsWith('@')) {
-                //@参数
-                sql += " $it,"
-            } else {
-                //values 对应值，直接拼sql，todo 注意数据库间拼接差异
-                sql += " '$it',"
-            }
-        }
+        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
 
-        sql = sql.trimEnd(',') + ")"
-        return sql
+        return sqlInsert
     }
 
     private fun toUpdateString(sql: String): String {

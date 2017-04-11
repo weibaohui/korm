@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,15 +13,14 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.adaptor.springboot
 
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.enums.DBMSType
-import com.sdibt.korm.core.interceptor.Interceptor
+import com.sdibt.korm.core.mapping.BaseNameConvert
+import com.sdibt.korm.core.mapping.CamelCaseNameConvert
 import org.springframework.beans.factory.BeanNameAware
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.InitializingBean
@@ -53,17 +51,8 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
      * Bean名称
      */
     internal var beanName: String? = null
-    internal var interceptors: MutableList<Interceptor> = mutableListOf()
-    internal var loggers: MutableList<Interceptor> = mutableListOf()
 
-
-    fun addLogger(logger: Interceptor) {
-        loggers.add(logger)
-    }
-
-    fun addInterceptor(ceptor: Interceptor) {
-        interceptors.add(ceptor)
-    }
+    var nameConvert: BaseNameConvert = CamelCaseNameConvert()
 
     fun setDataSource(springBootDataSource: DataSource) {
         this.ds = springBootDataSource
@@ -81,18 +70,7 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
 
     override fun getObject(): KormSqlSession {
 
-//        if (loggers.size == 0) {
-//            loggers.add(DefaultLogInterceptor())
-//        }
-//        if (interceptors.size == 0) {
-//            interceptors.add(MysqlInterceptor())
-//        }
-        val list: MutableList<Interceptor> = mutableListOf()
-        interceptors.forEach { list.add(it) }
-        loggers.forEach { list.add(it) }
-
-        //todo dbmstype 改为配置项，nc也在此注入
-        val sqlSession = KormSqlSession(DBMSType.MySql, ds!!, list.toList())
+        val sqlSession = KormSqlSession(DBMSType.MySql, ds!!, nameConvert)
 
         return sqlSession
     }
