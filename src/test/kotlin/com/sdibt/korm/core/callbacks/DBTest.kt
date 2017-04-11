@@ -221,6 +221,7 @@ internal class DBTest {
         book.testId = "777"
         book.testCount = 1
         assertTrue(getDB().save(book) > 0)
+
         var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
 
         assertTrue(getDB().update(q1) > 0)

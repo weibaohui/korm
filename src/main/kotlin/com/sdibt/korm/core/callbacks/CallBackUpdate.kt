@@ -63,7 +63,7 @@ class CallBackUpdate(db: KormSqlSession) {
 
         val item = EntityFieldsCache.Item(scope.entity!!)
         item.lastModifiedBy?.apply {
-            scope.sqlParam.put("${item.lastModifiedBy}", "lisi")
+            scope.sqlParam.put("${item.lastModifiedBy}", scope.callMethodGetOperator("getOperator"))
         }
 
         return scope

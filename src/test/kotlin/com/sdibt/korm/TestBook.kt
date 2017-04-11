@@ -17,9 +17,7 @@
 
 package com.sdibt.korm.core.db
 
-import com.sdibt.korm.core.annotatoin.AutoID
-import com.sdibt.korm.core.annotatoin.CreatedDate
-import com.sdibt.korm.core.annotatoin.LastModifiedDate
+import com.sdibt.korm.core.annotatoin.*
 import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.idworker.IdWorkerType
@@ -77,18 +75,18 @@ class TestBook : EntityBase() {
             field = value
         }
 
-//    @CreatedBy
-//    var createdBy: String? = null
-//        get() {
-//            getField("createdBy")
-//            return field
-//        }
-//        set(value) {
-//            setField("createdBy", value)
-//            field = value
-//        }
+    @CreatedBy
+    var createdBy: String? = null
+        get() {
+            getField("createdBy")
+            return field
+        }
+        set(value) {
+            setField("createdBy", value)
+            field = value
+        }
     @CreatedDate
-    var createdDate:LocalDateTime? = null
+    var createdDate: LocalDateTime? = null
         get() {
             getField("createdDate")
             return field
@@ -98,17 +96,17 @@ class TestBook : EntityBase() {
             field = value
         }
 
-//    @LastModifiedBy
-//    var LastModifiedBy: String? = null
-//        get() {
-//            getField("LastModifiedBy")
-//            return field
-//        }
-//        set(value) {
-//            setField("LastModifiedBy", value)
-//            field = value
-//        }
-//
+        @LastModifiedBy
+    var LastModifiedBy: String? = null
+        get() {
+            getField("LastModifiedBy")
+            return field
+        }
+        set(value) {
+            setField("LastModifiedBy", value)
+            field = value
+        }
+
     @LastModifiedDate
     var LastModifiedDate: LocalDateTime? = null
         get() {
@@ -119,6 +117,10 @@ class TestBook : EntityBase() {
             setField("LastModifiedDate", value)
             field = value
         }
+
+    fun getOperator():String{
+        return "zhangsanfeng"
+    }
 
     fun beforeDelete(scope: Scope): Scope {
         scope.skipLeft = false
@@ -135,3 +137,4 @@ class TestBook : EntityBase() {
 
 
 }
+

@@ -65,7 +65,7 @@ class CallBackInsert(db: KormSqlSession) {
             scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
         }
         item.lastModifiedBy?.apply {
-            scope.sqlParam.put("${item.lastModifiedBy}", "lisi")
+            scope.sqlParam.put("${item.lastModifiedBy}", scope.callMethodGetOperator("getOperator"))
         }
         return scope
     }

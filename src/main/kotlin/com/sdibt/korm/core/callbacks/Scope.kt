@@ -88,6 +88,21 @@ class Scope(var db: KormSqlSession) {
 
     }
 
+    fun callMethodGetOperator(methodName: String): String? {
+        if (entity == null) return null
+        val clazz = entity!!::class.java
+        clazz.methods.forEach {
+            if (it.name == methodName) {
+                val method = clazz.getMethod(methodName)
+                val returnType = method.returnType
+                if (method != null && returnType == String::class.java) {
+                    return method.invoke(entity) as String?
+                }
+            }
+        }
+        return null
+    }
+
     fun callCallbacks(funcs: List<(scope: Scope) -> Scope>): Scope {
         var scope = this
         for (i in funcs.indices) {
