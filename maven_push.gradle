@@ -54,6 +54,8 @@ afterEvaluate { project ->
                     authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
                 }
 
+
+
                 pom.project {
                     name POM_NAME
                     groupId POM_GROUP_ID

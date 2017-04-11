@@ -131,9 +131,7 @@ internal class DBTest {
                 .Select(user.id, book.testId, user.name, book.testName)
                 .Where(book.testName, user.name)
                 .OrderBy(user.id, "desc")
-//
-        println("\r\n testSelect \r\n ${select1.END.toString()}")
-        println("\r\n testSelect \r\n ${select1.END.PrintParameterInfo()}")
+
 
 
         var ss = getDB().select<Map<String, Any?>>(select1.END)
@@ -265,5 +263,6 @@ internal class DBTest {
         val keysInserted = getDB().insert(book2, true, true)
         println("InsertEntity新插入条目的ID = ${keysInserted}")
     }
+
 
 }

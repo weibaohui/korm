@@ -116,10 +116,6 @@ class CallBackInsert(db: KormSqlSession) {
         //主键值是null
         entity.autoIdFields
                 .forEach { id, idType ->
-                    println("id = ${id}")
-                    println(" scope.sqlParam.keys = ${scope.sqlParam.keys}")
-                    println("$id in scope.sqlParam.keys = ${id in scope.sqlParam.keys}")
-                    println("scope.sqlParam[$id] = ${scope.sqlParam[id]}")
                     if (id in scope.sqlParam.keys && scope.sqlParam[id] == null) {
                         //主键值设置为null
                         val nextId = idType.getNextId()

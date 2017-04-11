@@ -40,7 +40,7 @@ class Scope(var db: KormSqlSession) {
         private set
     var generatedKeys: Any? = null //返回的ID值，数据库自增
     var rowsAffected: Int = 0//影响行数
-    var errors: MutableList<String> = mutableListOf()//错误
+
 
     var startTime: Long = System.currentTimeMillis()//sql开始时间
     var endTime: Long = 0L//sql结束时间

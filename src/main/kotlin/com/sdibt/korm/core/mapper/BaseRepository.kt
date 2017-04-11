@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.mapper
@@ -32,31 +29,25 @@ interface BaseRepository<T> {
 
     fun selectSingle(q: OQL): T?
     fun select(q: OQL): List<T>?
-    fun execute(q: OQL): Int
 
     fun save(entity: EntityBase): Int
 
 
     fun update(q: OQL): Int
-    fun update(entity: EntityBase, onlyChangedParam: Boolean = true): Int
+    fun update(entity: EntityBase, saveChangedOnly: Boolean = true): Int
     fun update(entity: EntityBase): Int
-    fun updateBatch(list: List<EntityBase>): IntArray
 
 
     fun insert(entity: EntityBase): Int
-    fun insert(entity: EntityBase, returnKeys: Boolean): Any?
-    fun insert(entity: EntityBase, returnKeys: Boolean, onlyChangedParam: Boolean = true): Any?
+    fun insert(entity: EntityBase, saveChangedOnly: Boolean = true): Int
+    fun insert(entity: EntityBase, saveChangedOnly: Boolean = true, withReturnKeys: Boolean = true): Any?
 
     fun insert(q: OQL): Int
     fun insert(q: OQL, returnKeys: Boolean): Any?
 
-    fun insertBatch(list: List<EntityBase>): IntArray
-
 
     fun delete(q: OQL): Int
     fun delete(entity: EntityBase): Int
-    fun deleteByPk(entity: EntityBase): Int
-    fun deleteBatchByPk(list: List<EntityBase>): IntArray
 
 
     fun sqlSession(): KormSqlSession

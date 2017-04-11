@@ -29,7 +29,7 @@ import java.util.regex.Pattern
  */
 
 /** 转换SQL语句中的字段名称
- * 转换SQL语句中的字段名称
+ * 根据nameConver中的规则转换SQL语句中的字段名称
  * @param sqlString sql.
  * @param sqlParams params.
  * @param nc nameConvert.

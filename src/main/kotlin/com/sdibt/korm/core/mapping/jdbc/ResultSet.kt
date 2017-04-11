@@ -31,18 +31,7 @@ import java.util.*
  * Time: 21:33
  */
 
-fun <T> ResultSet.toMapListT(): List<T> {
-    if (!this.next()) {
-        return ArrayList(0)
-    }
-    val results = ArrayList<T>()
-    do {
-        results.add(this.toMap() as T)
-    } while (this.next())
 
-    return results
-
-}
 fun  ResultSet.toMapList(): List<Any> {
     if (!this.next()) {
         return ArrayList(0)
