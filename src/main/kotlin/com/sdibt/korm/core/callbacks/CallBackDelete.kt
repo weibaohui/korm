@@ -39,15 +39,14 @@ class CallBackDelete(db: KormSqlSession) {
     }
 
     fun deleteCallback(scope: Scope): Scope {
-
         val execScope: Scope
 
         when (scope.actionType) {
             ActionType.Entity -> {
-                execScope = deleteEntity(scope)
+                execScope = scope.deleteEntity()
             }
             ActionType.OQL    -> {
-                execScope = scope
+                execScope = scope.deleteOQL()
             }
         }
 
@@ -63,31 +62,7 @@ class CallBackDelete(db: KormSqlSession) {
         return execScope
     }
 
-    private fun deleteEntity(scope: Scope): Scope {
-        val entity = scope.entity ?: return scope
-        entity.primaryKeys.isNotEmpty().apply {
-            var sqlWhere = ""
-            val pks = entity.primaryKeys
-            entity.fieldNames.forEach {
-                field ->
-                val isPk = pks.indices.any {
-                    field.equals(pks[it], false)
-                }
-                //主键放到where 条件中
-                if (isPk) {
-                    val pkValue = entity.parameters[field]?.fieldValue
-                    if (pkValue != null) {
-                        sqlWhere += " And [$field] = @$field"
-                        scope.sqlParam.put(field, pkValue)
-                    }
-                }
-            }
-            if (sqlWhere == "") {
-                throw RuntimeException("表" + entity.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
-            }
-            scope.sqlString = "DELETE FROM ${entity.tableName}  WHERE 1=1 $sqlWhere"
-        }
 
-        return scope
-    }
 }
+
+

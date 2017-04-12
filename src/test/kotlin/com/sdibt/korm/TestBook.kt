@@ -43,11 +43,11 @@ class TestBook : EntityBase() {
 
     @delegate:CreatedBy var createdBy: String? by korm()
 
-    @delegate:CreatedDate var createdDate: LocalDateTime? by korm()
+    @delegate:CreatedAt var createdDate: LocalDateTime? by korm()
 
-    @delegate:LastModifiedBy var LastModifiedBy: String? by korm()
+    @delegate:UpdatedBy var LastModifiedBy: String? by korm()
 
-    @delegate:LastModifiedDate var LastModifiedDate: LocalDateTime? by korm()
+    @delegate:UpdatedAt var LastModifiedDate: LocalDateTime? by korm()
 
 
     fun getOperator(): String {

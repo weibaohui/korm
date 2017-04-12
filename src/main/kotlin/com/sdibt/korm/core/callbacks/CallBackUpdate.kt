@@ -62,8 +62,8 @@ class CallBackUpdate(db: KormSqlSession) {
         if (scope.entity == null) return scope
 
         val item = EntityFieldsCache.Item(scope.entity!!)
-        item.lastModifiedBy?.apply {
-            scope.sqlParam.put("${item.lastModifiedBy}", scope.callMethodGetOperator("getOperator"))
+        item.updatedBy?.apply {
+            scope.sqlParam.put("${item.updatedBy}", scope.callMethodGetOperator("getOperator"))
         }
 
         return scope
@@ -75,8 +75,8 @@ class CallBackUpdate(db: KormSqlSession) {
         if (scope.entity == null) return scope
 
         val item = EntityFieldsCache.Item(scope.entity!!)
-        item.lastModifiedDate?.apply {
-            scope.sqlParam.put("${item.lastModifiedDate}", LocalDateTime.now())
+        item.updatedAt?.apply {
+            scope.sqlParam.put("${item.updatedAt}", LocalDateTime.now())
         }
         return scope
     }

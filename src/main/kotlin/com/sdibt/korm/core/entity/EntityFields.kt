@@ -56,10 +56,10 @@ class EntityFields {
     var schema: String? = null
 
     var createdBy: String? = null
-    var createdDate: String? = null
-    var lastModifiedBy: String? = null
-    var lastModifiedDate: String? = null
-
+    var createdAt: String? = null
+    var updatedBy: String? = null
+    var updatedAt: String? = null
+    var deleteAt: String? = null
     /**
      * 初始化实体类信息，必须确保单线程调用本方法
 
@@ -111,10 +111,10 @@ class EntityFields {
                     .forEach {
                         val filedName = it.name.replace("\$delegate", "")
                         when {
-                            it.isAnnotationPresent(AutoID::class.java)           -> {
+                            it.isAnnotationPresent(AutoID::class.java)    -> {
                                 autoIdFieldsList.put(filedName, it.getAnnotation(AutoID::class.java).name)
                             }
-                            it.isAnnotationPresent(Id::class.java)               -> {
+                            it.isAnnotationPresent(Id::class.java)        -> {
                                 //兼容jpa @Id注解
                                 if (it.isAnnotationPresent(GeneratedValue::class.java)) {
                                     //有@GeneratedValue注解
@@ -127,14 +127,17 @@ class EntityFields {
                                     autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
                                 }
                             }
-                            it.isAnnotationPresent(CreatedBy::class.java)        ->
+
+                            it.isAnnotationPresent(DeleteAt::class.java)  ->
+                                deleteAt = it.getAnnotation(DeleteAt::class.java).name
+                            it.isAnnotationPresent(CreatedBy::class.java) ->
                                 createdBy = it.getAnnotation(CreatedBy::class.java).name
-                            it.isAnnotationPresent(CreatedDate::class.java)      ->
-                                createdDate = it.getAnnotation(CreatedDate::class.java).name
-                            it.isAnnotationPresent(LastModifiedBy::class.java)   ->
-                                lastModifiedBy = it.getAnnotation(LastModifiedBy::class.java).name
-                            it.isAnnotationPresent(LastModifiedDate::class.java) ->
-                                lastModifiedDate = it.getAnnotation(LastModifiedDate::class.java).name
+                            it.isAnnotationPresent(CreatedAt::class.java) ->
+                                createdAt = it.getAnnotation(CreatedAt::class.java).name
+                            it.isAnnotationPresent(UpdatedBy::class.java) ->
+                                updatedBy = it.getAnnotation(UpdatedBy::class.java).name
+                            it.isAnnotationPresent(UpdatedAt::class.java) ->
+                                updatedAt = it.getAnnotation(UpdatedAt::class.java).name
                         }
                     }
 

@@ -64,8 +64,8 @@ class CallBackInsert(db: KormSqlSession) {
         item.createdBy?.apply {
             scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
         }
-        item.lastModifiedBy?.apply {
-            scope.sqlParam.put("${item.lastModifiedBy}", scope.callMethodGetOperator("getOperator"))
+        item.updatedBy?.apply {
+            scope.sqlParam.put("${item.updatedBy}", scope.callMethodGetOperator("getOperator"))
         }
         return scope
     }
@@ -75,11 +75,11 @@ class CallBackInsert(db: KormSqlSession) {
         if (scope.entity == null) return scope
         val item = EntityFieldsCache.Item(scope.entity!!)
         val time = LocalDateTime.now()
-        item.createdDate?.apply {
-            scope.sqlParam.put("${item.createdDate}", time)
+        item.createdAt?.apply {
+            scope.sqlParam.put("${item.createdAt}", time)
         }
-        item.lastModifiedDate?.apply {
-            scope.sqlParam.put("${item.lastModifiedDate}", time)
+        item.updatedAt?.apply {
+            scope.sqlParam.put("${item.updatedAt}", time)
         }
 
         return scope
