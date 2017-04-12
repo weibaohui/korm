@@ -59,7 +59,7 @@ class EntityFields {
     var createdAt: String? = null
     var updatedBy: String? = null
     var updatedAt: String? = null
-    var deleteAt: String? = null
+    var deletedAt: String? = null
     /**
      * 初始化实体类信息，必须确保单线程调用本方法
 
@@ -128,8 +128,8 @@ class EntityFields {
                                 }
                             }
 
-                            it.isAnnotationPresent(DeleteAt::class.java)  ->
-                                deleteAt = it.getAnnotation(DeleteAt::class.java).name
+                            it.isAnnotationPresent(DeletedAt::class.java) ->
+                                deletedAt = it.getAnnotation(DeletedAt::class.java).name
                             it.isAnnotationPresent(CreatedBy::class.java) ->
                                 createdBy = it.getAnnotation(CreatedBy::class.java).name
                             it.isAnnotationPresent(CreatedAt::class.java) ->

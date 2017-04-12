@@ -20,4 +20,4 @@ package com.sdibt.korm.core.annotatoin
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
-annotation class DeleteAt(val name: String = "DeleteAt")
+annotation class DeletedAt(val name: String = "DeletedAt")
