@@ -250,20 +250,29 @@ internal class DBTest {
 
     @Test
     fun testReadWithPage() {
+        testInsertEntityWidthKeys()
+        testInsertFrom()
         var book = TestBook()
-        var q = OQL.From(book).Limit(10, 3, true).Select()
+        book.testName = "testnamevalue"
+
+        val countOQL = OQL.From(book).Select().Count(book.testId).END
+        val count = getDB().selectSingle<Int>(countOQL)
+        count?.apply {
+            val q = OQL.From(book).Limit(10, 1, true).Select()
 //				.Where {
 //					cmp ->
 //					cmp.Comparer(user.age, ">", "50")
 //				}
 
-                .END
-        q.selectStar = true
-        var resultList = getDB().select<TestBook>(q)
-
-        resultList?.forEach {
-            println("it = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
+                    .END
+            q.selectStar = true
+            q.PageWithAllRecordCount = count
+            val resultList = getDB().select<TestBook>(q)
+            resultList?.forEach {
+                println("it = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
+            }
         }
+
 
     }
 

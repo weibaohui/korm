@@ -1,5 +1,4 @@
 ﻿/*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.oql
@@ -99,7 +96,7 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
      * @param asFieldName 别名，如果不指定，则使用字段名称
      * @return OQL1
      */
-    fun <T> Count(field: T, asFieldName: String): OQL1 {
+    fun <T> Count(field: T, asFieldName: String = "count"): OQL1 {
         var currFieldName = currentOQL.takeStackFields()
         if (currFieldName.isNullOrBlank()) {
             currFieldName = "*"
@@ -114,7 +111,7 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
      * @param asFieldName 别名，如果不指定，则使用字段名称
      * @return OQL1
      */
-    fun <T> Max(field: T, asFieldName: String): OQL1 {
+    fun <T> Max(field: T, asFieldName: String = "max"): OQL1 {
         val currFieldName = currentOQL.takeStackFields()
         return sqlFunction("MAX", currFieldName, asFieldName)
     }
@@ -126,7 +123,7 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
      * @param asFieldName 别名，如果不指定，则使用字段名称
      * @return OQL1
      */
-    fun <T> Min(field: T, asFieldName: String): OQL1 {
+    fun <T> Min(field: T, asFieldName: String = "min"): OQL1 {
         val currFieldName = currentOQL.takeStackFields()
         return sqlFunction("MIN", currFieldName, asFieldName)
     }
@@ -138,7 +135,7 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
      * @param asFieldName 别名，如果不指定，则使用字段名称
      * @return OQL1
      */
-    fun <T> Sum(field: T, asFieldName: String): OQL1 {
+    fun <T> Sum(field: T, asFieldName: String = "sum"): OQL1 {
         val currFieldName = currentOQL.takeStackFields()
         return sqlFunction("SUM", currFieldName, asFieldName)
     }
@@ -150,7 +147,7 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
      * @param asFieldName 字段别名，如果不指定，则使用字段名称
      * @return OQL1
      */
-    fun <T> Avg(field: T, asFieldName: String): OQL1 {
+    fun <T> Avg(field: T, asFieldName: String = "avg"): OQL1 {
         val currFieldName = currentOQL.takeStackFields()
         return sqlFunction("AVG", currFieldName, asFieldName)
     }

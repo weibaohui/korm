@@ -138,7 +138,7 @@ abstract class EntityBase {
      * 设置实体类的对应的字段名称数组
      */
     private fun setFieldNames() {
-        this.names = names
+//        this.names = names
         val ef = EntityFieldsCache.Item(this)
         this.names = ef.fields
         this.fieldValues = ef.fieldValues.toList() as MutableList<Any>

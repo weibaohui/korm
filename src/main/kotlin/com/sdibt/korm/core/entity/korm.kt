@@ -15,26 +15,18 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core
+package com.sdibt.korm.core.entity
 
-import com.sdibt.korm.core.entity.EntityBase
-import com.sdibt.korm.core.entity.korm
-import javax.persistence.Id
-
-/**
- * Usage:
- * User: weibaohui
- * Date: 2017/3/3
- * Time: 14:02
- */
-class User : EntityBase() {
+import kotlin.reflect.KProperty
 
 
-    @delegate:Id
-    var id: String? by korm()
-    var name: String? by korm()
-    var age: Int  by korm()
+class korm {
+    operator fun <T> getValue(thisRef: EntityBase, property: KProperty<*>?): T {
+        if (property == null) return null as T
+        return thisRef.getField(property.name) as T
+    }
 
-
+    operator fun <T> setValue(thisRef: EntityBase, property: KProperty<*>?, s: T?) {
+        if (property != null) thisRef.setField(property.name, s)
+    }
 }
-

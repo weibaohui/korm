@@ -20,7 +20,7 @@ package com.sdibt.korm.core.db
 import com.sdibt.korm.core.annotatoin.*
 import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
-import com.sdibt.korm.core.idworker.IdWorkerType
+import com.sdibt.korm.core.entity.korm
 import java.time.LocalDateTime
 import javax.persistence.Table
 
@@ -30,95 +30,27 @@ import javax.persistence.Table
  * Date: 2017/3/3
  * Time: 14:02
  */
+
+
 @Table(name = "Test_Book")
 class TestBook : EntityBase() {
 
-    @AutoID(IdWorkerType.SnowFlake)
-    var testId: String? = null
-        get() {
-            getField("testId")
-            return field
-        }
-        set(value) {
-            setField("testId", value)
-            field = value
-        }
+    @delegate:AutoID var testId: String? by korm()
+
+    var testName: String? by korm()
+    var testURL: String? by korm()
+    var testCount: Int? by korm()
+
+    @delegate:CreatedBy var createdBy: String? by korm()
+
+    @delegate:CreatedDate var createdDate: LocalDateTime? by korm()
+
+    @delegate:LastModifiedBy var LastModifiedBy: String? by korm()
+
+    @delegate:LastModifiedDate var LastModifiedDate: LocalDateTime? by korm()
 
 
-    var testName: String? = null
-        get() {
-            getField("testName")
-            return field
-        }
-        set(value) {
-            setField("testName", value)
-            field = value
-        }
-
-    var testURL: String? = null
-        get() {
-            getField("testURL")
-            return field
-        }
-        set(value) {
-            setField("testURL", value)
-            field = value
-        }
-
-    var testCount: Int? = null
-        get() {
-            getField("testCount")
-            return field
-        }
-        set(value) {
-            setField("testCount", value)
-            field = value
-        }
-
-    @CreatedBy
-    var createdBy: String? = null
-        get() {
-            getField("createdBy")
-            return field
-        }
-        set(value) {
-            setField("createdBy", value)
-            field = value
-        }
-    @CreatedDate
-    var createdDate: LocalDateTime? = null
-        get() {
-            getField("createdDate")
-            return field
-        }
-        set(value) {
-            setField("createdDate", value)
-            field = value
-        }
-
-        @LastModifiedBy
-    var LastModifiedBy: String? = null
-        get() {
-            getField("LastModifiedBy")
-            return field
-        }
-        set(value) {
-            setField("LastModifiedBy", value)
-            field = value
-        }
-
-    @LastModifiedDate
-    var LastModifiedDate: LocalDateTime? = null
-        get() {
-            getField("LastModifiedDate")
-            return field
-        }
-        set(value) {
-            setField("LastModifiedDate", value)
-            field = value
-        }
-
-    fun getOperator():String{
+    fun getOperator(): String {
         return "zhangsanfeng"
     }
 
@@ -137,4 +69,5 @@ class TestBook : EntityBase() {
 
 
 }
+
 

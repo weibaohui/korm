@@ -77,22 +77,27 @@ class EntityFields {
             this.schema = an.schema
         }
 
-        if (entityType.superclass.toGenericString().endsWith("${EntityBase::class.java}")) {
 
+
+        if (EntityBase::class.java.isAssignableFrom(entityType)) {
 
             val fieldNameList: MutableList<String> = mutableListOf()
             val fieldValueList: MutableList<Any?> = mutableListOf()
             val typeNameList: MutableList<Class<*>> = mutableListOf()
             val autoIdFieldsList: MutableMap<String, IdWorkerType> = mutableMapOf()
 
+            entityType.declaredFields
+                    .filterNot { it.name == "\$\$delegatedProperties" }
+                    .forEach {
+                        when (it.type) {
+                            korm::class.java -> fieldNameList.add(it.name.replace("\$delegate", ""))
+                            else             -> fieldNameList.add(it.name)
+                        }
+                        typeNameList.add(it.type)
+                        //todo根据类型设置初始值，int->0,boolean->false
+                        fieldValueList.add(null)//设置初始值
+                    }
 
-
-            entityType.declaredFields.forEach {
-                fieldNameList.add(it.name)
-                typeNameList.add(it.type)
-                //todo根据类型设置初始值，int->0,boolean->false
-                fieldValueList.add(null)//设置初始值
-            }
 
             //寻找AutoID
 
@@ -101,36 +106,37 @@ class EntityFields {
 //            （2）auto自动生成策略由JPA实现，对于比较简单的主键，对主键生成策略要求较少时，采用这种策略好
 //            （3）table生成策略是将主键的持久化在数据库中
             // 本项目中均采用snowflake替代，可以解决分布式问题,解决数据迁移问题
-            entityType.declaredFields.forEach {
-
-                when {
-                    it.isAnnotationPresent(AutoID::class.java)           -> {
-                        autoIdFieldsList.put(it.name, it.getAnnotation(AutoID::class.java).name)
-                    }
-                    it.isAnnotationPresent(Id::class.java)               -> {
-                        //兼容jpa @Id注解
-                        if (it.isAnnotationPresent(GeneratedValue::class.java)) {
-                            //有@GeneratedValue注解
-                            when (it.getAnnotation(GeneratedValue::class.java).strategy) {
-                                GenerationType.AUTO -> autoIdFieldsList.put(it.name, IdWorkerType.SnowFlake)
-                                else                -> autoIdFieldsList.put(it.name, IdWorkerType.SnowFlake)
+            entityType.declaredFields
+                    .filterNot { it.name == "\$\$delegatedProperties" }
+                    .forEach {
+                        val filedName = it.name.replace("\$delegate", "")
+                        when {
+                            it.isAnnotationPresent(AutoID::class.java)           -> {
+                                autoIdFieldsList.put(filedName, it.getAnnotation(AutoID::class.java).name)
                             }
-                        } else {
-                            //没有生成策略,默认使用snowflake算法
-                            autoIdFieldsList.put(it.name, IdWorkerType.SnowFlake)
+                            it.isAnnotationPresent(Id::class.java)               -> {
+                                //兼容jpa @Id注解
+                                if (it.isAnnotationPresent(GeneratedValue::class.java)) {
+                                    //有@GeneratedValue注解
+                                    when (it.getAnnotation(GeneratedValue::class.java).strategy) {
+                                        GenerationType.AUTO -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                        else                -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                    }
+                                } else {
+                                    //没有生成策略,默认使用snowflake算法
+                                    autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                }
+                            }
+                            it.isAnnotationPresent(CreatedBy::class.java)        ->
+                                createdBy = it.getAnnotation(CreatedBy::class.java).name
+                            it.isAnnotationPresent(CreatedDate::class.java)      ->
+                                createdDate = it.getAnnotation(CreatedDate::class.java).name
+                            it.isAnnotationPresent(LastModifiedBy::class.java)   ->
+                                lastModifiedBy = it.getAnnotation(LastModifiedBy::class.java).name
+                            it.isAnnotationPresent(LastModifiedDate::class.java) ->
+                                lastModifiedDate = it.getAnnotation(LastModifiedDate::class.java).name
                         }
                     }
-                    it.isAnnotationPresent(CreatedBy::class.java)        ->
-                        createdBy = it.getAnnotation(CreatedBy::class.java).name
-                    it.isAnnotationPresent(CreatedDate::class.java)      ->
-                        createdDate = it.getAnnotation(CreatedDate::class.java).name
-                    it.isAnnotationPresent(LastModifiedBy::class.java)   ->
-                        lastModifiedBy = it.getAnnotation(LastModifiedBy::class.java).name
-                    it.isAnnotationPresent(LastModifiedDate::class.java) ->
-                        lastModifiedDate = it.getAnnotation(LastModifiedDate::class.java).name
-
-                }
-            }
 
             fields = fieldNameList.toTypedArray()
             fieldNames = fieldNameList.toTypedArray()
@@ -153,7 +159,6 @@ class EntityFields {
      * @return
      */
     fun getFieldName(fieldName: String): String? {
-
         return fieldNames.indices
                 .firstOrNull { fieldNames[it] == fieldName }
                 ?.let { fields[it] }
