@@ -17,6 +17,8 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.entity.EntityBase
+
 fun Scope.deleteEntity(): Scope {
     val entity = this.entity ?: return this
     entity.primaryKeys.isNotEmpty().apply {
@@ -64,6 +66,183 @@ fun Scope.deleteOQL(): Scope {
         this.sqlString = "DELETE FROM ${oql.currEntity.tableName}   $whereString"
     }
 
+
+    return this
+}
+
+fun Scope.updateEntity(): Scope {
+
+
+    val entity = this.entity ?: return this
+    val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
+    params.forEach { t, u -> this.sqlParam.put(t, u) }
+
+
+    if (entity.primaryKeys.isNotEmpty()) {
+        var sqlUpdate = "UPDATE " + entity.tableName + " SET "
+        var sqlWhere = ""
+        val pks = entity.primaryKeys
+        this.sqlParam.forEach {
+            field, _ ->
+            val isPk = pks.indices.any {
+                field.equals(pks[it], true)
+            }
+            //不更新主键,主键放到where 条件中
+            if (!isPk) {
+                sqlUpdate += " [$field]=@$field ,"
+            } else {
+                sqlWhere += " And [$field]=@$field "
+            }
+        }
+        sqlUpdate = sqlUpdate.trimEnd(',') + " WHERE 1=1 " + sqlWhere
+
+        this.sqlString = sqlUpdate
+
+
+    } else {
+        throw RuntimeException("表" + entity.tableName + "没有指定主键，无法生成Update语句！")
+    }
+    return this
+}
+
+fun Scope.updateOQL(): Scope {
+    val q = this.oql ?: return this
+    this.entity = q.currEntity
+
+    var sqlUpdate = "UPDATE ${q.currEntity.tableName} SET "
+    var sqlWhere = q.oqlString
+    val pks = q.currEntity.primaryKeys
+
+    q.selectedFieldInfo.indices.forEach {
+        i ->
+        val field = q.selectedFieldInfo[i].field
+        val isPk = pks.indices.any {
+            field.equals(pks[it], true)
+        }
+        //不更新主键,主键放到where 条件中
+        if (!isPk) {
+            if (q.optFlag == 6 && q.updateSelfOptChar != ' ') {
+                //自增等类型的更新 count=count+1
+                sqlUpdate += " [$field]= [$field] ${q.updateSelfOptChar}  @p$i ,"
+            } else {
+                //普通更新
+                sqlUpdate += " [$field]=@p$i ,"
+            }
+        } else {
+            sqlWhere += " And [$field]=@p$i "
+        }
+    }
+
+    //q.selectedFieldInfo 存放的是TableNameField，field不会以@开头
+    val keys = q.selectedFieldInfo
+            .map { it.field }
+
+    //this.sqlParam 是从赋值的字段转换而来
+    this.sqlParam
+            .filterNot { it.key.startsWith('@') }
+            .forEach { t, _ ->
+                if (t.trimStart('@') !in keys) {
+                    sqlUpdate += " [$t]=@$t ,"
+                }
+            }
+
+    sqlUpdate = sqlUpdate.trimEnd(',') + sqlWhere
+
+    this.sqlString = sqlUpdate
+
+    return this
+}
+
+fun Scope.insertOQL(): Scope {
+    val q = this.oql ?: return this
+
+
+    var Items = ""
+    var ItemValues = ""
+
+    var sqlInsert = "INSERT INTO " + q.currEntity.tableName
+
+    this.setAutoIdParam(q.currEntity)
+
+    q.selectedFieldInfo.indices.forEach {
+        i ->
+        val field = q.selectedFieldInfo[i].field
+        Items += "[$field],"
+        ItemValues += "@p$i,"
+//        sqlInsert += " [$field]=@p$i ,"
+
+    }
+
+    //q.selectedFieldInfo 存放的是TableNameField，field不会以@开头
+    val keys = q.selectedFieldInfo
+            .map { it.field }
+
+    //this.sqlParam 是从赋值的字段转换而来
+    this.sqlParam
+            .filterNot { it.key.startsWith('@') }
+            .forEach { t, _ ->
+                if (t.trimStart('@') !in keys) {
+                    Items += "[$t],"
+                    ItemValues += "@$t,"
+                }
+            }
+
+    sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+
+    this.sqlString = sqlInsert
+
+    return this
+}
+
+fun Scope.insertEntity(): Scope {
+
+    val entity = this.entity ?: return this
+    val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
+    params.forEach { t, u -> this.sqlParam.put(t, u) }
+
+
+    var Items = ""
+    var ItemValues = ""
+    var sqlInsert = "INSERT INTO " + entity.tableName
+    this.setAutoIdParam(entity)
+    this.sqlParam.forEach {
+        pkey, _ ->
+        Items += "[$pkey],"
+        ItemValues += "@$pkey,"
+    }
+    sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+    this.sqlString = sqlInsert
+
+
+    return this
+}
+
+private fun Scope.setAutoIdParam(entity: EntityBase): Scope {
+
+    //主键未设置
+    entity.autoIdFields
+            .filterNot { it.key in this.sqlParam.keys }
+            .forEach { id, idType ->
+                //主键值未设置
+                val nextId = idType.getNextId()
+//                    println("主键未设置nextId =$id ${nextId}")
+                nextId?.apply {
+                    this@setAutoIdParam.sqlParam.put(id, nextId)
+                }
+            }
+
+    //主键值是null
+    entity.autoIdFields
+            .forEach { id, idType ->
+                if (id in this.sqlParam.keys && this.sqlParam[id] == null) {
+                    //主键值设置为null
+                    val nextId = idType.getNextId()
+//                        println("主键值是null = $id= ${nextId}")
+                    nextId?.apply {
+                        this@setAutoIdParam.sqlParam.put(id, nextId)
+                    }
+                }
+            }
 
     return this
 }

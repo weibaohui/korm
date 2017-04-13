@@ -64,15 +64,6 @@ internal class DBTest {
     }
 
 
-    @Test
-    fun updateEntity() {
-        val tb = TestBook()
-        tb.testId = "50"
-        tb.testName = "test"
-        getDB().update(tb)
-//        getDB().update(tb, false)
-    }
-
 
     @Test
     fun insertEntity() {
@@ -213,7 +204,29 @@ internal class DBTest {
         println("ss = ${intcount}")
     }
 
+    @Test
+    fun updateEntity() {
+        val tb = TestBook()
+        tb.testId = "50"
+        tb.testName = "test"
+        getDB().update(tb)
+//        getDB().update(tb, false)
+    }
 
+    @Test
+    fun testUpdate() {
+
+        var book2 = TestBook()
+        book2.testName = "abcUpdateOQLWidthKeys"
+        book2.testURL = "UpdateOQLWidthKeys"
+        var q = OQL.From(book2).Update(book2.testName, book2.testURL)
+                .Where {
+                    cmp ->
+                    cmp.Comparer(book2.testId, ">", "990")
+                }
+                .END
+        getDB().update(q)
+    }
     @Test
     fun testSelfupdate() {
         var book = TestBook()
@@ -285,5 +298,34 @@ internal class DBTest {
         println("InsertEntity新插入条目的ID = ${keysInserted}")
     }
 
+    @Test
+    fun testInsert() {
 
+        var book2 = TestBook()
+        book2.testName = "abcInsertOQL"
+        book2.testURL = "InsertOQL"
+        var q = OQL.From(book2).Insert(book2.testName, book2.testURL).END
+        val rowsInserted = getDB().insert(q)
+        if (rowsInserted > 0) {
+            System.out.println("A new user was inserted successfully!")
+        }
+
+
+    }
+
+
+    @Test
+    fun testInsertOQLWidthKeys() {
+
+        var book2 = TestBook()
+        book2.testName = "abcInsertOQLWidthKeys"
+        book2.testURL = "InsertOQLWidthKeys"
+        var q = OQL.From(book2).Insert(book2.testName, book2.testURL).END
+
+
+        val keysInserted = getDB().insert(q, true)
+        println("InsertOQL新插入条目的ID = ${keysInserted}")
+
+
+    }
 }

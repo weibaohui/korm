@@ -127,9 +127,9 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     private var sql_fields = ""
     private var sql_table = ""
     var sql_condition = ""
-    private var updateSelfOptChar: Char = ' '
+    internal var updateSelfOptChar: Char = ' '
     private var paraIndex = 0
-    private var optFlag = OQL_SELECT
+    internal var optFlag = OQL_SELECT
     private var insertFromOql: OQL? = null
     private var parentOql: OQL? = null
     private var fieldGettingIndex = 0 //字段获取顺序的索引，如果有子查询，那么子查询使用父查询的该索引进行递增
@@ -227,6 +227,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      */
     fun createParameter(tnf: TableNameField): String {
         val paraName = "@P" + paraIndex++
+//        val paraName = "P" + paraIndex++
         parameters.put(paraName, tnf)
         return paraName
     }
@@ -310,7 +311,11 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
         optFlag = OQL_UPDATE
         val q1 = Select(*fields)
-        this.sql_from = preUpdate()
+//        this.sql_from = preUpdate()
+
+        preUpdate()
+
+
         return q1
     }
 
@@ -330,7 +335,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             updateSelfOptChar = selfOptChar
 
             val q1 = Select(*fields)
-            this.sql_from = preUpdateSelf()
+            preUpdate()
             return q1
         }
         throw IllegalArgumentException("OQL的字段自操作只能是+，-，*，/ 四种类型")
@@ -341,8 +346,9 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             throw IllegalArgumentException("OQL Insert 操作必须指定要操作的实体类的属性！")
         }
         optFlag = OQL_INSERT
-
-        return Select(*fields)
+        val q1 = Select(*fields)
+        preUpdate()
+        return q1
     }
 
     fun <T> InsertFrom(childOql: OQL, vararg targetTableFields: T): OQL1 {
@@ -633,42 +639,21 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         return lrTableNameFields(retLeftField, retRightField)
     }
 
-    private fun preUpdate(): String {
-        var sqlUpdate = "UPDATE $mainTableName SET "
-        val updateFieldsString = arrayOfNulls<String>(selectedFieldNames.size)
+    /** 采集更新字段
+     * <功能详细描述>
+     *
+     * @return void
+     */
+    private fun preUpdate() {
+
+
         //先将Where条件的参数保存起来
         val paraTemp = HashMap<String, TableNameField>()
         for (key in this.parameters.keys) {
             paraTemp.put(key, this.parameters[key]!!)
         }
+
         this.parameters.clear()
-        //
-        for (i in selectedFieldNames.indices) {
-            val a = selectedFieldNames[i].indexOf('[')
-            val b = selectedFieldNames[i].indexOf(']')
-            val realField = selectedFieldNames[i].substring(a + 1, a + 1 + b - a - 1)
-            updateFieldsString[i] = selectedFieldNames[i]
-            val Value = currEntity.getFieldValue(realField)
-
-            val tnf = TableNameField(field = realField, entity = this.currEntity, index = i)
-
-            tnf.fieldValue = Value
-            val paraName = createParameter(tnf) //参数应该在where的参数前面
-            updateFieldsString[i] += " = " + paraName
-        }
-        sqlUpdate += updateFieldsString.joinToString(",")
-        //恢复条件参数
-        for (key in paraTemp.keys) {
-            this.parameters.put(key, paraTemp[key]!!)
-        }
-
-        return sqlUpdate
-    }
-
-
-    private fun preUpdateSelf(): String {
-        var sqlUpdate = "UPDATE $mainTableName SET "
-        val updateFieldsString = arrayOfNulls<String>(selectedFieldNames.size)
         for (i in selectedFieldNames.indices) {
             val a = selectedFieldNames[i].indexOf('[')
             val b = selectedFieldNames[i].indexOf(']')
@@ -676,18 +661,16 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             val Value = currEntity.getFieldValue(realField)
 
             val tnf = TableNameField(field = realField, entity = this.currEntity, index = i, fieldValue = Value)
-
-
             val paraName = createParameter(tnf)
-            updateFieldsString[i] = String.format(" %1\$s = %2\$s %3\$s %4\$s ",
-                    selectedFieldNames[i],
-                    selectedFieldNames[i],
-                    this.updateSelfOptChar,
-                    paraName)
         }
-        sqlUpdate += updateFieldsString.joinToString(",")
-        return sqlUpdate
+        //恢复条件参数
+        for (key in paraTemp.keys) {
+            this.parameters.put(key, paraTemp[key]!!)
+        }
+
+
     }
+
 
     private fun toInsertFromString(sql: String): String {
         var sql = sql
@@ -714,59 +697,59 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         return sql
     }
 
-    private fun toInsertString(sqlStr: String): String {
-        var sql = sqlStr
-        parameters.clear()
+//    private fun toInsertString(sqlStr: String): String {
+//        var sql = sqlStr
+//        parameters.clear()
+//
+//
+//        //主键未设置
+//        currEntity.autoIdFields
+//                .filterNot { it.key in this.sqlParam.keys }
+//                .forEach { id, idType ->
+//                    //主键值未设置
+//                    val nextId = idType.getNextId()
+//                    println("主键未设置nextId =$id ${nextId}")
+//                    if (nextId != null) this.sqlParam.put(id, nextId)
+//
+//                }
+//
+//        //主键值是null
+//        currEntity.autoIdFields
+//                .forEach { id, idType ->
+//                    println("id = ${id}")
+//                    println(" scope.sqlParam.keys = ${this.sqlParam.keys}")
+//                    println("$id in scope.sqlParam.keys = ${id in this.sqlParam.keys}")
+//                    println("scope.sqlParam[$id] = ${this.sqlParam[id]}")
+//                    if (id in this.sqlParam.keys && this.sqlParam[id] == null) {
+//                        //主键值设置为null
+//                        val nextId = idType.getNextId()
+//                        println("主键值是null = $id= ${nextId}")
+//                        if (nextId != null) this.sqlParam.put(id, nextId)
+//                    }
+//                }
+//        var Items = ""
+//        var ItemValues = ""
+//        this.sqlParam.forEach {
+//            pkey, _ ->
+//            Items += "[$pkey],"
+//            ItemValues += "@$pkey,"
+//        }
+//
+//
+//        var sqlInsert = "INSERT INTO " + this.currEntity.tableName
+//
+//        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+//
+//        return sqlInsert
+//    }
 
-
-        //主键未设置
-        currEntity.autoIdFields
-                .filterNot { it.key in this.sqlParam.keys }
-                .forEach { id, idType ->
-                    //主键值未设置
-                    val nextId = idType.getNextId()
-                    println("主键未设置nextId =$id ${nextId}")
-                    if (nextId != null) this.sqlParam.put(id, nextId)
-
-                }
-
-        //主键值是null
-        currEntity.autoIdFields
-                .forEach { id, idType ->
-                    println("id = ${id}")
-                    println(" scope.sqlParam.keys = ${this.sqlParam.keys}")
-                    println("$id in scope.sqlParam.keys = ${id in this.sqlParam.keys}")
-                    println("scope.sqlParam[$id] = ${this.sqlParam[id]}")
-                    if (id in this.sqlParam.keys && this.sqlParam[id] == null) {
-                        //主键值设置为null
-                        val nextId = idType.getNextId()
-                        println("主键值是null = $id= ${nextId}")
-                        if (nextId != null) this.sqlParam.put(id, nextId)
-                    }
-                }
-        var Items = ""
-        var ItemValues = ""
-        this.sqlParam.forEach {
-            pkey, _ ->
-            Items += "[$pkey],"
-            ItemValues += "@$pkey,"
-        }
-
-
-        var sqlInsert = "INSERT INTO " + this.currEntity.tableName
-
-        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
-
-        return sqlInsert
-    }
-
-    private fun toUpdateString(sql: String): String {
-
-        if (selectedFieldNames.size == 0)
-            throw  Exception("UPDATE 操作未指定任何要更新的字段！");
-
-        return this.sql_from + getWhereString()
-    }
+//    private fun toUpdateString(sql: String): String {
+//
+//        if (selectedFieldNames.size == 0)
+//            throw  Exception("UPDATE 操作未指定任何要更新的字段！");
+//
+//        return this.sql_from + getWhereString()
+//    }
 
     private fun toSelectString(sql: String): String {
         var sql = sql
@@ -870,30 +853,30 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         return sql
     }
 
-    /**
-     * 获取条件字符串，如果未限定条件，则使用主键的值
-
-     * @return
-     */
-    private fun getWhereString(): String {
-        var whereString = oqlString
-        if (whereString.length < 8) {
-            whereString = " Where 1=1 "
-
-            if (this.currEntity.primaryKeys.isEmpty()) {
-                throw RuntimeException("未指定操作实体的范围，也未指定实体的主键。")
-            }
-            for (pk in this.currEntity.primaryKeys) {
-                val tnf = TableNameField(field = pk, entity = this.currEntity)
-                val paraName = createParameter(tnf, currEntity.getFieldValue(pk))
-                whereString += " And [${pk}] =$paraName "
-
-            }
-            //去除下一次生成重复的条件
-            oqlString = whereString
-        }
-        return whereString
-    }
+//    /**
+//     * 获取条件字符串，如果未限定条件，则使用主键的值
+//
+//     * @return
+//     */
+//    private fun getWhereString(): String {
+//        var whereString = oqlString
+//        if (whereString.length < 8) {
+//            whereString = " Where 1=1 "
+//
+//            if (this.currEntity.primaryKeys.isEmpty()) {
+//                throw RuntimeException("未指定操作实体的范围，也未指定实体的主键。")
+//            }
+//            for (pk in this.currEntity.primaryKeys) {
+//                val tnf = TableNameField(field = pk, entity = this.currEntity)
+//                val paraName = createParameter(tnf, currEntity.getFieldValue(pk))
+//                whereString += " And [${pk}] =$paraName "
+//
+//            }
+//            //去除下一次生成重复的条件
+//            oqlString = whereString
+//        }
+//        return whereString
+//    }
 
     /**
      * 获取当前OQL使用的所有实体类
@@ -953,13 +936,18 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             }
 
         } else if (optFlag == OQL_UPDATE || optFlag == OQL_UPDATE_SELFT) {
-            sql = toUpdateString(sql)
+//            sql = toUpdateString(sql)
+//            TODO("此分支应该删除")
+            sql = ""
         } else if (optFlag == OQL_DELETE) {
-            val sqlUpdate = "DELETE FROM $mainTableName "
-            sql = sqlUpdate + getWhereString()
+//            val sqlDelete = "DELETE FROM $mainTableName "
+//            sql = sqlDelete + getWhereString()
+//            TODO("此分支应该删除")
+            sql = ""
         } else if (optFlag == OQL_INSERT) {
-            sql = toInsertString(sql)
-
+//            sql = toInsertString(sql)
+//            TODO("此分支应该删除")
+            sql = ""
         } else if (optFlag == OQL_INSERT_FROM) {
             sql = toInsertFromString(sql)
 

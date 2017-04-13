@@ -82,20 +82,11 @@ class CallBackUpdate(db: KormSqlSession) {
     }
 
     fun updateCallback(scope: Scope): Scope {
-
-
         val execScope: Scope
-
         when (scope.actionType) {
-            ActionType.Entity -> {
-                execScope = updateEntity(scope)
-            }
-            ActionType.OQL    -> {
-                execScope = scope
-            }
+            ActionType.Entity -> execScope = scope.updateEntity()
+            ActionType.OQL    -> execScope = scope.updateOQL()
         }
-
-
 
         if (execScope.db.Error == null) {
             val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
@@ -108,40 +99,5 @@ class CallBackUpdate(db: KormSqlSession) {
 
     }
 
-
-    private fun updateEntity(scope: Scope): Scope {
-
-
-        val entity = scope.entity ?: return scope
-        val params = if (scope.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
-        params.forEach { t, u -> scope.sqlParam.put(t, u) }
-
-
-        if (entity.primaryKeys.isNotEmpty()) {
-            var sqlUpdate = "UPDATE " + entity.tableName + " SET "
-            var sqlWhere = ""
-            val pks = entity.primaryKeys
-            scope.sqlParam.forEach {
-                field, _ ->
-                val isPk = pks.indices.any {
-                    field.equals(pks[it], true)
-                }
-                //不更新主键,主键放到where 条件中
-                if (!isPk) {
-                    sqlUpdate += " [$field]=@$field ,"
-                } else {
-                    sqlWhere += " And [$field]=@$field "
-                }
-            }
-            sqlUpdate = sqlUpdate.trimEnd(',') + " WHERE 1=1 " + sqlWhere
-
-            scope.sqlString = sqlUpdate
-
-
-        } else {
-            throw RuntimeException("表" + entity.tableName + "没有指定主键，无法生成Update语句！")
-        }
-        return scope
-    }
 
 }

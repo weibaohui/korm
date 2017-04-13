@@ -86,79 +86,17 @@ class CallBackInsert(db: KormSqlSession) {
     }
 
     fun insertCallback(scope: Scope): Scope {
-
-
         val execScope: Scope
-
         when (scope.actionType) {
-            ActionType.Entity -> {
-                execScope = insertEntity(scope)
-            }
-            ActionType.OQL    -> {
-                execScope = scope
-            }
+            ActionType.Entity -> execScope = scope.insertEntity()
+            ActionType.OQL    -> execScope = scope.insertOQL()
         }
-
-
-
         if (execScope.db.Error == null) {
             val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
             execScope.rowsAffected = rowsAffected
             execScope.generatedKeys = generatedKeys
             execScope.result = rowsAffected
         }
-
         return execScope
-
     }
-
-
-    private fun insertEntity(scope: Scope): Scope {
-
-        val entity = scope.entity ?: return scope
-        val params = if (scope.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
-        params.forEach { t, u -> scope.sqlParam.put(t, u) }
-
-
-        var Items = ""
-        var ItemValues = ""
-        var sqlInsert = "INSERT INTO " + entity.tableName
-
-        //主键未设置
-        entity.autoIdFields
-                .filterNot { it.key in scope.sqlParam.keys }
-                .forEach { id, idType ->
-                    //主键值未设置
-                    val nextId = idType.getNextId()
-//                    println("主键未设置nextId =$id ${nextId}")
-                    nextId?.apply {
-                        scope.sqlParam.put(id, nextId)
-                    }
-                }
-
-        //主键值是null
-        entity.autoIdFields
-                .forEach { id, idType ->
-                    if (id in scope.sqlParam.keys && scope.sqlParam[id] == null) {
-                        //主键值设置为null
-                        val nextId = idType.getNextId()
-//                        println("主键值是null = $id= ${nextId}")
-                        nextId?.apply {
-                            scope.sqlParam.put(id, nextId)
-                        }
-                    }
-                }
-
-        scope.sqlParam.forEach {
-            pkey, _ ->
-            Items += "[$pkey],"
-            ItemValues += "@$pkey,"
-        }
-        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
-        scope.sqlString = sqlInsert
-
-
-        return scope
-    }
-
 }
