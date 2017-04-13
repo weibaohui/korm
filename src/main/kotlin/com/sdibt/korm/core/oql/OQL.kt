@@ -358,6 +358,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         optFlag = OQL_INSERT_FROM
 
         insertFromOql = childOql
+        preInsertFrom()
         return Select(*targetTableFields)
     }
 
@@ -672,29 +673,14 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     }
 
 
-    private fun toInsertFromString(sql: String): String {
-        var sql = sql
+    private fun preInsertFrom() {
+
         parameters.clear()
-        val sqlTemplate = "INSERT INTO %1\$s (%2\$s\r\n\t) \r\n%3\$s "
-        val count = selectedFieldNames.size
-        val insertFieldsString = arrayOfNulls<String>(count)
-
-        for (i in 0..count - 1) {
-            val a = selectedFieldNames[i].indexOf('[')
-            val b = selectedFieldNames[i].indexOf(']')
-            val realField = selectedFieldNames[i].substring(a + 1, a + 1 + b - a - 1)
-            insertFieldsString[i] = selectedFieldNames[i]
-        }
-
-        sql = String.format(sqlTemplate, mainTableName, insertFieldsString.joinToString(","), insertFromOql)
-
         if (insertFromOql != null) {
             for (key in insertFromOql!!.parameters.keys) {
                 parameters.put(key, insertFromOql!!.parameters[key]!!)
             }
         }
-
-        return sql
     }
 
 //    private fun toInsertString(sqlStr: String): String {
@@ -935,23 +921,25 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 e.printStackTrace()
             }
 
-        } else if (optFlag == OQL_UPDATE || optFlag == OQL_UPDATE_SELFT) {
-//            sql = toUpdateString(sql)
-//            TODO("此分支应该删除")
-            sql = ""
-        } else if (optFlag == OQL_DELETE) {
-//            val sqlDelete = "DELETE FROM $mainTableName "
-//            sql = sqlDelete + getWhereString()
-//            TODO("此分支应该删除")
-            sql = ""
-        } else if (optFlag == OQL_INSERT) {
-//            sql = toInsertString(sql)
-//            TODO("此分支应该删除")
-            sql = ""
-        } else if (optFlag == OQL_INSERT_FROM) {
-            sql = toInsertFromString(sql)
-
         }
+//        else if (optFlag == OQL_UPDATE || optFlag == OQL_UPDATE_SELFT) {
+////            sql = toUpdateString(sql)
+////            TODO("此分支应该删除")
+//            sql = ""
+//        } else if (optFlag == OQL_DELETE) {
+////            val sqlDelete = "DELETE FROM $mainTableName "
+////            sql = sqlDelete + getWhereString()
+////            TODO("此分支应该删除")
+//            sql = ""
+//        } else if (optFlag == OQL_INSERT) {
+////            sql = toInsertString(sql)
+////            TODO("此分支应该删除")
+//            sql = ""
+//        } else if (optFlag == OQL_INSERT_FROM) {
+////            sql = toInsertFromString(sql)
+////            TODO("此分支应该删除")
+//            sql = ""
+//        }
 
         return sql
     }
