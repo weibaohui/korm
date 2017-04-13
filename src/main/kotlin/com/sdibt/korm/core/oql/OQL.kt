@@ -130,7 +130,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     internal var updateSelfOptChar: Char = ' '
     private var paraIndex = 0
     internal var optFlag = OQL_SELECT
-    private var insertFromOql: OQL? = null
+    internal var insertFromOql: OQL? = null
     private var parentOql: OQL? = null
     private var fieldGettingIndex = 0 //字段获取顺序的索引，如果有子查询，那么子查询使用父查询的该索引进行递增
 

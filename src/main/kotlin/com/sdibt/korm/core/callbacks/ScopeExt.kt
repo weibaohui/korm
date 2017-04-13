@@ -155,42 +155,53 @@ fun Scope.updateOQL(): Scope {
 
 fun Scope.insertOQL(): Scope {
     val q = this.oql ?: return this
+    if (q.optFlag == 5 && q.insertFromOql != null) {
+        //todo insert from 的情况 是否自动添加时间？处理人？
+        var sqlInsert = "INSERT INTO " + q.currEntity.tableName + "("
 
+        q.selectedFieldInfo.forEach {
+            sqlInsert += "[${it.field}],"
+        }
+        sqlInsert = sqlInsert.trimEnd(',')
 
-    var Items = ""
-    var ItemValues = ""
+        sqlInsert += ")  " + q.insertFromOql
+        this.sqlString = sqlInsert
+    } else {
 
-    var sqlInsert = "INSERT INTO " + q.currEntity.tableName
+        var Items = ""
+        var ItemValues = ""
 
-    this.setAutoIdParam(q.currEntity)
+        var sqlInsert = "INSERT INTO " + q.currEntity.tableName
 
-    q.selectedFieldInfo.indices.forEach {
-        i ->
-        val field = q.selectedFieldInfo[i].field
-        Items += "[$field],"
-        ItemValues += "@p$i,"
+        this.setAutoIdParam(q.currEntity)
+
+        q.selectedFieldInfo.indices.forEach {
+            i ->
+            val field = q.selectedFieldInfo[i].field
+            Items += "[$field],"
+            ItemValues += "@p$i,"
 //        sqlInsert += " [$field]=@p$i ,"
 
-    }
+        }
 
-    //q.selectedFieldInfo 存放的是TableNameField，field不会以@开头
-    val keys = q.selectedFieldInfo
-            .map { it.field }
+        //q.selectedFieldInfo 存放的是TableNameField，field不会以@开头
+        val keys = q.selectedFieldInfo
+                .map { it.field }
 
-    //this.sqlParam 是从赋值的字段转换而来
-    this.sqlParam
-            .filterNot { it.key.startsWith('@') }
-            .forEach { t, _ ->
-                if (t.trimStart('@') !in keys) {
-                    Items += "[$t],"
-                    ItemValues += "@$t,"
+        //this.sqlParam 是从赋值的字段转换而来
+        this.sqlParam
+                .filterNot { it.key.startsWith('@') }
+                .forEach { t, _ ->
+                    if (t.trimStart('@') !in keys) {
+                        Items += "[$t],"
+                        ItemValues += "@$t,"
+                    }
                 }
-            }
 
-    sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
 
-    this.sqlString = sqlInsert
-
+        this.sqlString = sqlInsert
+    }
     return this
 }
 

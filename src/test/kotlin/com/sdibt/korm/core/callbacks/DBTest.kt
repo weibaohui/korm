@@ -241,24 +241,6 @@ internal class DBTest {
     }
 
 
-    @Test
-    fun testInsertFrom() {
-        var book = TestBook()
-        book.testName = "abc"
-        book.testId = "777"
-        book.testCount = 1
-        var child = OQL.From(book).Select(book.testName, book.testCount).Where {
-            cmp ->
-            cmp.Comparer(book.testId, "=", "777")
-        }.END
-
-        var q = OQL.From(book)
-                .InsertFrom(child, book.testName, book.testCount)
-                .END
-
-        getDB().insert(q)
-
-    }
 
 
     @Test
@@ -326,6 +308,26 @@ internal class DBTest {
         val keysInserted = getDB().insert(q, true)
         println("InsertOQL新插入条目的ID = ${keysInserted}")
 
+
+    }
+
+
+    @Test
+    fun testInsertFrom() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+        book.testCount = 1
+        var child = OQL.From(book).Select(book.testName, book.testCount).Where {
+            cmp ->
+            cmp.Comparer(book.testId, "=", "777")
+        }.END
+
+        var q = OQL.From(book)
+                .InsertFrom(child, book.testName, book.testCount)
+                .END
+
+        getDB().insert(q)
 
     }
 }
