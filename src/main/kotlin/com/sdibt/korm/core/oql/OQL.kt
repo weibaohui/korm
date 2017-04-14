@@ -20,6 +20,7 @@ package com.sdibt.korm.core.oql
 
 import com.google.common.eventbus.Subscribe
 import com.sdibt.korm.core.entity.EntityBase
+import com.sdibt.korm.core.entity.EntityFieldsCache
 import com.sdibt.korm.core.entity.JoinEntity
 import com.sdibt.korm.core.enums.EntityMapType.Table
 import com.sdibt.korm.core.property.EventManager.INSTANCE
@@ -119,7 +120,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     var entityMap = Table
         set
 
-    private var dictAliases: HashMap<Any, String> = HashMap()
+    private var dictAliases: HashMap<EntityBase, String> = HashMap()
     private var mainTableName = ""
     private val selectedFieldNames = ArrayList<String>()
     var groupByFieldNames: ArrayList<String> = arrayListOf()
@@ -737,15 +738,14 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 //        return this.sql_from + getWhereString()
 //    }
 
-    private fun toSelectString(sql: String): String {
-        var sql = sql
+    private fun toSelectString(): String {
+        var sql = ""
         var sqlVar = ""
         if (this.Distinct) {
             sqlVar += " DISTINCT "
         }
 
 
-        ///#region 校验GROUP BY 子句
         var sqlFunTemp = ""
         if (sqlFunctionString.isNotEmpty())
         //是否有聚合函数
@@ -765,12 +765,9 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 if (selectedFieldNames.isEmpty()) {
                     throw Exception("如果使用GROUP BY 子句，那么在SELECT 子句中中必须指明要选取的列！")
                 }
-                for (str in selectedFieldNames) {
-                    val item = str.trim()
-                    if (!groupByFieldNames.contains(item)) {
-                        throw Exception("如果使用GROUP BY 子句，那么在SELECT 子句中查询的列必须也在GROUP BY 子句中出现！错误的列：" + item)
-                    }
-                }
+                selectedFieldNames
+                        .filterNot { groupByFieldNames.contains(it.trim()) }
+                        .first { throw Exception("如果使用GROUP BY 子句，那么在SELECT 子句中查询的列必须也在GROUP BY 子句中出现！错误的列：" + it) }
 
             }
         }
@@ -780,7 +777,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         //有关联查询
         {
             //处理字段别名问题
-            var aliases: Any?
+            var aliases: String?
             sql_fields = ""
 
             for (tnf in selectedFieldInfo) {
@@ -794,7 +791,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
             sql_fields = sql_fields.trimStart(',')
 
-            sql_from = mainTableName + " M "
+            sql_from = this.currEntity.tableName + " M "
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
                 if (selectStar) {
                     sql_fields = "*"
@@ -807,24 +804,63 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             }
         } else {
             sql_fields = selectedFieldNames.toTypedArray().joinToString(",")
-            sql_from = mainTableName
+            sql_from = this.currEntity.tableName
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
                 if (selectStar) {
                     sql_fields = "*"
                 } else {
 
                     this.currEntity.fieldNames.forEach {
-                        sql_fields += "[${it}],"
+                        sql_fields += "[$it],"
                     }
                     sql_fields = sql_fields.trimEnd(',')
 
                 }
             }
             if (haveChildOql) {
-                sql_from = mainTableName + " M "
+                sql_from = this.currEntity.tableName + " M "
             }
         }
 
+
+        //region 检查DeletedAt注解
+        println("oqlString = ${oqlString}")
+        println("sql_from = ${sql_from}")
+        if (oqlString.isBlank()) {
+            oqlString = " WHERE  "
+        }
+        var deletedCheck = ""
+        //检查deletedAt属性
+        var deletedAt = EntityFieldsCache.Item(this.currEntity).deletedAt
+        deletedAt?.apply {
+            if (this@OQL.haveJoinOpt) {
+                deletedCheck = "  M.$[$deletedAt] IS NOT NULL "
+            } else {
+                deletedCheck = "  [$deletedAt] IS NOT NULL "
+
+            }
+
+        }
+        if (this.haveJoinOpt) {
+            dictAliases.forEach { t, u ->
+                deletedAt = EntityFieldsCache.Item(t).deletedAt
+                deletedAt?.apply {
+                    if (!deletedCheck.isBlank()) deletedCheck += " AND "
+                    deletedCheck += "  $u.[$deletedAt] IS  NULL "
+                }
+            }
+        }
+
+        if (deletedCheck.isNotBlank()){
+            if (oqlString.trim().length > 5) {
+                //where 已经有条件值
+                oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck AND ", ignoreCase = true)
+            } else {
+                oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck", ignoreCase = true)
+            }
+        }
+
+        //endregion
 
         sql = String.format("SELECT %1\$s %2\$s %3\$s \r\nFROM %4\$s %5\$s  ", sqlVar, sql_fields, sqlFunTemp, sql_from, oqlString)
 
@@ -896,7 +932,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             throw RuntimeException("用户的子查询不能为空。")
         }
         this.mainTableName = " ($tempViewSql ) tempView "
-        return this.toSelectString("")
+        return this.toSelectString()
     }
 
 
@@ -916,7 +952,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         var sql = ""
         if (optFlag == OQL_SELECT) {
             try {
-                sql = toSelectString(sql)
+                sql = toSelectString()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

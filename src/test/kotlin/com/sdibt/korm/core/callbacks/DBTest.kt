@@ -231,7 +231,6 @@ internal class DBTest {
     fun testSelfupdate() {
         var book = TestBook()
         book.testName = "abc"
-        book.testId = "777"
         book.testCount = 1
         assertTrue(getDB().save(book) > 0)
 

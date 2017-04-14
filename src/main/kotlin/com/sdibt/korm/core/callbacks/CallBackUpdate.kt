@@ -78,6 +78,7 @@ class CallBackUpdate(db: KormSqlSession) {
         item.updatedAt?.apply {
             scope.sqlParam.put("${item.updatedAt}", LocalDateTime.now())
         }
+
         return scope
     }
 

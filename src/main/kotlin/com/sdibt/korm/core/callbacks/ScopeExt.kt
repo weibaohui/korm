@@ -18,11 +18,13 @@
 package com.sdibt.korm.core.callbacks
 
 import com.sdibt.korm.core.entity.EntityBase
+import com.sdibt.korm.core.entity.EntityFieldsCache
+import java.time.LocalDateTime
 
 fun Scope.deleteEntity(): Scope {
     val entity = this.entity ?: return this
     entity.primaryKeys.isNotEmpty().apply {
-
+        //需要有主键
         var sqlWhere = ""
         val pks = entity.primaryKeys
         entity.fieldNames.forEach {
@@ -34,17 +36,23 @@ fun Scope.deleteEntity(): Scope {
             if (isPk) {
                 val pkValue = entity.parameters[field]?.fieldValue
                 if (pkValue != null) {
-                    sqlWhere += " And [$field] = @$field"
+                    sqlWhere += " AND [$field] = @$field"
                     this@deleteEntity.sqlParam.put(field, pkValue)
-
                 }
             }
         }
         if (sqlWhere == "") {
             throw RuntimeException("表" + entity.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
         }
-        //todo add softDelete
         this@deleteEntity.sqlString = "DELETE FROM ${entity.tableName}  WHERE 1=1 $sqlWhere"
+
+        val deletedAt = EntityFieldsCache.Item(entity).deletedAt
+        deletedAt?.apply {
+            //软删除标记
+            sqlParam.put(deletedAt, LocalDateTime.now())
+            this@deleteEntity.sqlString = "UPDATE  ${entity.tableName} SET [$deletedAt]=@$deletedAt  WHERE 1=1 $sqlWhere"
+        }
+
     }
 
     return this
@@ -62,11 +70,16 @@ fun Scope.deleteOQL(): Scope {
         this.entity = oql.currEntity
         this.sqlString = this.deleteEntity().sqlString
     } else {
-        //todo add softdelete
+
         this.sqlString = "DELETE FROM ${oql.currEntity.tableName}   $whereString"
     }
 
-
+    val deletedAt = EntityFieldsCache.Item(oql.currEntity).deletedAt
+    deletedAt?.apply {
+        //软删除标记
+        this@deleteOQL.sqlParam.put(deletedAt, LocalDateTime.now())
+        this@deleteOQL.sqlString = "UPDATE  ${oql.currEntity.tableName} SET [$deletedAt]=@$deletedAt  $whereString"
+    }
     return this
 }
 
@@ -94,6 +107,12 @@ fun Scope.updateEntity(): Scope {
                 sqlWhere += " And [$field]=@$field "
             }
         }
+
+        val deletedAt = EntityFieldsCache.Item(entity).deletedAt
+        deletedAt?.apply {
+            sqlWhere += " And [$deletedAt] IS  NULL "
+        }
+
         sqlUpdate = sqlUpdate.trimEnd(',') + " WHERE 1=1 " + sqlWhere
 
         this.sqlString = sqlUpdate
@@ -110,7 +129,7 @@ fun Scope.updateOQL(): Scope {
     this.entity = q.currEntity
 
     var sqlUpdate = "UPDATE ${q.currEntity.tableName} SET "
-    var sqlWhere = q.oqlString
+    var sqlWhere = if (q.oqlString.isNotBlank()) q.oqlString else " WHERE 1=1 "
     val pks = q.currEntity.primaryKeys
 
     q.selectedFieldInfo.indices.forEach {
@@ -129,8 +148,15 @@ fun Scope.updateOQL(): Scope {
                 sqlUpdate += " [$field]=@p$i ,"
             }
         } else {
-            sqlWhere += " And [$field]=@p$i "
+            sqlWhere += " AND  [$field]=@p$i "
         }
+
+
+    }
+
+    val deletedAt = EntityFieldsCache.Item(q.currEntity).deletedAt
+    deletedAt?.apply {
+        sqlWhere += " And [$deletedAt] IS  NULL "
     }
 
     //q.selectedFieldInfo 存放的是TableNameField，field不会以@开头

@@ -194,6 +194,8 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
         }
 
 
+
+
         return fieldNames.joinToString(" AND ")
     }
 

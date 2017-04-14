@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.entity
@@ -27,17 +24,18 @@ package com.sdibt.korm.core.entity
  * Time: 16:06
  */
 object EntityFieldsCache {
-	var dict: MutableMap<EntityBase, EntityFields> = mutableMapOf()
+    var dict: MutableMap<String, EntityFields> = mutableMapOf()
 
-	fun Item(entity: EntityBase): EntityFields {
+    fun Item(entity: EntityBase): EntityFields {
 
-		if (dict.contains(entity)) {
-			return dict[entity] as EntityFields
-		} else {
-			val ef = EntityFields()
-			ef.initEntity(entity)
-			dict.put(entity, ef)
-			return ef
-		}
-	}
+        val key = entity::class.java.simpleName
+        if (dict.contains(key)) {
+            return dict[key] as EntityFields
+        } else {
+            val ef = EntityFields()
+            ef.initEntity(entity)
+            dict.put(key, ef)
+            return ef
+        }
+    }
 }

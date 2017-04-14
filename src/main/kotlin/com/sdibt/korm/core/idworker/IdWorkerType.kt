@@ -30,12 +30,3 @@ enum class IdWorkerType {
     }
 
 }
-
-fun IdWorkerType.getIdGen(): Any? {
-    when (this) {
-        IdWorkerType.SnowFlake     -> return SnowFlakeGenerator.instance.nextId()
-        IdWorkerType.AutoIncrement -> return null
-        IdWorkerType.GUID          -> return java.util.UUID.randomUUID()
-        else                       -> return null
-    }
-}

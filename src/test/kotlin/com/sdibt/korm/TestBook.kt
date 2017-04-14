@@ -48,6 +48,7 @@ class TestBook : EntityBase() {
     @delegate:UpdatedBy var LastModifiedBy: String? by korm()
 
     @delegate:UpdatedAt var LastModifiedDate: LocalDateTime? by korm()
+//    @delegate:DeletedAt var deletedAt: LocalDateTime? by korm()
 
 
     fun getOperator(): String {
