@@ -60,6 +60,8 @@ class EntityFields {
     var updatedBy: String? = null
     var updatedAt: String? = null
     var deletedAt: String? = null
+    var version: String? = null
+
     /**
      * 初始化实体类信息，必须确保单线程调用本方法
 
@@ -138,6 +140,8 @@ class EntityFields {
                                 updatedBy = it.getAnnotation(UpdatedBy::class.java).name
                             it.isAnnotationPresent(UpdatedAt::class.java) ->
                                 updatedAt = it.getAnnotation(UpdatedAt::class.java).name
+                            it.isAnnotationPresent(Version::class.java)   ->
+                                version = it.getAnnotation(Version::class.java).name
                         }
                     }
 

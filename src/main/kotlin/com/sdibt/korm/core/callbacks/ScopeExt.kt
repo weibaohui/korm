@@ -95,18 +95,33 @@ fun Scope.updateEntity(): Scope {
         var sqlUpdate = "UPDATE " + entity.tableName + " SET "
         var sqlWhere = ""
         val pks = entity.primaryKeys
-        this.sqlParam.forEach {
-            field, _ ->
-            val isPk = pks.indices.any {
-                field.equals(pks[it], true)
+
+
+        //entity中有version值
+        val version = EntityFieldsCache.Item(entity).version
+        version?.apply {
+            if (this@updateEntity.sqlParam.keys.filter { it.equals(version, ignoreCase = true) }.none()) {
+                this@updateEntity.sqlParam.put(version, 0)
             }
-            //不更新主键,主键放到where 条件中
-            if (!isPk) {
-                sqlUpdate += " [$field]=@$field ,"
-            } else {
-                sqlWhere += " And [$field]=@$field "
-            }
+            sqlUpdate += " [$version]=[$version] + 1 ,"
+            sqlWhere += " AND  [$version]=@$version "
         }
+
+        this.sqlParam
+                .filterNot { it.key.equals(version, ignoreCase = true) }
+                .forEach {
+                    field, _ ->
+                    val isPk = pks.indices.any {
+                        field.equals(pks[it], true)
+                    }
+                    //不更新主键,主键放到where 条件中
+                    if (!isPk) {
+                        sqlUpdate += " [$field]=@$field ,"
+                    } else {
+                        sqlWhere += " And [$field]=@$field "
+                    }
+                }
+
 
         val deletedAt = EntityFieldsCache.Item(entity).deletedAt
         deletedAt?.apply {
@@ -132,6 +147,17 @@ fun Scope.updateOQL(): Scope {
     var sqlWhere = if (q.oqlString.isNotBlank()) q.oqlString else " WHERE 1=1 "
     val pks = q.currEntity.primaryKeys
 
+
+    //entity中有version值
+    val version = EntityFieldsCache.Item(q.currEntity).version
+    version?.apply {
+        if (this@updateOQL.sqlParam.keys.filter { it.equals(version, ignoreCase = true) }.none()) {
+            this@updateOQL.sqlParam.put(version, q.currEntity.getFieldValue(version) ?: 0)
+        }
+        sqlUpdate += " [$version]=[$version] + 1 ,"
+        sqlWhere += " AND  [$version]=@$version "
+    }
+
     q.selectedFieldInfo.indices.forEach {
         i ->
         val field = q.selectedFieldInfo[i].field
@@ -150,9 +176,8 @@ fun Scope.updateOQL(): Scope {
         } else {
             sqlWhere += " AND  [$field]=@p$i "
         }
-
-
     }
+
 
     val deletedAt = EntityFieldsCache.Item(q.currEntity).deletedAt
     deletedAt?.apply {
@@ -165,6 +190,7 @@ fun Scope.updateOQL(): Scope {
 
     //this.sqlParam 是从赋值的字段转换而来
     this.sqlParam
+            .filterNot { it.key.equals(version, ignoreCase = true) }
             .filterNot { it.key.startsWith('@') }
             .forEach { t, _ ->
                 if (t.trimStart('@') !in keys) {

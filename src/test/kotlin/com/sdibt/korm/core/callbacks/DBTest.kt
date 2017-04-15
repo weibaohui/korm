@@ -64,7 +64,6 @@ internal class DBTest {
     }
 
 
-
     @Test
     fun insertEntity() {
         val tb = TestBook()
@@ -209,6 +208,7 @@ internal class DBTest {
         val tb = TestBook()
         tb.testId = "50"
         tb.testName = "test"
+//        tb.version = 1
         getDB().update(tb)
 //        getDB().update(tb, false)
     }
@@ -219,6 +219,7 @@ internal class DBTest {
         var book2 = TestBook()
         book2.testName = "abcUpdateOQLWidthKeys"
         book2.testURL = "UpdateOQLWidthKeys"
+//        book2.version = 1
         var q = OQL.From(book2).Update(book2.testName, book2.testURL)
                 .Where {
                     cmp ->
@@ -227,6 +228,7 @@ internal class DBTest {
                 .END
         getDB().update(q)
     }
+
     @Test
     fun testSelfupdate() {
         var book = TestBook()
@@ -238,8 +240,6 @@ internal class DBTest {
 
         assertTrue(getDB().update(q1) > 0)
     }
-
-
 
 
     @Test
