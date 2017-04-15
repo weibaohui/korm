@@ -21,3 +21,7 @@ package com.sdibt.korm.core.annotatoin
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
 annotation class Version(val name: String = "Version")
+//oql select 如果定义了versio 应该选出来
+//当前是需要select 中手动指定要select的字段，或者select *
+//启用version 后更新或删除前，需要先select获取实体，因为version需要获取数据库中的最大值
+//version 字段数据库默认为0

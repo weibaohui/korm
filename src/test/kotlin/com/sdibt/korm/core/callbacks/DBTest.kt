@@ -235,6 +235,9 @@ internal class DBTest {
         book.testName = "abc"
         book.testCount = 1
         assertTrue(getDB().save(book) > 0)
+        book=getDB().selectSingle<TestBook>(
+                OQL.From(book).Select().Where(book.testName,book.testCount).END
+        )?:book
 
         var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
 

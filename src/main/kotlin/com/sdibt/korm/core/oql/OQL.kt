@@ -297,6 +297,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     }
 
 
+
     /**
      * 更新实体类的某些属性值，如果未指定条件，则使用主键值为条件。
 
@@ -851,7 +852,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             }
         }
 
-        if (deletedCheck.isNotBlank()){
+        if (deletedCheck.isNotBlank()) {
             if (oqlString.trim().length > 5) {
                 //where 已经有条件值
                 oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck AND ", ignoreCase = true)
