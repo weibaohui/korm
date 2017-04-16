@@ -24,6 +24,8 @@ import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.Table
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.jvm.kotlinProperty
 
 
 /**
@@ -126,9 +128,11 @@ class EntityFields {
         clazz.declaredFields
                 .filterNot { it.name == "\$\$delegatedProperties" }
                 .forEach {
+                    val fieldName = it.kotlinProperty?.name ?: it.name.replace("\$delegate", "")
+
                     when (it.type) {
-                        korm::class.java -> fieldNameList.add(it.name.replace("\$delegate", ""))
-                        else             -> fieldNameList.add(it.name)
+                        korm::class.java -> fieldNameList.add(fieldName)
+                        else             -> fieldNameList.add(fieldName)
                     }
                     typeNameList.add(it.type)
                     //todo根据类型设置初始值，int->0,boolean->false
@@ -163,37 +167,37 @@ class EntityFields {
         clazz.declaredFields
                 .filterNot { it.name == "\$\$delegatedProperties" }
                 .forEach {
-                    val filedName = it.name.replace("\$delegate", "")
+                    val fieldName = it.kotlinProperty?.name ?: it.name.replace("\$delegate", "")
                     when {
                         it.isAnnotationPresent(AutoID::class.java)    -> {
-                            autoIdFieldsList.put(filedName, it.getAnnotation(AutoID::class.java).name)
+                            autoIdFieldsList.put(fieldName, it.getAnnotation(AutoID::class.java).name)
                         }
                         it.isAnnotationPresent(Id::class.java)        -> {
                             //兼容jpa @Id注解
                             if (it.isAnnotationPresent(GeneratedValue::class.java)) {
                                 //有@GeneratedValue注解
                                 when (it.getAnnotation(GeneratedValue::class.java).strategy) {
-                                    GenerationType.AUTO -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
-                                    else                -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                    GenerationType.AUTO -> autoIdFieldsList.put(fieldName, IdWorkerType.SnowFlake)
+                                    else                -> autoIdFieldsList.put(fieldName, IdWorkerType.SnowFlake)
                                 }
                             } else {
                                 //没有生成策略,默认使用snowflake算法
-                                autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                autoIdFieldsList.put(fieldName, IdWorkerType.SnowFlake)
                             }
                         }
 
                         it.isAnnotationPresent(DeletedAt::class.java) ->
-                            deletedAt = it.getAnnotation(DeletedAt::class.java).name
+                            deletedAt = "DeletedAt"
                         it.isAnnotationPresent(CreatedBy::class.java) ->
-                            createdBy = it.getAnnotation(CreatedBy::class.java).name
+                            createdBy = "CreatedBy"
                         it.isAnnotationPresent(CreatedAt::class.java) ->
-                            createdAt = it.getAnnotation(CreatedAt::class.java).name
+                            createdAt = "CreatedAt"
                         it.isAnnotationPresent(UpdatedBy::class.java) ->
-                            updatedBy = it.getAnnotation(UpdatedBy::class.java).name
+                            updatedBy = "UpdatedBy"
                         it.isAnnotationPresent(UpdatedAt::class.java) ->
-                            updatedAt = it.getAnnotation(UpdatedAt::class.java).name
+                            updatedAt = "UpdatedAt"
                         it.isAnnotationPresent(Version::class.java)   ->
-                            version = it.getAnnotation(Version::class.java).name
+                            version = "Version"
                     }
                 }
 
@@ -211,13 +215,11 @@ class EntityFields {
      */
     private fun fillColumnInfo(clazz: Class<*>) {
         val columnMap: MutableMap<String, Column> = mutableMapOf()
-        println("clazz.declaredFields = ${clazz.declaredFields}")
+
         clazz.declaredFields
                 .filterNot { it.name == "\$\$delegatedProperties" }
                 .forEach {
-                    println("it.type = ${it.type}")
-                    println("it.genericType = ${it.genericType}")
-                    val filedName = it.name.replace("\$delegate", "")
+                    val fieldName = it.kotlinProperty?.name ?: it.name.replace("\$delegate", "")
 
                     //采集注释
                     var comment: String? = null
@@ -232,6 +234,8 @@ class EntityFields {
                     if (it.isAnnotationPresent(DefaultValue::class.java)) {
                         defaultValue = it.getAnnotation(DefaultValue::class.java).value
                     }
+
+                    val type: Any = it.kotlinProperty?.returnType?.javaType ?: it.type
                     var column: Column
                     if (it.isAnnotationPresent(javax.persistence.Column::class.java)) {
                         //使用了column注解
@@ -247,20 +251,20 @@ class EntityFields {
                                 length = an.length,
                                 precision = an.precision,
                                 scale = an.scale,
-                                type = it.type
+                                type = type
 
                         )
                     } else {
                         column = Column(
-                                name = filedName,
-                                type = it.type
+                                name = fieldName,
+                                type = type
                         )
                     }
 
                     column.isPk = isPk
                     column.comment = comment
                     column.defaultValue = defaultValue
-                    columnMap.put(filedName, column)
+                    columnMap.put(fieldName, column)
                 }
 
         columns = columnMap.toMap()

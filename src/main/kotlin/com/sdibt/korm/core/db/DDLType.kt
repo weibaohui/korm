@@ -15,26 +15,10 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core
+package com.sdibt.korm.core.db
 
-import com.sdibt.korm.core.entity.EntityBase
-import com.sdibt.korm.core.entity.korm
-import javax.persistence.Id
-
-/**
- * Usage:
- * User: weibaohui
- * Date: 2017/3/3
- * Time: 14:02
- */
-class User : EntityBase() {
-
-
-    @delegate:Id
-    var id: String? by korm()
-    var name: String = ""
-    var age: Int = 0
-
-
+enum class DDLType {
+    Update,
+    Create,
+    CreateDrop;
 }
-

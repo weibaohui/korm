@@ -53,6 +53,7 @@ class TestBook : EntityBase() {
     @delegate:UpdatedAt var lastModifiedDate: LocalDateTime? by korm()
 //    @delegate:DeletedAt var deletedAt: LocalDateTime? by korm()
 
+    @delegate:Column(name = "versionTest", length = 30)
     @delegate:Version var version: Int? by korm()
 
 

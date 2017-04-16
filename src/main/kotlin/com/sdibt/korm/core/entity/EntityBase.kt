@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.entity
 
 import com.sdibt.korm.core.callbacks.Scope
+import com.sdibt.korm.core.db.DDLType
 import com.sdibt.korm.core.enums.EntityMapType
 import com.sdibt.korm.core.idworker.IdWorkerType
 import com.sdibt.korm.core.oql.TableNameField
@@ -428,30 +429,8 @@ abstract class EntityBase {
 
     //region ddl 生成
 
-    fun genDDL(): String {
-//        数值型：
-//
-//        TINYINT 1 ，SMALLINT 2，MEDIUMINT 3 ，INT 4，BIGINT 8，DECIMAL，FLOAT 4，DOUBLE 8，BIT
-//
-//
-//
-//        字符串型
-//
-//        CHAR，VARCHAR，BINARY，VBINARY,TINYBLOB，BLOB，MEDIUMBLOB，LONGBLOG，TINYTEXT，TEXT，MEDIUMTEXT，LONGTEXT，EMUM，SET
-//
-//        日期时间型
-//
-//        date,time,datetime,timestamp
-//
-//        数据限定修饰：
-//
-//        NOT NULL，NULL，DEFAULT，AUTO_INCREMENT，UNSIGNED，PRIMARY KEY，UNIQUE KEY，FOREIGN KEY
-//
-//        CHARACTER SET #ps:SHOW CHARACTER SET 显示当前数据库所支持的所有字符集
-//
-//        COLLATION #ps:SHOW COLLATION 显示所支持的所有排序规则
-//
-//
+    fun genDDL(action: DDLType = DDLType.Update): String {
+///DROP TABLE IF EXISTS `test_book`
 ////       CREATE TABLE `test_book` (
 //        `test_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
 //        `test_name` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
@@ -467,9 +446,11 @@ abstract class EntityBase {
 //        UNIQUE KEY `test_id` (`test_id`)
 //        ) ENGINE=InnoDB AUTO_INCREMENT=5591029507641345 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
 
+
         val columns = EntityFieldsCache.Item(this).columns
         val script = StringBuilder()
-        script.append("CREATE TABLE [${this.tableName}]")
+
+        script.append("CREATE TABLE [${this.tableName}] ")
         script.append("(")
         columns.forEach { t, u ->
             script.append("[${if (u.name.isBlank()) u.name else t}]")
@@ -479,6 +460,7 @@ abstract class EntityBase {
                 when (u.type) {
                     String::class.java        -> script.append(" varchar(${u.length}) ")
                     Int::class.java           -> script.append(" int(11) ")
+                    Integer::class.java       -> script.append(" int(11) ")
                     Double::class.java        -> script.append(" double ")
                     Float::class.java         -> script.append(" float ")
                     BigDecimal::class.java    -> script.append(" decimal(${if (u.precision > 0) u.precision else 10},${if (u.scale > 0) u.scale else 0}) ")
@@ -492,7 +474,7 @@ abstract class EntityBase {
                 }
             }
 
-            if (u.unique){
+            if (u.unique) {
                 script.append(" UNIQUE KEY ")
             }
             if (!u.nullable) {

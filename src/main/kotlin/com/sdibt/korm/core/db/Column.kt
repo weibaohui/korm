@@ -96,7 +96,7 @@ data class Column(
         /**
          * The Column Type
          */
-        var type: Class<*>,
+        var type: Any,
         /**
          * The Column defaultValue
          */

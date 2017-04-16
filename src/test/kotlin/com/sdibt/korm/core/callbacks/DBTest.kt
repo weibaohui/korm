@@ -320,7 +320,7 @@ internal class DBTest {
         book.testName = "abc"
         book.testId = "777"
         book.testCount = 1
-        var child = OQL.From(book).Select(book.testName, book.testCount).Where {
+         var child = OQL.From(book).Select(book.testName, book.testCount).Where {
             cmp ->
             cmp.Comparer(book.testId, "=", "777")
         }.END
@@ -343,5 +343,11 @@ internal class DBTest {
 
         val ddl = book.genDDL()
         println("ddl = ${ddl}")
+
+        val u=User()
+        println("u.genDDL() = ${u.genDDL()}")
+
+
+        getDB().executeUpdate(u.genDDL(), mapOf())
     }
 }
