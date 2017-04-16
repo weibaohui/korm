@@ -38,6 +38,7 @@ class TestBook : EntityBase() {
 
     @delegate:AutoID var testId: String? by korm()
 
+    @delegate:Comment("测试名称")
     @delegate:Column(name = "test_name", length = 30)
     var testName: String? by korm()
     var testURL: String? by korm()
@@ -47,9 +48,9 @@ class TestBook : EntityBase() {
 
     @delegate:CreatedAt var createdDate: LocalDateTime? by korm()
 
-    @delegate:UpdatedBy var LastModifiedBy: String? by korm()
+    @delegate:UpdatedBy var lastModifiedBy: String? by korm()
 
-    @delegate:UpdatedAt var LastModifiedDate: LocalDateTime? by korm()
+    @delegate:UpdatedAt var lastModifiedDate: LocalDateTime? by korm()
 //    @delegate:DeletedAt var deletedAt: LocalDateTime? by korm()
 
     @delegate:Version var version: Int? by korm()

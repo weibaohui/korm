@@ -48,7 +48,6 @@ enum class EnumTypeHandler {
         handlers.put(ByteArray::class.java.simpleName.toLowerCase(), ByteArrayTypeHandler())
         handlers.put(Byte::class.java.simpleName.toLowerCase(), ByteTypeHandler())
         handlers.put(CharArray::class.java.simpleName.toLowerCase(), CharArrayTypeHandler())
-        handlers.put(java.util.Date::class.java.simpleName.toLowerCase(), DateTypeHandler())
         handlers.put(Double::class.java.simpleName.toLowerCase(), DoubleTypeHandler())
         handlers.put(Float::class.java.simpleName.toLowerCase(), FloatTypeHandler())
         handlers.put(Int::class.java.simpleName.toLowerCase(), IntegerTypeHandler())

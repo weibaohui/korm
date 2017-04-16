@@ -175,7 +175,7 @@ internal class DBTest {
             println("SelectSingleEntity = ${book2.testName}")
             println("SelectSingleEntity = ${book2.testURL}")
             println("SelectSingleEntity = ${book2.createdDate}")
-            println("SelectSingleEntity = ${book2.LastModifiedDate}")
+            println("SelectSingleEntity = ${book2.lastModifiedDate}")
         }
 
     }
@@ -235,9 +235,9 @@ internal class DBTest {
         book.testName = "abc"
         book.testCount = 1
         assertTrue(getDB().save(book) > 0)
-        book=getDB().selectSingle<TestBook>(
-                OQL.From(book).Select().Where(book.testName,book.testCount).END
-        )?:book
+        book = getDB().selectSingle<TestBook>(
+                OQL.From(book).Select().Where(book.testName, book.testCount).END
+        ) ?: book
 
         var q1 = OQL.From(book).UpdateSelf('+', book.testCount).END
 
@@ -331,5 +331,17 @@ internal class DBTest {
 
         getDB().insert(q)
 
+    }
+
+
+    @Test
+    fun testDDL() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+        book.testCount = 1
+
+        val ddl = book.genDDL()
+        println("ddl = ${ddl}")
     }
 }

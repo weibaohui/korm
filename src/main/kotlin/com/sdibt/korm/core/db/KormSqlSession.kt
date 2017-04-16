@@ -296,6 +296,8 @@ open class KormSqlSession(var dataSource: DataSource) {
         return scope.rowsAffected
     }
 
+
+
     //endregion
 
 }

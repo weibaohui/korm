@@ -15,26 +15,9 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.entity
+package com.sdibt.korm.core.annotatoin
 
-/**
- * Usage:
- * User: weibaohui
- * Date: 2017/3/6
- * Time: 16:06
- */
-object EntityFieldsCache {
-    var dict: MutableMap<String, EntityFields> = mutableMapOf()
 
-    fun Item(entity: EntityBase): EntityFields {
-
-        val key = entity::class.java.simpleName
-        if (dict.contains(key)) {
-            return dict[key] as EntityFields
-        } else {
-            val ef = EntityFields(entity)
-             dict.put(key, ef)
-            return ef
-        }
-    }
-}
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD)
+annotation class DefaultValue(val value: String)

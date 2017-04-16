@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.entity
 
 import com.sdibt.korm.core.annotatoin.*
+import com.sdibt.korm.core.db.Column
 import com.sdibt.korm.core.idworker.IdWorkerType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -63,14 +64,20 @@ class EntityFields {
     var version: String? = null
 
     /**
+     * SQL DDL columns info Map
+     */
+    var columns: Map<String, Column> = mapOf()
+
+
+    /**
      * 初始化实体类信息，必须确保单线程调用本方法
 
-     * @param entityType
+     * @param entity
      * *
      * *
      * @return
      */
-    fun initEntity(entity: EntityBase): Boolean {
+    constructor(entity: EntityBase) {
         val entityType = entity::class.java
 
         if (entityType.isAnnotationPresent(Table::class.java)) {
@@ -83,76 +90,10 @@ class EntityFields {
 
         if (EntityBase::class.java.isAssignableFrom(entityType)) {
 
-            val fieldNameList: MutableList<String> = mutableListOf()
-            val fieldValueList: MutableList<Any?> = mutableListOf()
-            val typeNameList: MutableList<Class<*>> = mutableListOf()
-            val autoIdFieldsList: MutableMap<String, IdWorkerType> = mutableMapOf()
-
-            entityType.declaredFields
-                    .filterNot { it.name == "\$\$delegatedProperties" }
-                    .forEach {
-                        when (it.type) {
-                            korm::class.java -> fieldNameList.add(it.name.replace("\$delegate", ""))
-                            else             -> fieldNameList.add(it.name)
-                        }
-                        typeNameList.add(it.type)
-                        //todo根据类型设置初始值，int->0,boolean->false
-                        fieldValueList.add(null)//设置初始值
-                    }
-
-
-            //寻找AutoID
-
-//           JPA规范中@Id 几种主键生成策略的比较
-//            （1）sequence,identity 两种策略针对的是一些特殊的数据库
-//            （2）auto自动生成策略由JPA实现，对于比较简单的主键，对主键生成策略要求较少时，采用这种策略好
-//            （3）table生成策略是将主键的持久化在数据库中
-            // 本项目中均采用snowflake替代，可以解决分布式问题,解决数据迁移问题
-            entityType.declaredFields
-                    .filterNot { it.name == "\$\$delegatedProperties" }
-                    .forEach {
-                        val filedName = it.name.replace("\$delegate", "")
-                        when {
-                            it.isAnnotationPresent(AutoID::class.java)    -> {
-                                autoIdFieldsList.put(filedName, it.getAnnotation(AutoID::class.java).name)
-                            }
-                            it.isAnnotationPresent(Id::class.java)        -> {
-                                //兼容jpa @Id注解
-                                if (it.isAnnotationPresent(GeneratedValue::class.java)) {
-                                    //有@GeneratedValue注解
-                                    when (it.getAnnotation(GeneratedValue::class.java).strategy) {
-                                        GenerationType.AUTO -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
-                                        else                -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
-                                    }
-                                } else {
-                                    //没有生成策略,默认使用snowflake算法
-                                    autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
-                                }
-                            }
-
-                            it.isAnnotationPresent(DeletedAt::class.java) ->
-                                deletedAt = it.getAnnotation(DeletedAt::class.java).name
-                            it.isAnnotationPresent(CreatedBy::class.java) ->
-                                createdBy = it.getAnnotation(CreatedBy::class.java).name
-                            it.isAnnotationPresent(CreatedAt::class.java) ->
-                                createdAt = it.getAnnotation(CreatedAt::class.java).name
-                            it.isAnnotationPresent(UpdatedBy::class.java) ->
-                                updatedBy = it.getAnnotation(UpdatedBy::class.java).name
-                            it.isAnnotationPresent(UpdatedAt::class.java) ->
-                                updatedAt = it.getAnnotation(UpdatedAt::class.java).name
-                            it.isAnnotationPresent(Version::class.java)   ->
-                                version = it.getAnnotation(Version::class.java).name
-                        }
-                    }
-
-            fields = fieldNameList.toTypedArray()
-            fieldNames = fieldNameList.toTypedArray()
-            fieldTypes = typeNameList.toTypedArray()
-            fieldValues = fieldValueList.toTypedArray()
-            autoIdFields = autoIdFieldsList.toMap()
+            fillFields(entityType)
+            fillAutoIds(entityType)
+            fillColumnInfo(entityType)
         }
-
-        return true
 
 
     }
@@ -169,6 +110,160 @@ class EntityFields {
         return fieldNames.indices
                 .firstOrNull { fieldNames[it] == fieldName }
                 ?.let { fields[it] }
+    }
+
+    /** 采集Entity字段信息
+     * <功能详细描述>
+     * @param clazz  Class<*>
+     *
+     * @return Unit
+     */
+    private fun fillFields(clazz: Class<*>) {
+        val fieldNameList: MutableList<String> = mutableListOf()
+        val fieldValueList: MutableList<Any?> = mutableListOf()
+        val typeNameList: MutableList<Class<*>> = mutableListOf()
+
+        clazz.declaredFields
+                .filterNot { it.name == "\$\$delegatedProperties" }
+                .forEach {
+                    when (it.type) {
+                        korm::class.java -> fieldNameList.add(it.name.replace("\$delegate", ""))
+                        else             -> fieldNameList.add(it.name)
+                    }
+                    typeNameList.add(it.type)
+                    //todo根据类型设置初始值，int->0,boolean->false
+                    fieldValueList.add(null)//设置初始值
+                }
+
+
+
+        fields = fieldNameList.toTypedArray()
+        fieldNames = fieldNameList.toTypedArray()
+        fieldTypes = typeNameList.toTypedArray()
+        fieldValues = fieldValueList.toTypedArray()
+    }
+
+
+    /** 采集ID主机及其生成策略
+     * JPA规范中的主键策略当前版本默认替换未SnowFlake替代
+     * @param clazz  Class<*>  .
+     *
+     * @return Unit
+     */
+    private fun fillAutoIds(clazz: Class<*>) {
+        val autoIdFieldsList: MutableMap<String, IdWorkerType> = mutableMapOf()
+
+        //寻找AutoID
+
+//           JPA规范中@Id 几种主键生成策略的比较
+//            （1）sequence,identity 两种策略针对的是一些特殊的数据库
+//            （2）auto自动生成策略由JPA实现，对于比较简单的主键，对主键生成策略要求较少时，采用这种策略好
+//            （3）table生成策略是将主键的持久化在数据库中
+        // 本项目中均采用snowflake替代，可以解决分布式问题,解决数据迁移问题
+        clazz.declaredFields
+                .filterNot { it.name == "\$\$delegatedProperties" }
+                .forEach {
+                    val filedName = it.name.replace("\$delegate", "")
+                    when {
+                        it.isAnnotationPresent(AutoID::class.java)    -> {
+                            autoIdFieldsList.put(filedName, it.getAnnotation(AutoID::class.java).name)
+                        }
+                        it.isAnnotationPresent(Id::class.java)        -> {
+                            //兼容jpa @Id注解
+                            if (it.isAnnotationPresent(GeneratedValue::class.java)) {
+                                //有@GeneratedValue注解
+                                when (it.getAnnotation(GeneratedValue::class.java).strategy) {
+                                    GenerationType.AUTO -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                    else                -> autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                                }
+                            } else {
+                                //没有生成策略,默认使用snowflake算法
+                                autoIdFieldsList.put(filedName, IdWorkerType.SnowFlake)
+                            }
+                        }
+
+                        it.isAnnotationPresent(DeletedAt::class.java) ->
+                            deletedAt = it.getAnnotation(DeletedAt::class.java).name
+                        it.isAnnotationPresent(CreatedBy::class.java) ->
+                            createdBy = it.getAnnotation(CreatedBy::class.java).name
+                        it.isAnnotationPresent(CreatedAt::class.java) ->
+                            createdAt = it.getAnnotation(CreatedAt::class.java).name
+                        it.isAnnotationPresent(UpdatedBy::class.java) ->
+                            updatedBy = it.getAnnotation(UpdatedBy::class.java).name
+                        it.isAnnotationPresent(UpdatedAt::class.java) ->
+                            updatedAt = it.getAnnotation(UpdatedAt::class.java).name
+                        it.isAnnotationPresent(Version::class.java)   ->
+                            version = it.getAnnotation(Version::class.java).name
+                    }
+                }
+
+        autoIdFields = autoIdFieldsList.toMap()
+
+
+    }
+
+
+    /** 采集Column注解参数
+     * <功能详细描述>
+     * @param clazz Class<*>.
+     *
+     * @return Unit
+     */
+    private fun fillColumnInfo(clazz: Class<*>) {
+        val columnMap: MutableMap<String, Column> = mutableMapOf()
+        println("clazz.declaredFields = ${clazz.declaredFields}")
+        clazz.declaredFields
+                .filterNot { it.name == "\$\$delegatedProperties" }
+                .forEach {
+                    println("it.type = ${it.type}")
+                    println("it.genericType = ${it.genericType}")
+                    val filedName = it.name.replace("\$delegate", "")
+
+                    //采集注释
+                    var comment: String? = null
+                    if (it.isAnnotationPresent(Comment::class.java)) {
+                        comment = it.getAnnotation(Comment::class.java).value
+                    }
+                    var isPk = false
+                    if (it.isAnnotationPresent(AutoID::class.java) || it.isAnnotationPresent(Id::class.java)) {
+                        isPk = true
+                    }
+                    var defaultValue: String? = null
+                    if (it.isAnnotationPresent(DefaultValue::class.java)) {
+                        defaultValue = it.getAnnotation(DefaultValue::class.java).value
+                    }
+                    var column: Column
+                    if (it.isAnnotationPresent(javax.persistence.Column::class.java)) {
+                        //使用了column注解
+                        val an = it.getAnnotation(javax.persistence.Column::class.java)
+                        column = Column(
+                                name = an.name,
+                                unique = an.unique,
+                                nullable = an.nullable,
+                                insertable = an.insertable,
+                                updatable = an.updatable,
+                                columnDefinition = an.columnDefinition,
+                                table = an.table,
+                                length = an.length,
+                                precision = an.precision,
+                                scale = an.scale,
+                                type = it.type
+
+                        )
+                    } else {
+                        column = Column(
+                                name = filedName,
+                                type = it.type
+                        )
+                    }
+
+                    column.isPk = isPk
+                    column.comment = comment
+                    column.defaultValue = defaultValue
+                    columnMap.put(filedName, column)
+                }
+
+        columns = columnMap.toMap()
     }
 
 }

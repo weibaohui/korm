@@ -24,6 +24,11 @@ import com.sdibt.korm.core.oql.TableNameField
 import com.sdibt.korm.core.property.EventManager
 import com.sdibt.korm.core.property.event.ChangingEvent
 import com.sdibt.korm.core.property.event.GettingEvent
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.sql.Time
+import java.time.LocalDateTime
+import java.util.*
 
 abstract class EntityBase {
 
@@ -420,6 +425,102 @@ abstract class EntityBase {
         channel.post(GettingEvent(this, name))
 //		println(" OnPropertyGeting name = ${name}")
     }
+
+    //region ddl 生成
+
+    fun genDDL(): String {
+//        数值型：
+//
+//        TINYINT 1 ，SMALLINT 2，MEDIUMINT 3 ，INT 4，BIGINT 8，DECIMAL，FLOAT 4，DOUBLE 8，BIT
+//
+//
+//
+//        字符串型
+//
+//        CHAR，VARCHAR，BINARY，VBINARY,TINYBLOB，BLOB，MEDIUMBLOB，LONGBLOG，TINYTEXT，TEXT，MEDIUMTEXT，LONGTEXT，EMUM，SET
+//
+//        日期时间型
+//
+//        date,time,datetime,timestamp
+//
+//        数据限定修饰：
+//
+//        NOT NULL，NULL，DEFAULT，AUTO_INCREMENT，UNSIGNED，PRIMARY KEY，UNIQUE KEY，FOREIGN KEY
+//
+//        CHARACTER SET #ps:SHOW CHARACTER SET 显示当前数据库所支持的所有字符集
+//
+//        COLLATION #ps:SHOW COLLATION 显示所支持的所有排序规则
+//
+//
+////       CREATE TABLE `test_book` (
+//        `test_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+//        `test_name` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+//        `test_url` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'url',
+//        `test_count` bit(1) DEFAULT b'0',
+//        `created_by` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+//        `last_modified_by` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+//        `last_modified_date` timestamp NULL DEFAULT NULL,
+//        `created_date` datetime DEFAULT NULL,
+//        `deleted_at` timestamp NULL DEFAULT NULL,
+//        `version` bigint(20) DEFAULT '0',
+//        PRIMARY KEY (`test_id`),
+//        UNIQUE KEY `test_id` (`test_id`)
+//        ) ENGINE=InnoDB AUTO_INCREMENT=5591029507641345 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+
+        val columns = EntityFieldsCache.Item(this).columns
+        val script = StringBuilder()
+        script.append("CREATE TABLE [${this.tableName}]")
+        script.append("(")
+        columns.forEach { t, u ->
+            script.append("[${if (u.name.isBlank()) u.name else t}]")
+            if (u.isPk) {
+                script.append(" bigint(20)")
+            } else {
+                when (u.type) {
+                    String::class.java        -> script.append(" varchar(${u.length}) ")
+                    Int::class.java           -> script.append(" int(11) ")
+                    Double::class.java        -> script.append(" double ")
+                    Float::class.java         -> script.append(" float ")
+                    BigDecimal::class.java    -> script.append(" decimal(${if (u.precision > 0) u.precision else 10},${if (u.scale > 0) u.scale else 0}) ")
+                    BigInteger::class.java    -> script.append(" bigint(20) ")
+                    Short::class.java         -> script.append(" int(11) ")
+                    Long::class.java          -> script.append(" bigint(20) ")
+                    LocalDateTime::class.java -> script.append(" datetime ")
+                    Date::class.java          -> script.append(" date ")
+                    Time::class.java          -> script.append(" time ")
+                    Boolean::class.java       -> script.append(" tinyint(1)  ")
+                }
+            }
+
+            if (u.unique){
+                script.append(" UNIQUE KEY ")
+            }
+            if (!u.nullable) {
+                script.append(" NOT NULL ")
+            } else {
+                if (u.defaultValue == null) {
+                    script.append(" DEFAULT NULL ")
+                } else {
+                    script.append(" DEFAULT '${u.defaultValue}' ")
+                }
+            }
+            if (u.isPk) {
+                script.append("  AUTO_INCREMENT ")
+            }
+
+            u.comment?.apply {
+                script.append(" COMMENT '${u.comment}' ")
+            }
+
+            script.append(",")
+        }
+
+        script.append("PRIMARY KEY (${this.autoIdFields.keys.map { "[$it]" }.joinToString(",")}) ")
+        script.append(")")
+
+        return script.toString()
+    }
+    //endregion
 
 
     open fun afterDelete(scope: Scope): Scope {
