@@ -45,16 +45,3 @@ class CallBackProcessors {
     }
 
 }
-
-//
-//fun CallBackProcessors.reg(callBackName: String, block: (scope: Scope) -> Scope) {
-//    this.name = callBackName
-//    this.processor = block
-//    this.parent.processors.add(this)
-//    when (this.kind) {
-//        "insert" -> this.parent.inserts.add(block)
-//        "delete" -> this.parent.deletes.add(block)
-//        "update" -> this.parent.updates.add(block)
-//        "select" -> this.parent.selects.add(block)
-//    }
-//}

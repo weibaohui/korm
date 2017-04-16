@@ -39,7 +39,7 @@ class TestBook : EntityBase() {
     @delegate:AutoID var testId: String? by korm()
 
     @delegate:Comment("测试名称")
-    @delegate:Column(name = "test_name", length = 30)
+//    @delegate:Column(name = "test_n66666ame", length = 30)
     var testName: String? by korm()
     var testURL: String? by korm()
     var testCount: Int? by korm()

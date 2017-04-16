@@ -20,7 +20,6 @@ package com.sdibt.korm.core.db
 import com.sdibt.korm.core.callbacks.*
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.enums.DBMSType
-import com.sdibt.korm.core.interceptor.SqlProcess
 import com.sdibt.korm.core.mapper.DefaultMapperBuilder
 import com.sdibt.korm.core.mapper.MapperBuilder
 import com.sdibt.korm.core.mapping.BaseNameConvert
@@ -76,6 +75,10 @@ open class KormSqlSession(var dataSource: DataSource) {
         return Scope(q, this).setSqlString(q.toString()).setSqlParam(q.sqlParam).setActionType(ActionType.OQL)
     }
 
+    fun newScope(q: OQL, sqlString: String, sqlParam: Map<String, Any?>): Scope {
+        return Scope(q, this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.OQL)
+    }
+
     fun newScope(sqlString: String, sqlParam: Map<String, Any?>): Scope {
         return Scope(this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.OQL)
     }
@@ -92,9 +95,9 @@ open class KormSqlSession(var dataSource: DataSource) {
         val isMap: Boolean = Map::class.java.isAssignableFrom(clazz)
         val isEntity: Boolean = EntityBase::class.java.isAssignableFrom(clazz)
 
-        val sp = SqlProcess(sql, params, nameConvert)
-        println("SqlProcess sql = ${sp.sqlString}")
-        println("SqlProcess params = ${sp.sqlParams}")
+//        val sp = SqlProcess(sql, params, nameConvert)
+//        println("SqlProcess sql = ${sp.sqlString}")
+//        println("SqlProcess params = ${sp.sqlParams}")
 
         var rowsAffected = 0
         var generatedKeys: Any? = null
@@ -102,8 +105,8 @@ open class KormSqlSession(var dataSource: DataSource) {
 
         try {
             val conn = this.dataSource.connection
-            val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sp.sqlString)
-            for ((key, fieldValue) in sp.sqlParams) {
+            val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
+            for ((key, fieldValue) in params) {
                 statement.setObject(key, "$fieldValue")
             }
 
@@ -140,17 +143,17 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     internal fun executeUpdate(sql: String, params: Map<String, Any?>): sqlResult {
 
-
-        val sp = SqlProcess(sql, params, nameConvert)
-        println("SqlProcess sql = ${sp.sqlString}")
-        println("SqlProcess params = ${sp.sqlParams}")
+//
+//        val sp = SqlProcess(sql, params, nameConvert)
+//        println("SqlProcess sql = ${sp.sqlString}")
+//        println("SqlProcess params = ${sp.sqlParams}")
 
         var rowsAffected = 0
         var generatedKeys: Any? = null
         try {
             val conn = this.dataSource.connection
-            val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sp.sqlString)
-            for ((key, fieldValue) in sp.sqlParams) {
+            val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
+            for ((key, fieldValue) in params) {
                 statement.setObject(key, "$fieldValue")
             }
 
@@ -183,6 +186,11 @@ open class KormSqlSession(var dataSource: DataSource) {
         return result as T?
     }
 
+    fun <T> selectSingle(clazz: Class<T>, q: OQL, sqlString: String, sqlParam: Map<String, Any?>): T? {
+        val result = this.newScope(q, sqlString, sqlParam).resultType(clazz).callCallbacks(this.callbacks.selects).result
+        return result as T?
+    }
+
     inline fun <reified T> selectSingle(q: OQL): T? {
         val result = this.newScope(q).resultType(T::class.java).callCallbacks(this.callbacks.selects).result
 
@@ -205,7 +213,8 @@ open class KormSqlSession(var dataSource: DataSource) {
     }
 
     inline fun <reified T> select(q: OQL): List<T>? {
-        return this.select(T::class.java, q)
+        val result = this.newScope(q).resultType(T::class.java).returnList(true).callCallbacks(this.callbacks.selects).result
+        return result as List<T>?
     }
 
     fun <T> select(clazz: Class<T>, q: OQL): List<T>? {
@@ -216,13 +225,16 @@ open class KormSqlSession(var dataSource: DataSource) {
             var pageCount = q.PageWithAllRecordCount
             if (pageCount == 0) {
                 val pageCountSql = SQLPage.makePageSQL(this.dbType, sql, "", q.PageSize, q.PageNumber, 0)
-                pageCount = selectSingle(Int::class.java, pageCountSql, q.sqlParam) ?: 0
+                pageCount = selectSingle(Int::class.java, q, pageCountSql, q.sqlParam) ?: 0
                 if (pageCount == 0) return null
             }
             sql = SQLPage.makePageSQL(this.dbType, sql, "", q.PageSize, q.PageNumber, pageCount)
         }
 
-        return this.select(clazz, sql, q.sqlParam)
+
+        val result = this.newScope(q, sql, q.sqlParam).resultType(clazz).returnList(true).callCallbacks(this.callbacks.selects).result
+        return result as List<T>?
+//        return this.select(clazz, sql, q.sqlParam)
     }
 
     //endregion
@@ -295,7 +307,6 @@ open class KormSqlSession(var dataSource: DataSource) {
         }
         return scope.rowsAffected
     }
-
 
 
     //endregion

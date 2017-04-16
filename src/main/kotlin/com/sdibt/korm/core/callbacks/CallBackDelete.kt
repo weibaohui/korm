@@ -26,6 +26,8 @@ class CallBackDelete(db: KormSqlSession) {
     fun init() {
         defaultCallBack.delete().reg("beforeDelete") { beforeDeleteCallback(it) }
         defaultCallBack.delete().reg("delete") { deleteCallback(it) }
+        defaultCallBack.delete().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.delete().reg("exec") { execCallback(it) }
         defaultCallBack.delete().reg("afterDelete") { afterDeleteCallback(it) }
     }
 
@@ -39,27 +41,20 @@ class CallBackDelete(db: KormSqlSession) {
     }
 
     fun deleteCallback(scope: Scope): Scope {
-        val execScope: Scope
-
         when (scope.actionType) {
-            ActionType.Entity -> {
-                execScope = scope.deleteEntity()
-            }
-            ActionType.OQL    -> {
-                execScope = scope.deleteOQL()
-            }
+            ActionType.Entity -> return scope.deleteEntity()
+            ActionType.OQL    -> return scope.deleteOQL()
         }
+    }
 
-
-
-        if (execScope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
-            execScope.rowsAffected = rowsAffected
-            execScope.generatedKeys = generatedKeys
-            execScope.result = rowsAffected
+    fun execCallback(scope: Scope): Scope {
+        if (scope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
+            scope.rowsAffected = rowsAffected
+            scope.generatedKeys = generatedKeys
+            scope.result = rowsAffected
         }
-
-        return execScope
+        return scope
     }
 
 

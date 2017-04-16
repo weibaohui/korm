@@ -32,8 +32,8 @@ class User : EntityBase() {
 
     @delegate:Id
     var id: String? by korm()
-    var name: String = ""
-    var age: Int = 0
+    var name: String? by korm()
+    var age: Int ? by korm()
 
 
 }

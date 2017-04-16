@@ -30,6 +30,8 @@ class CallBackInsert(db: KormSqlSession) {
         defaultCallBack.insert().reg("InsertDateTime") { insertDateTimeCallback(it) }
         defaultCallBack.insert().reg("InsertOperator") { insertOperatorCallback(it) }
         defaultCallBack.insert().reg("Insert") { insertCallback(it) }
+        defaultCallBack.insert().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.insert().reg("exec") { execCallback(it) }
         defaultCallBack.insert().reg("afterInsert") { afterInsertCallback(it) }
     }
 
@@ -86,17 +88,21 @@ class CallBackInsert(db: KormSqlSession) {
     }
 
     fun insertCallback(scope: Scope): Scope {
-        val execScope: Scope
+
         when (scope.actionType) {
-            ActionType.Entity -> execScope = scope.insertEntity()
-            ActionType.OQL    -> execScope = scope.insertOQL()
+            ActionType.Entity -> return scope.insertEntity()
+            ActionType.OQL    -> return scope.insertOQL()
         }
-        if (execScope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
-            execScope.rowsAffected = rowsAffected
-            execScope.generatedKeys = generatedKeys
-            execScope.result = rowsAffected
+
+    }
+
+    fun execCallback(scope: Scope): Scope {
+        if (scope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
+            scope.rowsAffected = rowsAffected
+            scope.generatedKeys = generatedKeys
+            scope.result = rowsAffected
         }
-        return execScope
+        return scope
     }
 }

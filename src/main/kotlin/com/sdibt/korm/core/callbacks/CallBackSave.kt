@@ -1,0 +1,84 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package com.sdibt.korm.core.callbacks
+
+import com.sdibt.korm.core.db.Column
+import com.sdibt.korm.core.entity.EntityFieldsCache
+import com.sdibt.korm.core.oql.TableNameField
+import java.util.regex.Pattern
+
+class CallBackSave {
+
+
+    fun sqlProcessCallback(scope: Scope): Scope {
+
+        println("1scope.sqlString = ${scope.sqlString}")
+        println("2scope.sqlParam = ${scope.sqlParam}")
+
+        //sqlString 正则查找字段，字段均以[]包围，替换为nc以后的字段
+        //找到[field]
+        //找到@field
+        var fields: MutableList<String> = mutableListOf()
+        fields = searchFields(scope.sqlString, fields, "\\[(.*?)\\]")
+        fields = searchFields(scope.sqlString, fields, "(?<!')(@[\\w]+)(?!')")
+
+        var columns: Map<String, Column>? = null
+        scope.entity?.apply {
+            columns = EntityFieldsCache.Item(scope.entity!!).columns
+        }
+
+        fields.forEach {
+            //先转换column的定义，如果没有就按规则转换
+            var field = if (columns != null && columns!![it] != null) columns!![it]?.name else it
+            if (field == null) field = it
+            scope.sqlString = scope.sqlString.replace(it, scope.db.nameConvert.dbColumnName(field))
+
+        }
+        val mutParams: MutableMap<String, Any?> = mutableMapOf()
+        scope.sqlParam.forEach { t, u ->
+            var field = if (columns != null && columns!![t] != null) columns!![t]?.name else t
+            if (field == null) field = t
+            val ncField = scope.db.nameConvert.dbColumnName(field!!)
+
+
+            if (u is TableNameField) {
+                mutParams.put(ncField, u.fieldValue)
+            } else {
+                mutParams.put(ncField, u)
+            }
+        }
+        scope.sqlParam = mutParams
+
+        println("3scope.sqlString = ${scope.sqlString}")
+        println("4scope.sqlParam = ${scope.sqlParam}")
+        return scope
+    }
+
+
+    private fun searchFields(sql: String, fields: MutableList<String>, patternStr: String = "\\[(.*?)\\]"): MutableList<String> {
+//        var fields: MutableList<String> = mutableListOf()
+        val findParametersPattern = Pattern.compile(patternStr)
+        val matcher = findParametersPattern.matcher(sql)
+        while (matcher.find()) {
+            fields.add(matcher.group().trimStart('[').trimEnd(']'))
+        }
+        return fields
+    }
+}
+
+

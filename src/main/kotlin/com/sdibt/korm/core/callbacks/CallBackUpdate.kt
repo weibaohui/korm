@@ -30,30 +30,32 @@ class CallBackUpdate(db: KormSqlSession) {
         defaultCallBack.update().reg("updateDateTime") { updateDateTimeCallback(it) }
         defaultCallBack.update().reg("updateOperator") { updateOperatorCallback(it) }
         defaultCallBack.update().reg("update") { updateCallback(it) }
+        defaultCallBack.update().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.update().reg("exec") { execCallback(it) }
         defaultCallBack.update().reg("afterUpdate") { afterUpdateCallback(it) }
     }
 
 
     fun beforeUpdateCallback(scope: Scope): Scope {
-        var execScope = scope
-        if (!execScope.hasError) {
-            execScope = scope.callMethod("beforeSave")
+        var scope = scope
+        if (!scope.hasError) {
+            scope = scope.callMethod("beforeSave")
         }
-        if (!execScope.hasError) {
-            execScope = scope.callMethod("beforeUpdate")
+        if (!scope.hasError) {
+            scope = scope.callMethod("beforeUpdate")
         }
-        return execScope
+        return scope
     }
 
     fun afterUpdateCallback(scope: Scope): Scope {
-        var execScope = scope
-        if (!execScope.hasError) {
-            execScope = scope.callMethod("afterUpdate")
+        var scope = scope
+        if (!scope.hasError) {
+            scope = scope.callMethod("afterUpdate")
         }
-        if (!execScope.hasError) {
-            execScope = scope.callMethod("afterSave")
+        if (!scope.hasError) {
+            scope = scope.callMethod("afterSave")
         }
-        return execScope
+        return scope
 
     }
 
@@ -83,20 +85,21 @@ class CallBackUpdate(db: KormSqlSession) {
     }
 
     fun updateCallback(scope: Scope): Scope {
-        val execScope: Scope
         when (scope.actionType) {
-            ActionType.Entity -> execScope = scope.updateEntity()
-            ActionType.OQL    -> execScope = scope.updateOQL()
+            ActionType.Entity ->  return scope.updateEntity()
+            ActionType.OQL    ->  return scope.updateOQL()
+        }
+    }
+    fun execCallback(scope: Scope): Scope {
+
+        if (scope.db.Error == null) {
+            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
+            scope.rowsAffected = rowsAffected
+            scope.generatedKeys = generatedKeys
+            scope.result = rowsAffected
         }
 
-        if (execScope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = execScope.db.executeUpdate(execScope.sqlString, execScope.sqlParam)
-            execScope.rowsAffected = rowsAffected
-            execScope.generatedKeys = generatedKeys
-            execScope.result = rowsAffected
-        }
-
-        return execScope
+        return scope
 
     }
 

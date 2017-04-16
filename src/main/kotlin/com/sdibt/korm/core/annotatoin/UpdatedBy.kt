@@ -20,6 +20,5 @@ package com.sdibt.korm.core.annotatoin
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
-annotation class UpdatedBy(val name: String = "LastModifiedBy")
-
+annotation class UpdatedBy
 

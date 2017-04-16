@@ -24,7 +24,7 @@ package com.sdibt.korm.core.entity
  * Time: 16:06
  */
 object EntityFieldsCache {
-    var dict: MutableMap<String, EntityFields> = mutableMapOf()
+    private var dict: MutableMap<String, EntityFields> = mutableMapOf()
 
     fun Item(entity: EntityBase): EntityFields {
 
