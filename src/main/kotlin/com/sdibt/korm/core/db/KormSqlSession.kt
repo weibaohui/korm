@@ -95,10 +95,6 @@ open class KormSqlSession(var dataSource: DataSource) {
         val isMap: Boolean = Map::class.java.isAssignableFrom(clazz)
         val isEntity: Boolean = EntityBase::class.java.isAssignableFrom(clazz)
 
-//        val sp = SqlProcess(sql, params, nameConvert)
-//        println("SqlProcess sql = ${sp.sqlString}")
-//        println("SqlProcess params = ${sp.sqlParams}")
-
         var rowsAffected = 0
         var generatedKeys: Any? = null
         var result: Any? = null
@@ -143,10 +139,6 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     internal fun executeUpdate(sql: String, params: Map<String, Any?>): sqlResult {
 
-//
-//        val sp = SqlProcess(sql, params, nameConvert)
-//        println("SqlProcess sql = ${sp.sqlString}")
-//        println("SqlProcess params = ${sp.sqlParams}")
 
         var rowsAffected = 0
         var generatedKeys: Any? = null
@@ -176,9 +168,9 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     //region query
 
+    //region selectSingle without q
     inline fun <reified T> selectSingle(sqlString: String, sqlParam: Map<String, Any?>): T? {
-        val result = this.newScope(sqlString, sqlParam).resultType(T::class.java).callCallbacks(this.callbacks.selects).result
-        return result as T?
+        return selectSingle(T::class.java, sqlString, sqlParam)
     }
 
     fun <T> selectSingle(clazz: Class<T>, sqlString: String, sqlParam: Map<String, Any?>): T? {
@@ -186,23 +178,25 @@ open class KormSqlSession(var dataSource: DataSource) {
         return result as T?
     }
 
+    //endregion
+
+    //region selectSingle q
+    inline fun <reified T> selectSingle(q: OQL): T? {
+        return selectSingle(T::class.java, q)
+    }
+
+    fun <T> selectSingle(clazz: Class<T>, q: OQL): T? {
+        return selectSingle(clazz, q, q.toString(), q.sqlParam)
+    }
+
     fun <T> selectSingle(clazz: Class<T>, q: OQL, sqlString: String, sqlParam: Map<String, Any?>): T? {
         val result = this.newScope(q, sqlString, sqlParam).resultType(clazz).callCallbacks(this.callbacks.selects).result
         return result as T?
     }
 
-    inline fun <reified T> selectSingle(q: OQL): T? {
-        val result = this.newScope(q).resultType(T::class.java).callCallbacks(this.callbacks.selects).result
+    //endregion
 
-        if (result != null) return result as T?
-        return null
-    }
-
-    fun <T> selectSingle(clazz: Class<T>, q: OQL): T? {
-        val result = this.newScope(q).resultType(clazz).callCallbacks(this.callbacks.selects).result
-        return result as T?
-    }
-
+    //region select without q
     inline fun <reified T> select(sqlString: String, sqlParam: Map<String, Any?>): List<T>? {
         return this.select(T::class.java, sqlString, sqlParam)
     }
@@ -212,6 +206,9 @@ open class KormSqlSession(var dataSource: DataSource) {
         return result as List<T>?
     }
 
+    //endregion
+
+    //region select q
     inline fun <reified T> select(q: OQL): List<T>? {
         return select(T::class.java, q)
     }
@@ -233,8 +230,9 @@ open class KormSqlSession(var dataSource: DataSource) {
 
         val result = this.newScope(q, sql, q.sqlParam).resultType(clazz).returnList(true).callCallbacks(this.callbacks.selects).result
         return result as List<T>?
-//        return this.select(clazz, sql, q.sqlParam)
     }
+    //endregion
+
 
     //endregion
 
