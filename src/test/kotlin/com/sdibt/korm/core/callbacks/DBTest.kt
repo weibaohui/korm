@@ -22,6 +22,7 @@ import com.sdibt.korm.core.User
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.oql.OQL
+import com.sdibt.korm.core.oql.OQLCompare
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertTrue
@@ -174,8 +175,8 @@ internal class DBTest {
             println("SelectSingleEntity = ${book2.testId}")
             println("SelectSingleEntity = ${book2.testName}")
             println("SelectSingleEntity = ${book2.testURL}")
-            println("SelectSingleEntity = ${book2.createdDate}")
-            println("SelectSingleEntity = ${book2.lastModifiedDate}")
+            println("SelectSingleEntity = ${book2.createdAt}")
+            println("SelectSingleEntity = ${book2.updatedBy}")
         }
 
     }
@@ -247,22 +248,20 @@ internal class DBTest {
 
     @Test
     fun testReadWithPage() {
-        testInsertEntityWidthKeys()
-        testInsertFrom()
+//        testInsertEntityWidthKeys()
+//        testInsertFrom()
         var book = TestBook()
         book.testName = "testnamevalue"
 
+
+
         val countOQL = OQL.From(book).Select().Count(book.testId).END
         val count = getDB().selectSingle<Int>(countOQL)
+        println("count = ${count}")
         count?.apply {
-            val q = OQL.From(book).Limit(10, 1, true).Select()
-//				.Where {
-//					cmp ->
-//					cmp.Comparer(user.age, ">", "50")
-//				}
-
-                    .END
-            q.selectStar = true
+            val qq = OQL.From(book)
+            val cmp = OQLCompare(qq).Comparer(book.testId, ">", "1")
+            val q =qq.Limit(10, 1, true).Select().Where(cmp) .END
             q.PageWithAllRecordCount = count
             val resultList = getDB().select<TestBook>(q)
             resultList?.forEach {
@@ -320,7 +319,7 @@ internal class DBTest {
         book.testName = "abc"
         book.testId = "777"
         book.testCount = 1
-         var child = OQL.From(book).Select(book.testName, book.testCount).Where {
+        var child = OQL.From(book).Select(book.testName, book.testCount).Where {
             cmp ->
             cmp.Comparer(book.testId, "=", "777")
         }.END
@@ -344,7 +343,7 @@ internal class DBTest {
         val ddl = book.genDDL()
         println("ddl = ${ddl}")
 
-        val u=User()
+        val u = User()
         println("u.genDDL() = ${u.genDDL()}")
 
 

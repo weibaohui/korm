@@ -46,7 +46,10 @@ class CallBackSave {
             //先转换column的定义，如果没有就按规则转换
             var field = if (columns != null && columns!![it] != null) columns!![it]?.name else it
             if (field == null) field = it
-            scope.sqlString = scope.sqlString.replace(it, scope.db.nameConvert.dbColumnName(field))
+            val nc = scope.db.nameConvert.dbColumnName(field)
+            scope.sqlString = scope.sqlString
+                    .replace("[$it]", "[$nc]", ignoreCase = true)
+                    .replace("@$it", "@$nc", ignoreCase = true)
 
         }
         val mutParams: MutableMap<String, Any?> = mutableMapOf()
@@ -75,7 +78,9 @@ class CallBackSave {
         val findParametersPattern = Pattern.compile(patternStr)
         val matcher = findParametersPattern.matcher(sql)
         while (matcher.find()) {
-            fields.add(matcher.group().trimStart('[').trimEnd(']'))
+            val key = matcher.group().trimStart('[').trimEnd(']').trimStart('@')
+            if (key !in fields) fields.add(key)
+
         }
         return fields
     }

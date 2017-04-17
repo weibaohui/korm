@@ -244,6 +244,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
 
     fun Select(): OQL1 {
+        this.selectStar = true
         fieldStack.clear()
         selectedFieldNames.reverse() //恢复正常的字段选取顺序
         selectedFieldInfo.reverse()
@@ -295,7 +296,6 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         this.Distinct = true
         return Select(*fields)
     }
-
 
 
     /**
@@ -825,40 +825,40 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
 
         //region 检查DeletedAt注解
-        println("oqlString = ${oqlString}")
-        println("sql_from = ${sql_from}")
+
         if (oqlString.isBlank()) {
-            oqlString = " WHERE  "
+            oqlString = " WHERE 1=1 "
         }
-        var deletedCheck = ""
         //检查deletedAt属性
         var deletedAt = EntityFieldsCache.Item(this.currEntity).deletedAt
         deletedAt?.apply {
+            var deletedCheck = ""
+
             if (this@OQL.haveJoinOpt) {
                 deletedCheck = "  M.$[$deletedAt] IS NOT NULL "
             } else {
                 deletedCheck = "  [$deletedAt] IS NOT NULL "
-
             }
 
-        }
-        if (this.haveJoinOpt) {
-            dictAliases.forEach { t, u ->
-                deletedAt = EntityFieldsCache.Item(t).deletedAt
-                deletedAt?.apply {
-                    if (!deletedCheck.isBlank()) deletedCheck += " AND "
-                    deletedCheck += "  $u.[$deletedAt] IS  NULL "
+            if (this@OQL.haveJoinOpt) {
+                dictAliases.forEach { t, u ->
+                    deletedAt = EntityFieldsCache.Item(t).deletedAt
+                    deletedAt?.apply {
+                        if (!deletedCheck.isBlank()) deletedCheck += " AND "
+                        deletedCheck += "  $u.[$deletedAt] IS  NULL "
+                    }
                 }
             }
-        }
 
-        if (deletedCheck.isNotBlank()) {
-            if (oqlString.trim().length > 5) {
-                //where 已经有条件值
-                oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck AND ", ignoreCase = true)
-            } else {
-                oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck", ignoreCase = true)
+            if (deletedCheck.isNotBlank()) {
+                if (oqlString.trim().length > 5) {
+                    //where 已经有条件值
+                    oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck AND ", ignoreCase = true)
+                } else {
+                    oqlString = oqlString.replace("WHERE", " WHERE $deletedCheck", ignoreCase = true)
+                }
             }
+
         }
 
         //endregion

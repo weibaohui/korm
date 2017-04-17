@@ -213,8 +213,7 @@ open class KormSqlSession(var dataSource: DataSource) {
     }
 
     inline fun <reified T> select(q: OQL): List<T>? {
-        val result = this.newScope(q).resultType(T::class.java).returnList(true).callCallbacks(this.callbacks.selects).result
-        return result as List<T>?
+        return select(T::class.java, q)
     }
 
     fun <T> select(clazz: Class<T>, q: OQL): List<T>? {

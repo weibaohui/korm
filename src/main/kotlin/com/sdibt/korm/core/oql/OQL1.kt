@@ -40,7 +40,7 @@ class OQL1(private val currentOQL: OQL) : OQL4(currentOQL), IOQL1 {
             throw IllegalArgumentException("OQLCompare 关联的OQL 对象不是当前OQL本身对象，请使用OQLCompareFunc或者它的泛型对象。")
         }
         currentOQL.sql_condition = cmpResult.compareString
-        currentOQL.oqlString += "\r\n     WHERE " + currentOQL.sql_condition
+        currentOQL.oqlString = "\r\n     WHERE " + currentOQL.sql_condition
 
         return OQL2(currentOQL)
     }
