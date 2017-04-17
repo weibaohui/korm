@@ -22,7 +22,6 @@ import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.entity.korm
 import java.time.LocalDateTime
-import javax.persistence.Column
 import javax.persistence.Table
 
 /**
@@ -53,8 +52,8 @@ class TestBook : EntityBase() {
     @delegate:UpdatedAt var updatedAt: LocalDateTime? by korm()
 //    @delegate:DeletedAt var deletedAt: LocalDateTime? by korm()
 
-    @delegate:Column(name = "version", length = 30)
-    @delegate:Version var version: Int? by korm()
+//    @delegate:Column(name = "version", length = 30)
+//    @delegate:Version var version: Int? by korm()
 
 
     fun getOperator(): String {
