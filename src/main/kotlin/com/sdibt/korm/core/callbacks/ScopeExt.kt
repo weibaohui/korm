@@ -261,6 +261,7 @@ fun Scope.insertEntity(): Scope {
 
     val entity = this.entity ?: return this
     val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
+    this.sqlParam.clear()
     params.forEach { t, u -> this.sqlParam.put(t, u) }
 
 

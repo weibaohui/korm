@@ -65,6 +65,8 @@ dependencies {
     compile 'com.google.guava:guava:21.0'
     compile 'com.alibaba:druid:1.0.28'
 
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
 
     compile("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
     compile("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")

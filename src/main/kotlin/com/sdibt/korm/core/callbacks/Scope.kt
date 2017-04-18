@@ -23,6 +23,8 @@ import com.sdibt.korm.core.oql.OQL
 
 
 class Scope(var db: KormSqlSession) {
+
+
     var actionType: ActionType = ActionType.Entity
     var entity: EntityBase? = null
     var oql: OQL? = null
@@ -48,6 +50,10 @@ class Scope(var db: KormSqlSession) {
     val hasError: Boolean
         get() = db.Error != null
 
+    init {
+        this.sqlString = ""
+        this.sqlParam.clear()
+    }
 
     constructor(entity: EntityBase, db: KormSqlSession) : this(db) {
         this.db = db
@@ -109,6 +115,10 @@ class Scope(var db: KormSqlSession) {
             scope = funcs[i].invoke(scope)
             if (scope.skipLeft) break
         }
+
+        //执行日志记录
+        CallBackLog().logCallback(scope)
+
         return scope
     }
 

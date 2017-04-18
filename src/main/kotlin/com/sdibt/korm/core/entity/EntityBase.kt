@@ -17,7 +17,6 @@
 
 package com.sdibt.korm.core.entity
 
-import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.db.DDLType
 import com.sdibt.korm.core.enums.EntityMapType
 import com.sdibt.korm.core.idworker.IdWorkerType
@@ -505,30 +504,4 @@ abstract class EntityBase {
     //endregion
 
 
-    open fun afterDelete(scope: Scope): Scope {
-        println("afterDelete scope.sqlString = ${scope.sqlString}")
-        println("afterDelete scope.rowsAffected = ${scope.rowsAffected}")
-        return scope
-    }
-
-    open fun afterUpdate(scope: Scope): Scope {
-        println("afterUpdate scope.sqlString = ${scope.sqlString}")
-        println("afterUpdate scope.sqlParam = ${scope.sqlParam}")
-        println("afterUpdate scope.rowsAffected = ${scope.rowsAffected}")
-        return scope
-    }
-
-    open fun afterInsert(scope: Scope): Scope {
-        println("afterInsert scope.sqlString = ${scope.sqlString}")
-        println("afterInsert scope.sqlParam = ${scope.sqlParam}")
-        println("afterInsert scope.rowsAffected = ${scope.rowsAffected}")
-        return scope
-    }
-
-    open fun afterSave(scope: Scope): Scope {
-        println("afterSave scope.sqlString = ${scope.sqlString}")
-        println("afterSave scope.sqlParam = ${scope.sqlParam}")
-        println("afterSave scope.rowsAffected = ${scope.rowsAffected}")
-        return scope
-    }
 }

@@ -18,6 +18,7 @@
 package com.sdibt.korm.core.callbacks
 
 import com.alibaba.druid.pool.DruidDataSource
+import com.sdibt.korm.BookDTO
 import com.sdibt.korm.core.User
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
@@ -254,14 +255,13 @@ internal class DBTest {
         book.testName = "testnamevalue"
 
 
-
         val countOQL = OQL.From(book).Select().Count(book.testId).END
         val count = getDB().selectSingle<Int>(countOQL)
         println("count = ${count}")
         count?.apply {
             val qq = OQL.From(book)
             val cmp = OQLCompare(qq).Comparer(book.testId, ">", "1")
-            val q =qq.Limit(10, 1, true).Select().Where(cmp) .END
+            val q = qq.Limit(10, 1, true).Select().Where(cmp).END
             q.PageWithAllRecordCount = count
             val resultList = getDB().select<TestBook>(q)
             resultList?.forEach {
@@ -348,5 +348,61 @@ internal class DBTest {
 
 
         getDB().executeUpdate(u.genDDL(), mapOf())
+    }
+
+
+    @Test
+    fun getBookDTO() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+        book.testCount = 1
+        getDB().save(book)
+        val q = OQL.From(book).Select().Where {
+            cmp ->
+            cmp.Comparer(book.testId, ">", 0)
+        }.END
+
+        val dto = getDB().select(BookDTO::class.java, q)
+        dto?.apply {
+            println("dto.testName = ${dto.first().testName}")
+            println("dto.testCount = ${dto.first().testCount}")
+            println("dto.testURL = ${dto.first().testURL}")
+        }
+
+        val dto1 = getDB().select<BookDTO>(q)
+        dto1?.apply {
+            println("dto1.testName = ${dto1.first().testName}")
+            println("dto1.testCount = ${dto1.first().testCount}")
+            println("dto1.testURL = ${dto1.first().testURL}")
+        }
+
+        val sql = "select * from test_Book"
+        val dto2 = getDB().select<BookDTO>(sql, mapOf())
+        dto2?.apply {
+            println("dto2.testName = ${dto2.first().testName}")
+            println("dto2.testCount = ${dto2.first().testCount}")
+            println("dto2.testURL = ${dto2.first().testURL}")
+        }
+    }
+
+    @Test
+    fun getJoinBookDTO() {
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+        book.testCount = 1
+        getDB().save(book)
+        val q = OQL.From(book).Select().Where {
+            cmp ->
+            cmp.Comparer(book.testId, ">", 0)
+        }.END
+
+        val dto = getDB().select(BookDTO::class.java, q)
+        dto?.apply {
+            println("dto.test = ${dto.first().testName}")
+            println("dto.test = ${dto.first().testCount}")
+            println("dto.test = ${dto.first().testURL}")
+        }
     }
 }

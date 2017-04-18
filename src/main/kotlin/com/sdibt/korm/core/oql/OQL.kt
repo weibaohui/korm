@@ -191,7 +191,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         if (this.dictAliases.isEmpty()) {
             return String.format(" [%1\$s]", tnf.field)
         } else {
-            var aliases = this.dictAliases[tnf.entity]
+            val aliases = this.dictAliases[tnf.entity]
             if (!aliases.isNullOrBlank()) {
                 return String.format(" %1\$s.[%2\$s]", aliases, tnf.field) //关联查询，此处可能需要考虑字段AS别名 问题
             } else {
@@ -784,13 +784,14 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             for (tnf in selectedFieldInfo) {
                 aliases = dictAliases[tnf.entity]
                 if (!aliases.isNullOrEmpty()) {
-                    sql_fields += ",\t\r\n" + String.format(" %1\$s.[%2\$s] AS [%1\$s_%2\$s]", aliases, tnf.field) //关联查询，此处可能需要考虑字段AS别名 问题
+                    //关联查询，此处可能需要考虑字段AS别名 问题
+                    sql_fields += " $aliases.[${tnf.field}] AS [${aliases}_${tnf.field}], "
                 } else {
-                    sql_fields += ",\t\r\n" + String.format(" M.[%1\$s]", tnf.field)
+                    sql_fields += "  M.[${tnf.field}],"
                 }
             }
 
-            sql_fields = sql_fields.trimStart(',')
+            sql_fields = sql_fields.trimEnd(',')
 
             sql_from = this.currEntity.tableName + " M "
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
@@ -799,7 +800,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 } else {
                     sql_fields = "M.*"
                     for (str in dictAliases.values) {
-                        sql_fields += String.format(",%1\$s.*", str)
+                        sql_fields += ",$str.*"
                     }
                 }
             }

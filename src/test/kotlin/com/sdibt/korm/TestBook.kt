@@ -66,13 +66,6 @@ class TestBook : EntityBase() {
     }
 
 
-    override fun afterDelete(scope: Scope): Scope {
-        super.afterDelete(scope)
-        println("override scope.sqlString = ${scope.sqlString}")
-        println("override scope.rowsAffected = ${scope.rowsAffected}")
-        return scope
-    }
-
 
 }
 

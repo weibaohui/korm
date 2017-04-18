@@ -27,8 +27,7 @@ class CallBackSave {
 
     fun sqlProcessCallback(scope: Scope): Scope {
 
-        println("1scope.sqlString = ${scope.sqlString}")
-        println("2scope.sqlParam = ${scope.sqlParam}")
+
 
         //sqlString 正则查找字段，字段均以[]包围，替换为nc以后的字段
         //找到[field]
@@ -67,8 +66,6 @@ class CallBackSave {
         }
         scope.sqlParam = mutParams
 
-        println("3scope.sqlString = ${scope.sqlString}")
-        println("4scope.sqlParam = ${scope.sqlParam}")
         return scope
     }
 
