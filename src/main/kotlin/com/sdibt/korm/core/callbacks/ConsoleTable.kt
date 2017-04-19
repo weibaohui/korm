@@ -56,6 +56,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
         val buf = StringBuilder()
         buf.append("\r\n")
 
+        //todo 处理行长度，取为各行最长的
         val sumlen = columnLen.sum()
 
         //上边
@@ -99,7 +100,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
                         buf.append("|\n")
                     } else {
                         oc.indices.forEach {
-                            if(it==0){
+                            if (it == 0) {
                                 //第二列第一行
                                 //列左边
                                 buf.append('|')
@@ -110,13 +111,13 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
                                 //列右空
                                 buf.append(printChar(' ', columnLen[i] - oc[it].toByteArray().size + margin))
                                 buf.append("|\n")
-                            }else{
+                            } else {
                                 //第二列其它行
 
                                 //列左边
                                 buf.append('|')
                                 //列左空
-                                buf.append(printChar(' ', row[0].toString().toByteArray().size+margin))
+                                buf.append(printChar(' ', row[0].toString().toByteArray().size + margin))
                                 //列内容
 //                                buf.append(row[0].toString())
                                 //列右空
@@ -162,16 +163,16 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
 
 
 }
-
-fun main(args: Array<String>) {
-
-    val t = ConsoleTable(2, false)
-
-
-    t.appendRow()
-    t.appendColumn("1").appendColumn("123213dadad")
-
-    t.appendRow()
-    t.appendColumn("22").appendColumn("231233333")
-    println(t.toString())
-}
+//
+//fun main(args: Array<String>) {
+//
+//    val t = ConsoleTable(2, false)
+//
+//
+//    t.appendRow()
+//    t.appendColumn("1").appendColumn("123213dadad")
+//
+//    t.appendRow()
+//    t.appendColumn("22").appendColumn("231233333")
+//    println(t.toString())
+//}
