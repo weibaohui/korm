@@ -45,5 +45,7 @@ LOG.info("Hello from SomethingElse")
  * @return 返回类型说明
  */
 public fun <R : Any> R.logger(): Lazy<Logger> {
-    return lazy { LoggerFactory.getLogger(this.javaClass.name) }
+    return lazy {
+        LoggerFactory.getLogger(this.javaClass.name)
+    }
 }

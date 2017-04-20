@@ -28,26 +28,43 @@ class CallBackLog {
     fun logCallback(scope: Scope): Scope {
         val t = ConsoleTable()
         t.appendRow()
-        t.appendColumn("scope.sqlString").appendColumn(scope.sqlString)
+        t.appendColumn("sqlString").appendColumn(scope.sqlString)
         t.appendRow()
-        t.appendColumn("scope.sqlParam").appendColumn("${scope.sqlParam}")
+        t.appendColumn("sqlParam").appendColumn("${scope.sqlParam}")
         t.appendRow()
-        t.appendColumn("scope.rowsAffected").appendColumn("${scope.rowsAffected}")
+        t.appendColumn("rowsAffected").appendColumn("${scope.rowsAffected}")
 
         scope.generatedKeys?.apply {
             t.appendRow()
-            t.appendColumn("scope.generatedKeys").appendColumn("${scope.generatedKeys}")
+            t.appendColumn("generatedKeys").appendColumn("${scope.generatedKeys}")
         }
         scope.result?.apply {
             t.appendRow()
-            t.appendColumn("scope.result").appendColumn(scope.result)
+            t.appendColumn("result").appendColumn(scope.result)
         }
         scope.db.Error?.apply {
             t.appendRow()
-            t.appendColumn("scope.error").appendColumn(scope.db.Error)
+            t.appendColumn("error").appendColumn(scope.db.Error)
         }
         t.appendRow()
-        t.appendColumn("scope.timeSpend").appendColumn("${System.currentTimeMillis() - scope.startTime} ms")
+        t.appendColumn("timeSpend").appendColumn("${System.currentTimeMillis() - scope.startTime} ms")
+
+
+        var has = false
+        val traces = RuntimeException().stackTrace
+        traces.forEach {
+            if (it.className.contains("KormSqlSession")) has = true
+        }
+        if (has) {
+            traces.filterNot {
+                it.className.startsWith("com.sdibt.korm")
+                || it.className.startsWith("sun.reflect")
+            }.first().also {
+                t.appendRow()
+                t.appendColumn("file").appendColumn("${it.className}.${it.methodName} (${it.fileName}:${it.lineNumber})")
+            }
+        }
+
 
         Log.debug(t.toString())
         return scope
