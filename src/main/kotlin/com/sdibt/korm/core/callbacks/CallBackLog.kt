@@ -61,7 +61,8 @@ class CallBackLog {
                 || it.className.startsWith("sun.reflect")
             }.first().also {
                 t.appendRow()
-                t.appendColumn("file").appendColumn("${it.className}.${it.methodName} (${it.fileName}:${it.lineNumber})")
+                //经测试(file:num)IDEA 可以直接点击
+                t.appendColumn("file").appendColumn("${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber}) ")
             }
         }
 
