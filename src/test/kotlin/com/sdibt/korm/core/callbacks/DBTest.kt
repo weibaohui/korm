@@ -38,7 +38,6 @@ internal class DBTest {
 
 
     fun getDB(): KormSqlSession {
-
         var dds = DruidDataSource()
         dds.url = dbURL
         dds.username = userName

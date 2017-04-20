@@ -26,7 +26,7 @@ class CallBackLog {
     val Log by logger()
 
     fun logCallback(scope: Scope): Scope {
-        val t = ConsoleTable(2, false)
+        val t = ConsoleTable()
         t.appendRow()
         t.appendColumn("scope.sqlString").appendColumn(scope.sqlString)
         t.appendRow()

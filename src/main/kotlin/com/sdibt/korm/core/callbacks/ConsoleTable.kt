@@ -19,20 +19,17 @@ package com.sdibt.korm.core.callbacks
 
 import java.util.*
 
-//http://www.oschina.net/code/snippet_100347_708
-
-class ConsoleTable(private val column: Int, printHeader: Boolean) {
+/**绘制console表格
+ * <功能详细描述>
+ *
+ */
+internal class ConsoleTable {
+    //默认列数
+    private val column: Int = 2
     private val margin = 2
     private var rows = ArrayList<List<*>>()
+    private var columnLen = IntArray(column)
 
-    private var columnLen: IntArray
-
-    private var printHeader = false
-
-    init {
-        this.printHeader = printHeader
-        this.columnLen = IntArray(column)
-    }
 
     fun appendRow() {
         val row: MutableList<Any> = mutableListOf()
@@ -56,11 +53,37 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
         val buf = StringBuilder()
         buf.append("\r\n")
 
-        //todo 处理行长度，取为各行最长的
-        val sumlen = columnLen.sum()
+
+        //每行的最长长度
+        val rowLength: Int
+
+
+        //第一列长度
+        var columnLength1 = 0
+        var columnLength2 = 0
+        rows.forEach {
+            val colums = it
+            colums.indices.forEach {
+                i ->
+                if (i == 0) {
+                    if (colums[i].toString().toByteArray().size > columnLength1) {
+                        columnLength1 = colums[i].toString().toByteArray().size
+                    }
+                } else {
+                    colums[i].toString().split('\r', '\n').forEach {
+                        m ->
+                        if (m.toByteArray().size > columnLength2) {
+                            columnLength2 = m.toByteArray().size
+                        }
+                    }
+                }
+            }
+        }
+        rowLength = columnLength1 + columnLength2
+
 
         //上边
-        buf.append("|").append(printChar('-', sumlen + margin * 2 * column + (column - 1))).append("|\n")
+        buf.append("|").append(printChar('-', rowLength + margin * 2 * column + (column - 1))).append("|\n")
 
 
         for (ii in rows.indices) {
@@ -95,7 +118,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
                         //列内容
                         buf.append(o)
                         //列右空
-                        buf.append(printChar(' ', columnLen[i] - o.toByteArray().size + margin))
+                        buf.append(printChar(' ', columnLength2 - o.toByteArray().size + margin))
                         //行列右边
                         buf.append("|\n")
                     } else {
@@ -109,7 +132,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
                                 //列内容
                                 buf.append(oc[it])
                                 //列右空
-                                buf.append(printChar(' ', columnLen[i] - oc[it].toByteArray().size + margin))
+                                buf.append(printChar(' ', columnLength2 - oc[it].toByteArray().size + margin))
                                 buf.append("|\n")
                             } else {
                                 //第二列其它行
@@ -131,7 +154,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
                                 //列内容
                                 buf.append(oc[it])
                                 //列右空
-                                buf.append(printChar(' ', columnLen[i] - oc[it].toByteArray().size + margin))
+                                buf.append(printChar(' ', columnLength2 - oc[it].toByteArray().size + margin))
                                 //行列右边
                                 buf.append("|\n")
                             }
@@ -145,7 +168,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
 
 
             //print 下边
-            buf.append("|").append(printChar('-', sumlen + margin * 2 * column + (column - 1))).append("|\n")
+            buf.append("|").append(printChar('-', rowLength + margin * 2 * column + (column - 1))).append("|\n")
         }
 
 
@@ -166,7 +189,7 @@ class ConsoleTable(private val column: Int, printHeader: Boolean) {
 //
 //fun main(args: Array<String>) {
 //
-//    val t = ConsoleTable(2, false)
+//    val t = ConsoleTable()
 //
 //
 //    t.appendRow()
