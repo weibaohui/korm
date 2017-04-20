@@ -19,6 +19,7 @@ package com.sdibt.korm.core.callbacks
 
 import com.sdibt.korm.core.db.Column
 import com.sdibt.korm.core.entity.EntityFieldsCache
+import com.sdibt.korm.core.enums.DBMSType
 import com.sdibt.korm.core.oql.TableNameField
 import java.util.regex.Pattern
 
@@ -26,7 +27,6 @@ class CallBackSave {
 
 
     fun sqlProcessCallback(scope: Scope): Scope {
-
 
 
         //sqlString 正则查找字段，字段均以[]包围，替换为nc以后的字段
@@ -38,7 +38,7 @@ class CallBackSave {
 
         var columns: Map<String, Column>? = null
         scope.entity?.apply {
-            columns = EntityFieldsCache.Item(scope.entity!!).columns
+            columns = EntityFieldsCache.item(scope.entity!!).columns
         }
 
         fields.forEach {
@@ -66,6 +66,12 @@ class CallBackSave {
         }
         scope.sqlParam = mutParams
 
+
+        //sql语句中[]处理
+        when (scope.db.dbType) {
+            DBMSType.MySql -> scope.sqlString = scope.sqlString.replace('[', '`').replace(']', '`')
+            else           -> scope.sqlString = scope.sqlString.replace('[', '"').replace(']', '"')
+        }
         return scope
     }
 

@@ -86,7 +86,7 @@ internal class DBTest {
         getDB().delete(tb)
         getDB().save(tb)
         tb.testCount = 9
-        getDB().save(tb, false)
+        getDB().save(tb,false)
     }
 
 

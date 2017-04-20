@@ -187,17 +187,17 @@ class EntityFields {
                         }
 
                         it.isAnnotationPresent(DeletedAt::class.java) ->
-                            deletedAt = "DeletedAt"
+                            deletedAt = "deletedAt"
                         it.isAnnotationPresent(CreatedBy::class.java) ->
-                            createdBy = "CreatedBy"
+                            createdBy = "createdBy"
                         it.isAnnotationPresent(CreatedAt::class.java) ->
-                            createdAt = "CreatedAt"
+                            createdAt = "createdAt"
                         it.isAnnotationPresent(UpdatedBy::class.java) ->
-                            updatedBy = "UpdatedBy"
+                            updatedBy = "updatedBy"
                         it.isAnnotationPresent(UpdatedAt::class.java) ->
-                            updatedAt = "UpdatedAt"
+                            updatedAt = "updatedAt"
                         it.isAnnotationPresent(Version::class.java)   ->
-                            version = "Version"
+                            version = "version"
                     }
                 }
 

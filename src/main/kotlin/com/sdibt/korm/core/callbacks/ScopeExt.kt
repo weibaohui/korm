@@ -44,13 +44,13 @@ fun Scope.deleteEntity(): Scope {
         if (sqlWhere == "") {
             throw RuntimeException("表" + entity.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
         }
-        this@deleteEntity.sqlString = "DELETE FROM ${entity.tableName}  WHERE 1=1 $sqlWhere"
+        this@deleteEntity.sqlString = "DELETE FROM ${entity.tableName}  \r\nWHERE 1=1 $sqlWhere"
 
-        val deletedAt = EntityFieldsCache.Item(entity).deletedAt
+        val deletedAt = EntityFieldsCache.item(entity).deletedAt
         deletedAt?.apply {
             //软删除标记
             sqlParam.put(deletedAt, LocalDateTime.now())
-            this@deleteEntity.sqlString = "UPDATE  ${entity.tableName} SET [$deletedAt]=@$deletedAt  WHERE 1=1 $sqlWhere"
+            this@deleteEntity.sqlString = "UPDATE  ${entity.tableName} SET [$deletedAt]=@$deletedAt  \r\nWHERE 1=1 $sqlWhere"
         }
 
     }
@@ -71,14 +71,14 @@ fun Scope.deleteOQL(): Scope {
         this.sqlString = this.deleteEntity().sqlString
     } else {
 
-        this.sqlString = "DELETE FROM ${oql.currEntity.tableName}   $whereString"
+        this.sqlString = "DELETE FROM ${oql.currEntity.tableName}  \r\n $whereString"
     }
 
-    val deletedAt = EntityFieldsCache.Item(oql.currEntity).deletedAt
+    val deletedAt = EntityFieldsCache.item(oql.currEntity).deletedAt
     deletedAt?.apply {
         //软删除标记
         this@deleteOQL.sqlParam.put(deletedAt, LocalDateTime.now())
-        this@deleteOQL.sqlString = "UPDATE  ${oql.currEntity.tableName} SET [$deletedAt]=@$deletedAt  $whereString"
+        this@deleteOQL.sqlString = "UPDATE  ${oql.currEntity.tableName} SET \r\n [$deletedAt]=@$deletedAt  \r\n $whereString"
     }
     return this
 }
@@ -88,7 +88,8 @@ fun Scope.updateEntity(): Scope {
 
     val entity = this.entity ?: return this
     val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
-    params.forEach { t, u -> this.sqlParam.put(t, u) }
+
+    params.forEach { t, u -> if (t !in this.sqlParam.keys) this.sqlParam.put(t, u) }
 
 
     if (entity.primaryKeys.isNotEmpty()) {
@@ -98,13 +99,13 @@ fun Scope.updateEntity(): Scope {
 
 
         //entity中有version值
-        val version = EntityFieldsCache.Item(entity).version
+        val version = EntityFieldsCache.item(entity).version
         version?.apply {
             if (this@updateEntity.sqlParam.keys.filter { it.equals(version, ignoreCase = true) }.none()) {
                 this@updateEntity.sqlParam.put(version, 0)
             }
-            sqlUpdate += " [$version]=[$version] + 1 ,"
-            sqlWhere += " AND  [$version]=@$version "
+            sqlUpdate += "\r\n [$version]=[$version] + 1 ,"
+            sqlWhere += "\r\n AND  [$version]=@$version "
         }
 
         this.sqlParam
@@ -116,19 +117,19 @@ fun Scope.updateEntity(): Scope {
                     }
                     //不更新主键,主键放到where 条件中
                     if (!isPk) {
-                        sqlUpdate += " [$field]=@$field ,"
+                        sqlUpdate += "\r\n [$field]=@$field ,"
                     } else {
-                        sqlWhere += " And [$field]=@$field "
+                        sqlWhere += "\r\n  And [$field]=@$field "
                     }
                 }
 
 
-        val deletedAt = EntityFieldsCache.Item(entity).deletedAt
+        val deletedAt = EntityFieldsCache.item(entity).deletedAt
         deletedAt?.apply {
-            sqlWhere += " And [$deletedAt] IS  NULL "
+            sqlWhere += "\r\n And [$deletedAt] IS  NULL "
         }
 
-        sqlUpdate = sqlUpdate.trimEnd(',') + " WHERE 1=1 " + sqlWhere
+        sqlUpdate = sqlUpdate.trimEnd(',') + "\r\nWHERE 1=1 " + sqlWhere
 
         this.sqlString = sqlUpdate
 
@@ -144,18 +145,18 @@ fun Scope.updateOQL(): Scope {
     this.entity = q.currEntity
 
     var sqlUpdate = "UPDATE ${q.currEntity.tableName} SET "
-    var sqlWhere = if (q.oqlString.isNotBlank()) q.oqlString else " WHERE 1=1 "
+    var sqlWhere = if (q.oqlString.isNotBlank()) q.oqlString else "\r\nWHERE 1=1 "
     val pks = q.currEntity.primaryKeys
 
 
     //entity中有version值
-    val version = EntityFieldsCache.Item(q.currEntity).version
+    val version = EntityFieldsCache.item(q.currEntity).version
     version?.apply {
         if (this@updateOQL.sqlParam.keys.filter { it.equals(version, ignoreCase = true) }.none()) {
             this@updateOQL.sqlParam.put(version, q.currEntity.getFieldValue(version) ?: 0)
         }
-        sqlUpdate += " [$version]=[$version] + 1 ,"
-        sqlWhere += " AND  [$version]=@$version "
+        sqlUpdate += "\r\n [$version]=[$version] + 1 ,"
+        sqlWhere += "\r\n AND  [$version]=@$version "
     }
 
     q.selectedFieldInfo.indices.forEach {
@@ -168,20 +169,20 @@ fun Scope.updateOQL(): Scope {
         if (!isPk) {
             if (q.optFlag == 6 && q.updateSelfOptChar != ' ') {
                 //自增等类型的更新 count=count+1
-                sqlUpdate += " [$field]= [$field] ${q.updateSelfOptChar}  @p$i ,"
+                sqlUpdate += "\r\n [$field]= [$field] ${q.updateSelfOptChar}  @p$i ,"
             } else {
                 //普通更新
-                sqlUpdate += " [$field]=@p$i ,"
+                sqlUpdate += "\r\n [$field]=@p$i ,"
             }
         } else {
-            sqlWhere += " AND  [$field]=@p$i "
+            sqlWhere += "\r\n AND  [$field]=@p$i "
         }
     }
 
 
-    val deletedAt = EntityFieldsCache.Item(q.currEntity).deletedAt
+    val deletedAt = EntityFieldsCache.item(q.currEntity).deletedAt
     deletedAt?.apply {
-        sqlWhere += " And [$deletedAt] IS  NULL "
+        sqlWhere += "\r\n And [$deletedAt] IS  NULL "
     }
 
     //q.selectedFieldInfo 存放的是TableNameField，field不会以@开头
@@ -194,7 +195,7 @@ fun Scope.updateOQL(): Scope {
             .filterNot { it.key.startsWith('@') }
             .forEach { t, _ ->
                 if (t.trimStart('@') !in keys) {
-                    sqlUpdate += " [$t]=@$t ,"
+                    sqlUpdate += "\r\n [$t]=@$t ,"
                 }
             }
 
@@ -250,7 +251,7 @@ fun Scope.insertOQL(): Scope {
                     }
                 }
 
-        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+        sqlInsert += "\r\n (" + Items.trimEnd(',') + ") \r\n Values \r\n (" + ItemValues.trimEnd(',') + ")"
 
         this.sqlString = sqlInsert
     }
@@ -261,8 +262,7 @@ fun Scope.insertEntity(): Scope {
 
     val entity = this.entity ?: return this
     val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
-    this.sqlParam.clear()
-    params.forEach { t, u -> this.sqlParam.put(t, u) }
+    params.forEach { t, u -> if (t !in this.sqlParam.keys) this.sqlParam.put(t, u) }
 
 
     var Items = ""
@@ -274,7 +274,7 @@ fun Scope.insertEntity(): Scope {
         Items += "[$pkey],"
         ItemValues += "@$pkey,"
     }
-    sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
+    sqlInsert += "\r\n(" + Items.trimEnd(',') + ") \r\n Values \r\n(" + ItemValues.trimEnd(',') + ")"
     this.sqlString = sqlInsert
 
 

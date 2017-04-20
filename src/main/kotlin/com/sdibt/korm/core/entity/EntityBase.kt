@@ -58,13 +58,13 @@ abstract class EntityBase {
     var tableName: String = ""
         private set
         get() {
-            return EntityFieldsCache.Item(this).tableName ?: this.javaClass.simpleName
+            return EntityFieldsCache.item(this).tableName ?: this.javaClass.simpleName
         }
 
     var schema: String = ""
         private set
         get() {
-            return EntityFieldsCache.Item(this).schema ?: ""
+            return EntityFieldsCache.item(this).schema ?: ""
         }
     // sql statement 需要的parameters
     //todo 去掉TableNameField，直接取值
@@ -122,7 +122,7 @@ abstract class EntityBase {
                 return field
             }
         }
-    val autoIdFields: Map<String, IdWorkerType> = EntityFieldsCache.Item(this).autoIdFields
+    val autoIdFields: Map<String, IdWorkerType> = EntityFieldsCache.item(this).autoIdFields
 
     private var foreignKeys = ""
     private var changedList: BooleanArray = booleanArrayOf()
@@ -135,7 +135,7 @@ abstract class EntityBase {
 
     init {
         channel.register(this)
-        fieldValueIndex = IntArray(EntityFieldsCache.Item(this).fields.size, { -1 })
+        fieldValueIndex = IntArray(EntityFieldsCache.item(this).fields.size, { -1 })
     }
 
 
@@ -144,7 +144,7 @@ abstract class EntityBase {
      */
     private fun setFieldNames() {
 //        this.names = names
-        val ef = EntityFieldsCache.Item(this)
+        val ef = EntityFieldsCache.item(this)
         this.names = ef.fields
         this.fieldValues = ef.fieldValues.toList() as MutableList<Any>
     }
@@ -196,7 +196,7 @@ abstract class EntityBase {
      * @return
      */
     private fun getFieldValueWithEvent(fieldName: String): Any? {
-        val ef = EntityFieldsCache.Item(this)
+        val ef = EntityFieldsCache.item(this)
         val fieldName = ef.getFieldName(fieldName)
         if (fieldName != null) {
             this.onPropertyGeting(fieldName)
@@ -410,7 +410,7 @@ abstract class EntityBase {
      */
     private fun onPropertyChanged(propertyFieldName: String) {
 //		println("OnPropertyChanged propertyFieldName = ${propertyFieldName}")
-//		val currPropName = EntityFieldsCache.Item(this).getFieldName(propertyFieldName)
+//		val currPropName = EntityFieldsCache.item(this).getFieldName(propertyFieldName)
 //		println("currPropName = ${currPropName}")
         channel.post(ChangingEvent(this, propertyFieldName, null))
 
@@ -446,7 +446,7 @@ abstract class EntityBase {
 //        ) ENGINE=InnoDB AUTO_INCREMENT=5591029507641345 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
 
 
-        val columns = EntityFieldsCache.Item(this).columns
+        val columns = EntityFieldsCache.item(this).columns
         val script = StringBuilder()
 
         script.append("CREATE TABLE [${this.tableName}] ")

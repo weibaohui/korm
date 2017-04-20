@@ -62,7 +62,7 @@ class CallBackInsert(db: KormSqlSession) {
     fun insertOperatorCallback(scope: Scope): Scope {
         if (scope.hasError) return scope
         if (scope.entity == null) return scope
-        val item = EntityFieldsCache.Item(scope.entity!!)
+        val item = EntityFieldsCache.item(scope.entity!!)
         item.createdBy?.apply {
             scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
         }
@@ -75,7 +75,7 @@ class CallBackInsert(db: KormSqlSession) {
     fun insertDateTimeCallback(scope: Scope): Scope {
         if (scope.hasError) return scope
         if (scope.entity == null) return scope
-        val item = EntityFieldsCache.Item(scope.entity!!)
+        val item = EntityFieldsCache.item(scope.entity!!)
         val time = LocalDateTime.now()
         item.createdAt?.apply {
             scope.sqlParam.put("${item.createdAt}", time)

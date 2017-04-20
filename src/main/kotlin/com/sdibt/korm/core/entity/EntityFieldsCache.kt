@@ -26,7 +26,7 @@ package com.sdibt.korm.core.entity
 object EntityFieldsCache {
     private var dict: MutableMap<String, EntityFields> = mutableMapOf()
 
-    fun Item(entity: EntityBase): EntityFields {
+    fun item(entity: EntityBase): EntityFields {
 
         val key = entity::class.java.simpleName
         if (dict.contains(key)) {

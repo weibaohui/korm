@@ -1,5 +1,4 @@
 ﻿/*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.page
@@ -119,22 +116,24 @@ object SQLPage {
             if (strWhere.indexOf(" ORDER BY ") > 0) {
                 throw Exception("附加查询条件不能带 ORDER BY 谓词")
             }
-            strSQLInfo = "SELECT * FROM ($strSQLInfo) temptable0 WHERE $strWhere"
+            strSQLInfo = "SELECT * FROM \r\n ($strSQLInfo) temptable0 \r\nWHERE\r\n $strWhere"
         }
         if (AllCount == 0) {
-            return "select count(1) from ($strSQLInfo) P_Count  " + if (strWhere.isNullOrBlank()) "" else "WHERE $strWhere"
+            return "SELECT count(1) FROM " +
+                   "\r\n ($strSQLInfo) P_Count  " +
+                    if (strWhere.isNullOrBlank()) "" else "WHERE $strWhere"
         }
 
         if (PageNumber == 1) {
-            return strSQLInfo + " LIMIT " + PageSize
+            return strSQLInfo + "\r\n LIMIT " + PageSize
         }
 
         val offset = PageSize * (PageNumber - 1)
 
         if (offsetString == ",") {//MySQL
-            return strSQLInfo + " LIMIT " + offset + offsetString + PageSize
+            return strSQLInfo + "\r\n LIMIT " + offset + offsetString + PageSize
         } else { //PostgreSQL
-            return strSQLInfo + " LIMIT " + PageSize + offsetString + offset
+            return strSQLInfo + "\r\n LIMIT " + PageSize + offsetString + offset
         }
     }
 

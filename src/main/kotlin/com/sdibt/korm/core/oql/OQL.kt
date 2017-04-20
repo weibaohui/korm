@@ -785,7 +785,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 aliases = dictAliases[tnf.entity]
                 if (!aliases.isNullOrEmpty()) {
                     //关联查询，此处可能需要考虑字段AS别名 问题
-                    sql_fields += " $aliases.[${tnf.field}] AS [${aliases}_${tnf.field}], "
+                    sql_fields += " $aliases.[${tnf.field}] AS [${aliases}_${tnf.field}],"
                 } else {
                     sql_fields += "  M.[${tnf.field}],"
                 }
@@ -831,7 +831,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             oqlString = " WHERE 1=1 "
         }
         //检查deletedAt属性
-        var deletedAt = EntityFieldsCache.Item(this.currEntity).deletedAt
+        var deletedAt = EntityFieldsCache.item(this.currEntity).deletedAt
         deletedAt?.apply {
             var deletedCheck = ""
 
@@ -843,7 +843,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
             if (this@OQL.haveJoinOpt) {
                 dictAliases.forEach { t, u ->
-                    deletedAt = EntityFieldsCache.Item(t).deletedAt
+                    deletedAt = EntityFieldsCache.item(t).deletedAt
                     deletedAt?.apply {
                         if (!deletedCheck.isBlank()) deletedCheck += " AND "
                         deletedCheck += "  $u.[$deletedAt] IS  NULL "

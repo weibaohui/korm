@@ -30,7 +30,7 @@ class NameDsl(private var sqlSession: KormSqlSession,
     val nc = sqlSession.nameConvert
 
     fun exec(): Any? {
-        val entity = EntityFieldsCache.Item(entityClass.newInstance() as EntityBase)
+        val entity = EntityFieldsCache.item(entityClass.newInstance() as EntityBase)
         val table = entity.tableName ?: nc.dbTableName(entityClass.simpleName)
         var (sql, params, _) = NameProcessBuilder(this.name)
                 .setDBMSType(sqlSession.dbType)

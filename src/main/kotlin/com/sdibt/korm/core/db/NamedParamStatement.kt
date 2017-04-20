@@ -59,10 +59,7 @@ constructor(dbmsType: DBMSType, conn: Connection, sql: String) : PreparedStateme
         //只是在创建ps的时候替换@符号，在这之前的操作都统一使用@
         var sqlString = sql.replace('@', this.parameterChar).replace(findParametersPattern.pattern().toRegex(), "?")
 
-        when (dbmsType) {
-            DBMSType.MySql -> sqlString = sqlString.replace('[', '`').replace(']', '`')
-            else           -> sqlString = sqlString.replace('[', '"').replace(']', '"')
-        }
+
 
         ps = conn.prepareStatement(
                 sqlString,
