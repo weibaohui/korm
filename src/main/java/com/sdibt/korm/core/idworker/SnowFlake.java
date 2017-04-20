@@ -15,7 +15,9 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.idworker; /**
+package com.sdibt.korm.core.idworker;
+
+/**
  * Twitter_Snowflake<br>
  * SnowFlake的结构如下(每部分用-分开):<br>
  * 0 - 0000000000 0000000000 0000000000 0000000000 0 - 000 - 0000000 - 000000000000 <br>
@@ -188,10 +190,10 @@ public class SnowFlake {
      * @return 当前时间(毫秒)
      */
     protected long timeGen() {
-        return System.currentTimeMillis();
+        return SystemClock.Companion.now();
     }
 
-//    //==============================Test=============================================
+    //    //==============================Test=============================================
     public static void main(String[] args) {
 
 
