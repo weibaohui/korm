@@ -5,7 +5,7 @@ kotlin orm
 </p>
 
 <p align="center">
-  <a href="http://search.maven.org/#artifactdetails%7Ccom.sdibt%7Ckorm%7C0.0.11%7Cjar">
+  <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.sdibt%22%20AND%20a%3A%22korm%22">
     <img alt="maven" src="https://img.shields.io/maven-central/v/com.sdibt/korm.svg?style=flat-square">
   </a>
 
