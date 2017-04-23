@@ -276,8 +276,8 @@ class NameProcessBuilder(private var name: String) {
 
         val sqlBuilder = StringBuilder()
         when (commandType) {
-            SqlCommandType.SELECT -> sqlBuilder.append(" SELECT * FROM #TABLE# ")
-            SqlCommandType.DELETE -> sqlBuilder.append(" DELETE  FROM  #TABLE# ")
+            SqlCommandType.SELECT -> sqlBuilder.append(" SELECT * FROM [#TABLE#] ")
+            SqlCommandType.DELETE -> sqlBuilder.append(" DELETE  FROM  [#TABLE#] ")
         }
 
         if (whereStr.isNotBlank()) {
