@@ -1,5 +1,4 @@
 ﻿/*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,8 +13,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
 package com.sdibt.korm.core.oql
@@ -294,12 +291,14 @@ class OQLCompare {
         } else {
             if (leftField != null && rightField != null) {
                 if (leftField.sqlFieldName == rightField.sqlFieldName) {
-                    compare.ComparedParameterName = compare.linkedOQL.createParameter(leftField, oValue)
+//                    compare.ComparedParameterName = compare.linkedOQL.createParameter(leftField, oValue)
+                    compare.ComparedParameterName = compare.linkedOQL.createParameter(oValue)
                 } else {
                     compare.ComparedParameterName = rightField.sqlFieldName
                 }
             } else if (leftField != null && rightField == null) {
-                compare.ComparedParameterName = compare.linkedOQL.createParameter(leftField, oValue)
+//                compare.ComparedParameterName = compare.linkedOQL.createParameter(leftField, oValue)
+                compare.ComparedParameterName = compare.linkedOQL.createParameter( oValue)
             } else if (leftField == null && rightField != null) {
                 compare.ComparedFieldName = compare.linkedOQL.createParameter(rightField, field!!)
                 compare.ComparedParameterName = rightField.sqlFieldName
@@ -525,12 +524,12 @@ class OQLCompare {
             throw Exception("IS 操作符的不支持子查询！")
         } else {
             var childSql = Value.toString()
-            if (Value.parameters.size > 0) {
-                for (key in Value.parameters.keys) {
+            if (Value.sqlParam.size > 0) {
+                for (key in Value.sqlParam.keys) {
                     childSql = childSql.replace(key, key + "_C")
                 }
-                for (key in Value.parameters.keys) {
-                    val tnf1 = Value.parameters[key] ?: throw Exception("$key 没有对应TableNameField")
+                for (key in Value.sqlParam.keys) {
+                    val tnf1 = Value.sqlParam[key] ?: throw Exception("$key 没有对应TableNameField")
                     val paraName = this.linkedOQL.createParameter(tnf1)
                     childSql = childSql.replace(key + "_C", paraName)
                 }

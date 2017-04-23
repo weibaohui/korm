@@ -29,7 +29,7 @@ import java.util.*
 
 
 open class OQL(var currEntity: EntityBase) : IOQL {
-    var channel = INSTANCE.channel
+    protected var channel = INSTANCE.channel
 
     init {
         channel.register(this)
@@ -104,36 +104,36 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     /**
      * 获取条件参数
      */
-    val parameters: HashMap<String, TableNameField> = hashMapOf()
+//     val parameters: HashMap<String, TableNameField> = hashMapOf()
 
     var sqlParam: MutableMap<String, Any?> = mutableMapOf()
-        get() {
-            val params: MutableMap<String, Any?> = mutableMapOf()
-            this.parameters.forEach {
-                params.put(it.key, it.value.fieldValue)
-            }
-            return params
-        }
+//        get() {
+//            val params: MutableMap<String, Any?> = mutableMapOf()
+//            this.parameters.forEach {
+//                params.put(it.key, it.value.fieldValue)
+//            }
+//            return params
+//        }
     /**
      * 实体类映射的类型
      */
     var entityMap = Table
         set
 
-    private var dictAliases: HashMap<EntityBase, String> = HashMap()
-    private var mainTableName = ""
-    private val selectedFieldNames = ArrayList<String>()
-    var groupByFieldNames: ArrayList<String> = arrayListOf()
-    private var sql_from = "" //Select时候的表名或者Upate，Insert的前缀语句
-    private var sql_fields = ""
-    private var sql_table = ""
-    var sql_condition = ""
+    internal var dictAliases: HashMap<EntityBase, String> = HashMap()
+    internal var mainTableName = ""
+    internal val selectedFieldNames = ArrayList<String>()
+    internal var groupByFieldNames: ArrayList<String> = arrayListOf()
+    internal var sql_from = "" //Select时候的表名或者Upate，Insert的前缀语句
+    internal var sql_fields = ""
+    internal var sql_table = ""
+    internal var sql_condition = ""
     internal var updateSelfOptChar: Char = ' '
-    private var paraIndex = 0
+    internal var paraIndex = 0
     internal var optFlag = OQL_SELECT
     internal var insertFromOql: OQL? = null
-    private var parentOql: OQL? = null
-    private var fieldGettingIndex = 0 //字段获取顺序的索引，如果有子查询，那么子查询使用父查询的该索引进行递增
+    internal var parentOql: OQL? = null
+    internal var fieldGettingIndex = 0 //字段获取顺序的索引，如果有子查询，那么子查询使用父查询的该索引进行递增
 
 
     val END: OQL
@@ -226,21 +226,34 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      * *
      * @return
      */
-    fun createParameter(tnf: TableNameField): String {
+    fun createParameter(pValue: Any?): String {
         val paraName = "@P" + paraIndex++
 //        val paraName = "P" + paraIndex++
-        parameters.put(paraName, tnf)
+        this.sqlParam.put(paraName,pValue)
         return paraName
     }
-
-    fun <T> createParameter(tnf: TableNameField?, Value: T): String {
-        if (tnf != null) {
-            tnf.fieldValue = Value
-            return createParameter(tnf)
+    fun <T> createParameter(pValue: Any?, Value: T): String {
+        if (pValue!= null) {
+            return createParameter(Value)
         } else {
             return "$Value"
         }
     }
+
+//    fun createParameter(tnf: TableNameField): String {
+//        val paraName = "@P" + paraIndex++
+////        val paraName = "P" + paraIndex++
+//        parameters.put(paraName, tnf)
+//        return paraName
+//    }
+//    fun <T> createParameter(tnf: TableNameField?, Value: T): String {
+//        if (tnf != null) {
+//            tnf.fieldValue = Value
+//            return createParameter(tnf)
+//        } else {
+//            return "$Value"
+//        }
+//    }
 
 
     fun Select(): OQL1 {
@@ -375,7 +388,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     }
 
 
-    private fun AddOtherEntitys(vararg others: EntityBase) {
+    internal fun AddOtherEntitys(vararg others: EntityBase) {
         for (entity in others) {
             val aliases = "T" + dictAliases.size
             dictAliases.put(entity, aliases)
@@ -383,7 +396,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     }
 
 
-    private fun Join(entity: EntityBase, joinTypeString: String): JoinEntity {
+    internal fun Join(entity: EntityBase, joinTypeString: String): JoinEntity {
         dictAliases.put(entity, "T" + dictAliases.size)
         haveJoinOpt = true
         val je = JoinEntity(this, entity, joinTypeString)
@@ -531,7 +544,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     }
 
 
-    private fun tackOneParentStackField(): TableNameField {
+    internal fun tackOneParentStackField(): TableNameField {
         if (parentOql == null) {
             throw Exception("OQL的父对象为空！")
         }
@@ -647,16 +660,16 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      *
      * @return void
      */
-    private fun preUpdate() {
+    internal fun preUpdate() {
 
 
         //先将Where条件的参数保存起来
-        val paraTemp = HashMap<String, TableNameField>()
-        for (key in this.parameters.keys) {
-            paraTemp.put(key, this.parameters[key]!!)
+        val paraTemp = HashMap<String, Any?>()
+        for (key in this.sqlParam.keys) {
+            paraTemp.put(key, this.sqlParam[key])
         }
 
-        this.parameters.clear()
+        this.sqlParam.clear()
         for (i in selectedFieldNames.indices) {
             val a = selectedFieldNames[i].indexOf('[')
             val b = selectedFieldNames[i].indexOf(']')
@@ -668,24 +681,24 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         }
         //恢复条件参数
         for (key in paraTemp.keys) {
-            this.parameters.put(key, paraTemp[key]!!)
+            this.sqlParam.put(key, paraTemp[key]!!)
         }
 
 
     }
 
 
-    private fun preInsertFrom() {
+    internal fun preInsertFrom() {
 
-        parameters.clear()
+        sqlParam.clear()
         if (insertFromOql != null) {
-            for (key in insertFromOql!!.parameters.keys) {
-                parameters.put(key, insertFromOql!!.parameters[key]!!)
+            for (key in insertFromOql!!.sqlParam.keys) {
+                sqlParam.put(key, insertFromOql!!.sqlParam[key]!!)
             }
         }
     }
 
-//    private fun toInsertString(sqlStr: String): String {
+//   internal  fun toInsertString(sqlStr: String): String {
 //        var sql = sqlStr
 //        parameters.clear()
 //
@@ -731,7 +744,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 //        return sqlInsert
 //    }
 
-//    private fun toUpdateString(sql: String): String {
+//   internal  fun toUpdateString(sql: String): String {
 //
 //        if (selectedFieldNames.size == 0)
 //            throw  Exception("UPDATE 操作未指定任何要更新的字段！");
@@ -739,7 +752,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 //        return this.sql_from + getWhereString()
 //    }
 
-    private fun toSelectString(): String {
+    internal fun toSelectString(): String {
         var sql = ""
         var sqlVar = ""
         if (this.Distinct) {
@@ -793,7 +806,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
             sql_fields = sql_fields.trimEnd(',')
 
-            sql_from = this.currEntity.tableName + " M "
+            sql_from = "[${this.currEntity.tableName}] M "
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
                 if (selectStar) {
                     sql_fields = "*"
@@ -806,7 +819,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             }
         } else {
             sql_fields = selectedFieldNames.toTypedArray().joinToString(",")
-            sql_from = this.currEntity.tableName
+            sql_from = "[${this.currEntity.tableName}]"
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
                 if (selectStar) {
                     sql_fields = "*"
@@ -820,7 +833,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 }
             }
             if (haveChildOql) {
-                sql_from = this.currEntity.tableName + " M "
+                sql_from = "[${this.currEntity.tableName}] M "
             }
         }
 
@@ -882,7 +895,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 //
 //     * @return
 //     */
-//    private fun getWhereString(): String {
+//   internal  fun getWhereString(): String {
 //        var whereString = oqlString
 //        if (whereString.length < 8) {
 //            whereString = " Where 1=1 "
@@ -907,7 +920,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
      * @return
      */
-    private fun getAllUsedEntity(): Array<EntityBase> {
+    internal fun getAllUsedEntity(): Array<EntityBase> {
         val list = ArrayList<EntityBase>()
         list.add(this.currEntity)
         if (dictAliases.isNotEmpty()) {
@@ -929,7 +942,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      * @return 符合当前限定条件的查询语句
      */
 
-    private fun getMapSQL(tempViewSql: String): String {
+    internal fun getMapSQL(tempViewSql: String): String {
         if (tempViewSql.isNullOrEmpty()) {
             throw RuntimeException("用户的子查询不能为空。")
         }
@@ -942,7 +955,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
      * 获取关联的实体类的表名字，如果是关联查询，返回空
      * @return
      */
-    private fun getEntityTableName(): String {
+    internal fun getEntityTableName(): String {
         if (this.haveChildOql || this.haveJoinOpt) {
             return ""
         } else {
@@ -960,39 +973,21 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             }
 
         }
-//        else if (optFlag == OQL_UPDATE || optFlag == OQL_UPDATE_SELFT) {
-////            sql = toUpdateString(sql)
-////            TODO("此分支应该删除")
-//            sql = ""
-//        } else if (optFlag == OQL_DELETE) {
-////            val sqlDelete = "DELETE FROM $mainTableName "
-////            sql = sqlDelete + getWhereString()
-////            TODO("此分支应该删除")
-//            sql = ""
-//        } else if (optFlag == OQL_INSERT) {
-////            sql = toInsertString(sql)
-////            TODO("此分支应该删除")
-//            sql = ""
-//        } else if (optFlag == OQL_INSERT_FROM) {
-////            sql = toInsertFromString(sql)
-////            TODO("此分支应该删除")
-//            sql = ""
-//        }
 
         return sql
     }
 
     fun PrintParameterInfo(): String {
-        if (parameters.isEmpty()) {
+        if (sqlParam.isEmpty()) {
             return "\r\n-------No paramter.--------\r\n"
         }
         val sb = StringBuilder()
 
-        for ((key, fieldValue) in parameters) {
-            val type = fieldValue.fieldValue?.javaClass?.name
-            sb.append("  $key = ${fieldValue.fieldValue} \t Type:$type \r\n")
+        for ((key, fieldValue) in sqlParam) {
+            val type = fieldValue?.javaClass?.name
+            sb.append("  $key = ${fieldValue} \t Type:$type \r\n")
         }
-        val paraInfoString = "   \r\n--------OQL Parameters information----------\r\n have ${parameters.size} parameter,detail:\r\n$sb"
+        val paraInfoString = "   \r\n--------OQL Parameters information----------\r\n have ${sqlParam.size} parameter,detail:\r\n$sb"
         return paraInfoString + "\r\n--------OQL Parameters End------------------\r\n"
     }
 
@@ -1000,12 +995,12 @@ open class OQL(var currEntity: EntityBase) : IOQL {
     companion object {
 
 
-        private val OQL_SELECT = 1
-        private val OQL_UPDATE = 2
-        private val OQL_INSERT = 3
-        private val OQL_DELETE = 4
-        private val OQL_INSERT_FROM = 5
-        private val OQL_UPDATE_SELFT = 6
+        internal val OQL_SELECT = 1
+        internal val OQL_UPDATE = 2
+        internal val OQL_INSERT = 3
+        internal val OQL_DELETE = 4
+        internal val OQL_INSERT_FROM = 5
+        internal val OQL_UPDATE_SELFT = 6
 
 
         fun From(e: EntityBase): OQL {

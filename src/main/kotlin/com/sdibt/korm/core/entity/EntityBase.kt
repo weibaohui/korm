@@ -20,7 +20,6 @@ package com.sdibt.korm.core.entity
 import com.sdibt.korm.core.db.DDLType
 import com.sdibt.korm.core.enums.EntityMapType
 import com.sdibt.korm.core.idworker.IdWorkerType
-import com.sdibt.korm.core.oql.TableNameField
 import com.sdibt.korm.core.property.EventManager
 import com.sdibt.korm.core.property.event.ChangingEvent
 import com.sdibt.korm.core.property.event.GettingEvent
@@ -33,16 +32,18 @@ import java.util.*
 abstract class EntityBase {
 
 
-    var entityMap = EntityMapType.Table
+    internal var entityMap = EntityMapType.Table
 
     //属性值
-    var fieldValues: MutableList<Any> = mutableListOf()
+
+    internal var fieldValues: MutableList<Any> = mutableListOf()
         set(value) {
             changedList = BooleanArray(names.size)
             field = value
         }
     //属性字段名列表
-    var fieldNames: Array<String>
+
+    internal var fieldNames: Array<String>
         get() {
             if (names.isEmpty()) {
                 this.setFieldNames()
@@ -53,33 +54,33 @@ abstract class EntityBase {
         set(value) {
             names = value
             changedList = BooleanArray(names.size)
-        }
+         }
 
-    var tableName: String = ""
+    internal var tableName: String = ""
         private set
         get() {
             return EntityFieldsCache.item(this).tableName ?: this.javaClass.simpleName
         }
 
-    var schema: String = ""
+    internal var schema: String = ""
         private set
         get() {
             return EntityFieldsCache.item(this).schema ?: ""
         }
     // sql statement 需要的parameters
-    //todo 去掉TableNameField，直接取值
-    var parameters: Map<String, TableNameField> = mutableMapOf()
-        get() {
-            val params: MutableMap<String, TableNameField> = mutableMapOf()
-            for (i in this.fieldNames.indices) {
-                val tnf = TableNameField(this.fieldNames[i],
-                        this, i,
-                        this.fieldValues[i])
-                params.put(this.fieldNames[i], tnf)
-            }
-            return params
-        }
-    var sqlParams: Map<String, Any?> = mutableMapOf()
+//    //todo 去掉TableNameField，直接取值
+//    internal var parameters: Map<String, TableNameField> = mutableMapOf()
+//        get() {
+//            val params: MutableMap<String, TableNameField> = mutableMapOf()
+//            for (i in this.fieldNames.indices) {
+//                val tnf = TableNameField(this.fieldNames[i],
+//                        this, i,
+//                        this.fieldValues[i])
+//                params.put(this.fieldNames[i], tnf)
+//            }
+//            return params
+//        }
+    internal var sqlParams: Map<String, Any?> = mutableMapOf()
         get() {
             val params: MutableMap<String, Any?> = mutableMapOf()
             for (i in this.fieldNames.indices) {
@@ -87,22 +88,22 @@ abstract class EntityBase {
             }
             return params
         }
+    //    //更改过的字段表
+//    internal  var changedFields: Map<String, TableNameField> = mutableMapOf()
+//        get() {
+//            val params: MutableMap<String, TableNameField> = mutableMapOf()
+//            for (i in this.fieldNames.indices) {
+//                if (changedList[i]) {
+//                    val tnf = TableNameField(this.fieldNames[i],
+//                            this, i,
+//                            this.fieldValues[i])
+//                    params.put(this.fieldNames[i], tnf)
+//                }
+//            }
+//            return params
+//        }
     //更改过的字段表
-    var changedFields: Map<String, TableNameField> = mutableMapOf()
-        get() {
-            val params: MutableMap<String, TableNameField> = mutableMapOf()
-            for (i in this.fieldNames.indices) {
-                if (changedList[i]) {
-                    val tnf = TableNameField(this.fieldNames[i],
-                            this, i,
-                            this.fieldValues[i])
-                    params.put(this.fieldNames[i], tnf)
-                }
-            }
-            return params
-        }
-    //更改过的字段表
-    var changedSqlParams: Map<String, Any?> = mutableMapOf()
+    internal var changedSqlParams: Map<String, Any?> = mutableMapOf()
         get() {
             val params: MutableMap<String, Any?> = mutableMapOf()
             for (i in this.fieldNames.indices) {
@@ -113,7 +114,7 @@ abstract class EntityBase {
             return params
         }
 
-    var primaryKeys: List<String> = listOf()
+    internal var primaryKeys: List<String> = listOf()
         private set
         get() {
             if (field.isEmpty()) {
@@ -122,16 +123,16 @@ abstract class EntityBase {
                 return field
             }
         }
-    val autoIdFields: Map<String, IdWorkerType> = EntityFieldsCache.item(this).autoIdFields
+    internal val autoIdFields: Map<String, IdWorkerType> = EntityFieldsCache.item(this).autoIdFields
 
-    private var foreignKeys = ""
-    private var changedList: BooleanArray = booleanArrayOf()
+    internal var foreignKeys = ""
+    internal var changedList: BooleanArray = booleanArrayOf()
 
     //记录所有字段名称
-    private var names: Array<String> = arrayOf()
+    internal var names: Array<String> = arrayOf()
     //属性的索引号对应属性值的关系数组
-    private var fieldValueIndex: IntArray
-    private var channel = EventManager.INSTANCE.channel
+    internal var fieldValueIndex: IntArray
+    protected var channel = EventManager.INSTANCE.channel
 
     init {
         channel.register(this)

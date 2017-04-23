@@ -34,7 +34,7 @@ fun Scope.deleteEntity(): Scope {
             }
             //主键放到where 条件中
             if (isPk) {
-                val pkValue = entity.parameters[field]?.fieldValue
+                val pkValue = entity.sqlParams[field]
                 if (pkValue != null) {
                     sqlWhere += " AND [$field] = @$field"
                     this@deleteEntity.sqlParam.put(field, pkValue)
