@@ -19,6 +19,7 @@ package com.sdibt.korm.core.entity
 
 import com.sdibt.korm.core.db.DDLType
 import com.sdibt.korm.core.enums.EntityMapType
+import com.sdibt.korm.core.extension.UDateToLocalDateTime
 import com.sdibt.korm.core.idworker.IdWorkerType
 import com.sdibt.korm.core.property.EventManager
 import com.sdibt.korm.core.property.event.ChangingEvent
@@ -54,7 +55,7 @@ abstract class EntityBase {
         set(value) {
             names = value
             changedList = BooleanArray(names.size)
-         }
+        }
 
     internal var tableName: String = ""
         private set
@@ -287,7 +288,7 @@ abstract class EntityBase {
      * @param propertyFieldName 属性字段名
      * @param Value 要设置的值
      */
-    fun <T> setField(propertyFieldName: String, Value: T) {
+    fun   setField(propertyFieldName: String, Value: Any) {
         setFieldValueAndLength(propertyFieldName, -1, Value, 0)
     }
 
@@ -343,14 +344,22 @@ abstract class EntityBase {
      * @param Value 属性值
      * @param length
      */
-    private fun <T> setFieldValueAndLength(propertyFieldName: String, propertyIndex: Int, Value: T, length: Int) {
+    private fun   setFieldValueAndLength(propertyFieldName: String, propertyIndex: Int, Value: Any, length: Int) {
 
         var index = getFieldNameIndex(propertyFieldName)
 
         if (index >= 0) {
 //			println("设置${this.javaClass.simpleName}.${propertyFieldName} = ${Value}")
 //			println("fieldValues = ${fieldValues}")
-            fieldValues[index] = Value as Any
+
+            if(Value::class.java==Date::class.java){
+                val ss=Value as Date
+                fieldValues[index] = ss.UDateToLocalDateTime()
+            }else{
+                fieldValues[index] = Value
+            }
+
+
             this.onPropertyChanged(propertyFieldName)
             changedList[index] = true
             return

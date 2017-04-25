@@ -30,6 +30,7 @@ import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.*
 
 
 internal class DBTest {
@@ -70,6 +71,7 @@ internal class DBTest {
     fun insertEntity() {
         val tb = TestBook()
         tb.testName = "test"
+        tb.dd = Date()
         getDB().insert(tb)
 
         val tb1 = TestBook()

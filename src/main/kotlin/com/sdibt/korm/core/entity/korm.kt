@@ -26,7 +26,7 @@ class korm {
         return thisRef.getField(property.name) as T
     }
 
-    operator fun <T> setValue(thisRef: EntityBase, property: KProperty<*>?, s: T?) {
-        if (property != null) thisRef.setField(property.name, s)
+    operator fun   setValue(thisRef: EntityBase, property: KProperty<*>?, s: Any?) {
+        if (property != null && s != null) thisRef.setField(property.name, s)
     }
 }

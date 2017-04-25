@@ -18,8 +18,7 @@
 package com.sdibt.korm.core.extension
 
 import com.sdibt.korm.core.entity.EntityBase
-import org.modelmapper.ModelMapper
-import org.modelmapper.convention.MatchingStrategies
+import com.sdibt.korm.core.mapper.ModelMapperProvider
 
 /**转换为DTO、VO等
  * <功能详细描述>
@@ -29,13 +28,6 @@ import org.modelmapper.convention.MatchingStrategies
  */
 
 
-object ModelMapperProvider {
-    fun getModelMapper(): ModelMapper {
-        var mapper = ModelMapper()
-        mapper.configuration.matchingStrategy = MatchingStrategies.STRICT
-        return mapper
-    }
-}
 
 
 fun <T> EntityBase.mapTo(targetClass: Class<T>): T {

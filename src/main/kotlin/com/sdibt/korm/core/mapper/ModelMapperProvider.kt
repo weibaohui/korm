@@ -15,34 +15,16 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.extension
+package com.sdibt.korm.core.mapper
 
-import com.alibaba.fastjson.JSON
-import com.alibaba.fastjson.serializer.PropertyPreFilter
-import com.alibaba.fastjson.serializer.SerializerFeature
-import com.sdibt.korm.core.entity.EntityBase
+import org.modelmapper.ModelMapper
+import org.modelmapper.convention.MatchingStrategies
 
-//fastJson过滤器
-val filter = PropertyPreFilter {
-    serializer, obj, name ->
-    "$" !in name
+
+object ModelMapperProvider {
+    fun getModelMapper(): ModelMapper {
+        var mapper = ModelMapper()
+        mapper.configuration.matchingStrategy = MatchingStrategies.STRICT
+        return mapper
+    }
 }
-
-fun EntityBase.toJson(): String {
-    return JSON.toJSONString(this, filter, SerializerFeature.UseISO8601DateFormat)
-}
-
-fun Collection<EntityBase>.toJson(): String {
-    return JSON.toJSONString(this, filter, SerializerFeature.UseISO8601DateFormat)
-}
-
-fun EntityBase.toJson(vararg sf: SerializerFeature): String {
-    return JSON.toJSONString(this, filter, *sf)
-}
-
-fun Collection<EntityBase>.toJson(vararg sf: SerializerFeature): String {
-    return JSON.toJSONString(this, filter, *sf)
-}
-
-
-

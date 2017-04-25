@@ -23,12 +23,41 @@ import java.time.ZoneId
 import java.util.*
 
 
+
+
+
+
 /**
  * Usage:
  * User: weibaohui
  * Date: 2017/2/16
  * Time: 09:42
  */
+
+// 01. java.util.Date --> java.time.LocalDateTime
+fun Date.UDateToLocalDateTime():LocalDateTime {
+	val instant = this.toInstant()
+	val zone = ZoneId.systemDefault()
+	return LocalDateTime.ofInstant(instant, zone)
+}
+
+// 02. java.util.Date --> java.time.LocalDate
+//fun UDateToLocalDate() {
+//	val date = java.util.Date()
+//	val instant = date.toInstant()
+//	val zone = ZoneId.systemDefault()
+//	val localDateTime = LocalDateTime.ofInstant(instant, zone)
+//	val localDate = localDateTime.toLocalDate()
+//}
+//
+//// 03. java.util.Date --> java.time.LocalTime
+//fun UDateToLocalTime() {
+//	val date = java.util.Date()
+//	val instant = date.toInstant()
+//	val zone = ZoneId.systemDefault()
+//	val localDateTime = LocalDateTime.ofInstant(instant, zone)
+//	val localTime = localDateTime.toLocalTime()
+//}
 
 
 // 04. java.time.LocalDateTime --> java.util.Date
@@ -46,3 +75,13 @@ fun LocalDate.toDate(): Date {
 	val date = Date.from(instant)
 	return date
 }
+//
+//// 06. java.time.LocalTime --> java.util.Date
+//fun LocalTimeToUdate() {
+//	val localTime = LocalTime.now()
+//	val localDate = LocalDate.now()
+//	val localDateTime = LocalDateTime.of(localDate, localTime)
+//	val zone = ZoneId.systemDefault()
+//	val instant = localDateTime.atZone(zone).toInstant()
+//	val date = Date.from(instant)
+//}
