@@ -33,6 +33,13 @@ fun EntityBase.toJson(): String {
 }
 
 fun Collection<EntityBase>.toJson(): String {
+    return JSON.toJSONString(this, filter, SerializerFeature.UseISO8601DateFormat)
+}
 
-    return JSON.toJSONString(this, filter,SerializerFeature.UseISO8601DateFormat)
+fun EntityBase.toJson(vararg sf: SerializerFeature): String {
+    return JSON.toJSONString(this, filter, *sf)
+}
+
+fun Collection<EntityBase>.toJson(vararg sf: SerializerFeature): String {
+    return JSON.toJSONString(this, filter, *sf)
 }
