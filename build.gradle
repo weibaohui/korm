@@ -45,7 +45,6 @@ apply from: 'maven_push_local.gradle'
 //apply from: 'maven_push.gradle'
 
 
-
 targetCompatibility = 1.8
 sourceCompatibility = 1.8
 
@@ -64,6 +63,11 @@ dependencies {
     compile 'commons-beanutils:commons-beanutils:1.9.2'
     compile 'com.google.guava:guava:21.0'
     compile 'com.alibaba:druid:1.0.28'
+    compile 'com.alibaba:fastjson:1.2.31'
+    compile 'org.modelmapper:modelmapper:0.7.7'
+
+
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.8'
 
     compile 'org.slf4j:slf4j-api:1.7.25'
     compile 'ch.qos.logback:logback-classic:1.2.3'

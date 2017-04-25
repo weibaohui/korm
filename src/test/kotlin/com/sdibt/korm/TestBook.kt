@@ -21,7 +21,7 @@ import com.sdibt.korm.core.annotatoin.*
 import com.sdibt.korm.core.callbacks.Scope
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.entity.korm
-import java.time.LocalDateTime
+import java.util.*
 import javax.persistence.Table
 
 /**
@@ -45,12 +45,12 @@ class TestBook : EntityBase() {
 
     @delegate:CreatedBy var createdBy: String? by korm()
 
-    @delegate:CreatedAt var createdAt: LocalDateTime? by korm()
+    @delegate:CreatedAt var createdAt: Date? by korm()
 
     @delegate:UpdatedBy var updatedBy: String? by korm()
 
-    @delegate:UpdatedAt var updatedAt: LocalDateTime? by korm()
-//    @delegate:DeletedAt var deletedAt: LocalDateTime? by korm()
+    @delegate:UpdatedAt var updatedAt: Date? by korm()
+//    @delegate:DeletedAt var deletedAt: Date? by korm()
 
 //    @delegate:Column(name = "version", length = 30)
 //    @delegate:Version var version: Int? by korm()

@@ -22,6 +22,7 @@ import com.sdibt.korm.BookDTO
 import com.sdibt.korm.core.User
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
+import com.sdibt.korm.core.extension.toJson
 import com.sdibt.korm.core.oql.OQL
 import com.sdibt.korm.core.oql.OQLCompare
 import org.junit.After
@@ -178,7 +179,8 @@ internal class DBTest {
             println("SelectSingleEntity = ${book2.createdAt}")
             println("SelectSingleEntity = ${book2.updatedBy}")
         }
-
+        val ss = book2?.toJson()
+        println("ss = ${ss}")
     }
 
 
@@ -266,6 +268,8 @@ internal class DBTest {
             resultList?.forEach {
                 println("it = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
             }
+
+            println("resultList?.toJson() = ${resultList?.toJson()}")
         }
 
 
@@ -405,3 +409,4 @@ internal class DBTest {
         }
     }
 }
+
