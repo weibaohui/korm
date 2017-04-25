@@ -59,6 +59,7 @@ class CallBackLog {
             traces.filterNot {
                 it.className.startsWith("com.sdibt.korm")
                 || it.className.startsWith("sun.reflect")
+                || it.className.startsWith("com.sun")
             }.first().also {
                 t.appendRow()
                 //经测试xxx(file:num) 格式，在IDEA中可以直接点击
