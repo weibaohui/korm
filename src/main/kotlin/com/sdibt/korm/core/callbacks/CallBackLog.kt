@@ -27,48 +27,59 @@ class CallBackLog {
 
     fun logCallback(scope: Scope): Scope {
         val t = ConsoleTable()
-        t.appendRow()
-        t.appendColumn("sqlString").appendColumn(scope.sqlString)
-        t.appendRow()
-        t.appendColumn("sqlParam").appendColumn("${scope.sqlParam}")
-        t.appendRow()
-        t.appendColumn("rowsAffected").appendColumn("${scope.rowsAffected}")
+        t.appendRow().appendColumn("sqlString").appendColumn(scope.sqlString)
+
+
+        var params = ""
+        scope.sqlParam.filter { it.key.isNotBlank() }.forEach { t, u -> params += "$t:$u\r\n" }
+        t.appendRow().appendColumn("sqlParam").appendColumn(params)
+
+        t.appendRow().appendColumn("rowsAffected").appendColumn("${scope.rowsAffected}")
 
         scope.generatedKeys?.apply {
-            t.appendRow()
-            t.appendColumn("generatedKeys").appendColumn("${scope.generatedKeys}")
+            t.appendRow().appendColumn("generatedKeys").appendColumn("${scope.generatedKeys}")
         }
+
         scope.result?.apply {
-            t.appendRow()
-            t.appendColumn("result").appendColumn(scope.result)
+            t.appendRow().appendColumn("result").appendColumn(scope.result)
         }
+
+
+        t.appendRow().appendColumn("timeSpend").appendColumn("${System.currentTimeMillis() - scope.startTime} ms")
+
+
         scope.db.Error?.apply {
-            t.appendRow()
-            t.appendColumn("error").appendColumn(scope.db.Error)
-        }
-        t.appendRow()
-        t.appendColumn("timeSpend").appendColumn("${System.currentTimeMillis() - scope.startTime} ms")
-
-
-        var has = false
-        val traces = RuntimeException().stackTrace
-        traces.forEach {
-            if (it.className.contains("KormSqlSession")) has = true
-        }
-        if (has) {
-            traces.filterNot {
-                it.className.startsWith("com.sdibt.korm")
-                || it.className.startsWith("sun.reflect")
-                || it.className.startsWith("com.sun")
-            }.first().also {
-                t.appendRow()
-                //经测试xxx(file:num) 格式，在IDEA中可以直接点击
-                t.appendColumn("file").appendColumn("${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber}) ")
+            t.appendRow().appendColumn("error").appendColumn(scope.db.Error)
+            var has = false
+            val traces = RuntimeException().stackTrace
+            traces.forEach {
+                if ("KormSqlSession" in it.className) has = true
+            }
+            if (has) {
+                traces.filterNot {
+                    it.className.startsWith("com.sdibt.korm")
+                    || it.className.startsWith("sun")
+                    || it.className.startsWith("com.sun")
+                    || it.className.startsWith("java")
+                    || it.className.startsWith("org.apache")
+                    || it.className.startsWith("org.springframework")
+                    || it.className.startsWith("com.alibaba")
+                }.forEach {
+                    //经测试xxx(file:num) 格式，在IDEA中可以直接点击
+                    t.appendRow().appendColumn("file").appendColumn("${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber}) ")
+                }
             }
         }
 
 
-        Log.debug(t.toString())
+
+
+        if (scope.db.Error != null) {
+            Log.error(t.toString())
+        } else {
+            Log.debug(t.toString())
+        }
+
         return scope
     }
 

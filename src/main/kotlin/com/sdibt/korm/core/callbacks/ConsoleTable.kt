@@ -31,9 +31,10 @@ internal class ConsoleTable {
     private var columnLen = IntArray(column)
 
 
-    fun appendRow() {
+    fun appendRow(): ConsoleTable {
         val row: MutableList<Any> = mutableListOf()
-        rows.add(row)
+        this.rows.add(row)
+        return this
     }
 
     fun appendColumn(value: Any?): ConsoleTable {
