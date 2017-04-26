@@ -38,6 +38,6 @@ task javadocJar(type: Jar, dependsOn: dokka) {
 
 artifacts {
     archives jar
-    archives sourcesJar
-    archives javadocJar
+//    archives sourcesJar
+//    archives javadocJar
 }

@@ -26,13 +26,19 @@ class CallBackLog {
     val Log by logger()
 
     fun logCallback(scope: Scope): Scope {
+        if (!Log.isDebugEnabled) return scope
+        if (scope.hasError && !Log.isErrorEnabled) return scope
+
         val t = ConsoleTable()
+
         t.appendRow().appendColumn("sqlString").appendColumn(scope.sqlString)
 
 
-        var params = ""
-        scope.sqlParam.filter { it.key.isNotBlank() }.forEach { t, u -> params += "$t:$u\r\n" }
-        t.appendRow().appendColumn("sqlParam").appendColumn(params)
+        if (scope.sqlParam.count() > 0) {
+            var params = ""
+            scope.sqlParam.filter { it.key.isNotBlank() }.forEach { t, u -> params += "$t = $u\r\n" }
+            t.appendRow().appendColumn("sqlParam").appendColumn(params.trimEnd('\r', '\n'))
+        }
 
         t.appendRow().appendColumn("rowsAffected").appendColumn("${scope.rowsAffected}")
 
@@ -41,8 +47,14 @@ class CallBackLog {
         }
 
         scope.result?.apply {
-            t.appendRow().appendColumn("result").appendColumn(scope.result)
+            t.appendRow().appendColumn("result")
+            val result = scope.result
+            when (result) {
+                is Collection<*> -> t.appendColumn("${result.count()} ${scope.resultType?.name}")
+                else             -> t.appendColumn(result)
+            }
         }
+
 
 
         t.appendRow().appendColumn("timeSpend").appendColumn("${System.currentTimeMillis() - scope.startTime} ms")
@@ -64,9 +76,11 @@ class CallBackLog {
                     || it.className.startsWith("org.apache")
                     || it.className.startsWith("org.springframework")
                     || it.className.startsWith("com.alibaba")
+                    || it.className.startsWith("org.junit")
+                    || it.className.startsWith("com.intellij")
                 }.forEach {
                     //经测试xxx(file:num) 格式，在IDEA中可以直接点击
-                    t.appendRow().appendColumn("file").appendColumn("${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber}) ")
+                    t.appendRow().appendColumn("at").appendColumn("${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber}) ")
                 }
             }
         }
