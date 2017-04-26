@@ -3,9 +3,8 @@
 
 # korm
 kotlin orm
-<p align="center">
-  为简化开发工作、提高生产率而生
-</p>
+
+
 
 
 #Doc
