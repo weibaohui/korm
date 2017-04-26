@@ -17,7 +17,7 @@
 
 buildscript {
     ext {
-        kotlinVersion = '1.1.1'
+        kotlinVersion = '1.1.2'
         dokkaVersion = '0.9.13'
     }
     repositories {
@@ -26,7 +26,6 @@ buildscript {
     dependencies {
 
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-//        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
         classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokkaVersion}"
 
@@ -41,8 +40,8 @@ apply plugin: 'idea'
 apply plugin: 'maven'//添加Maven发布插件
 apply plugin: 'maven-publish'//添加Maven发布插件
 
-apply from: 'maven_push_local.gradle'
-//apply from: 'maven_push.gradle'
+//apply from: 'maven_push_local.gradle'
+apply from: 'maven_push.gradle'
 
 
 targetCompatibility = 1.8
@@ -59,6 +58,10 @@ dokka {
     sourceDirs = files('src/main/kotlin')
 }
 dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    compile "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+
+
     compile 'javax.persistence:persistence-api:1.0.2'
     compile 'commons-beanutils:commons-beanutils:1.9.2'
     compile 'com.google.guava:guava:21.0'
@@ -67,23 +70,23 @@ dependencies {
     compile 'org.modelmapper:modelmapper:0.7.7'
 
 
-    compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.8'
+    compileOnly 'com.fasterxml.jackson.core:jackson-annotations:2.8.8'
 
     compile 'org.slf4j:slf4j-api:1.7.25'
     compile 'ch.qos.logback:logback-classic:1.2.3'
 
-    compile("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
-    compile("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-    compile 'org.springframework:spring-beans:4.3.7.RELEASE'
-    compile 'org.springframework:spring-context-support:4.3.7.RELEASE'
-    compile 'org.springframework:spring-context:4.3.7.RELEASE'
-    compile 'org.springframework:spring-jdbc:4.3.7.RELEASE'
-    compile 'org.springframework:spring-aop:4.3.7.RELEASE'
-    compile 'org.springframework:spring-aspects:4.3.7.RELEASE'
-    compile 'org.springframework:spring-core:4.3.7.RELEASE'
+
+    compileOnly 'org.springframework:spring-beans:4.3.7.RELEASE'
+    compileOnly 'org.springframework:spring-context-support:4.3.7.RELEASE'
+    compileOnly 'org.springframework:spring-context:4.3.7.RELEASE'
+    compileOnly 'org.springframework:spring-jdbc:4.3.7.RELEASE'
+    compileOnly 'org.springframework:spring-aop:4.3.7.RELEASE'
+    compileOnly 'org.springframework:spring-aspects:4.3.7.RELEASE'
+    compileOnly 'org.springframework:spring-core:4.3.7.RELEASE'
 
     runtime 'mysql:mysql-connector-java:6.0.6'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
 
 }
 
