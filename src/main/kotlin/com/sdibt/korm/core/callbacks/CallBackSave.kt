@@ -42,7 +42,7 @@ class CallBackSave {
         }
 
         fields.forEach {
-            //先转换column的定义，如果没有就按规则转换
+            //先转换@Column注解中的定义，如果没有就按规则转换
             var field = if (columns != null && columns!![it] != null) columns!![it]?.name else it
             if (field == null) field = it
             val nc = scope.db.nameConvert.dbColumnName(field)
