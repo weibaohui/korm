@@ -86,10 +86,11 @@ class CallBackUpdate(db: KormSqlSession) {
 
     fun updateCallback(scope: Scope): Scope {
         when (scope.actionType) {
-            ActionType.Entity ->  return scope.updateEntity()
-            ActionType.ObjectQL    ->  return scope.updateOQL()
+            ActionType.Entity   -> return scope.updateEntity()
+            ActionType.ObjectQL -> return scope.updateOQL()
         }
     }
+
     fun execCallback(scope: Scope): Scope {
 
         if (scope.db.Error == null) {

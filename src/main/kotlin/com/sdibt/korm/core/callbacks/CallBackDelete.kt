@@ -42,8 +42,8 @@ class CallBackDelete(db: KormSqlSession) {
 
     fun deleteCallback(scope: Scope): Scope {
         when (scope.actionType) {
-            ActionType.Entity -> return scope.deleteEntity()
-            ActionType.ObjectQL    -> return scope.deleteOQL()
+            ActionType.Entity   -> return scope.deleteEntity()
+            ActionType.ObjectQL -> return scope.deleteOQL()
         }
     }
 
