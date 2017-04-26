@@ -17,10 +17,17 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.Column
+import com.sdibt.korm.core.entity.EntityFieldsCache
+import com.sdibt.korm.core.enums.DBMSType
 import com.sdibt.korm.core.extension.logger
+import com.sdibt.korm.core.oql.TableNameField
+import com.sdibt.korm.utils.ConsoleTable
+import java.util.regex.Pattern
 
-
-class CallBackLog {
+/** 日志功能
+ */
+class CallBackCommon {
 
 
     val Log by logger()
@@ -97,6 +104,70 @@ class CallBackLog {
         return scope
     }
 
+
+
+
+
+
+    fun sqlProcess(scope: Scope): Scope {
+
+
+        //sqlString 正则查找字段，字段均以[]包围，替换为nc以后的字段
+        //找到[field]
+        //找到@field
+        var fields: MutableList<String> = mutableListOf()
+        fields = searchFields(scope.sqlString, fields, "\\[(.*?)\\]")
+        fields = searchFields(scope.sqlString, fields, "(?<!')(@[\\w]+)(?!')")
+
+        var columns: Map<String, Column>? = null
+        scope.entity?.apply {
+            columns = EntityFieldsCache.item(scope.entity!!).columns
+        }
+
+        fields.forEach {
+            //先转换@Column注解中的定义，如果没有就按规则转换
+            var field = if (columns != null && columns!![it] != null) columns!![it]?.name else it
+            if (field == null) field = it
+            val nc = scope.db.nameConvert.format(field)
+            scope.sqlString = scope.sqlString
+                    .replace("[$it]", "[$nc]", ignoreCase = true)
+                    .replace("@$it", "@$nc", ignoreCase = true)
+
+        }
+        val mutParams: MutableMap<String, Any?> = mutableMapOf()
+        scope.sqlParam.forEach { t, u ->
+            var field = if (columns != null && columns!![t] != null) columns!![t]?.name else t
+            if (field == null) field = t
+            val ncField = scope.db.nameConvert.format(field!!)
+
+
+            if (u is TableNameField) {
+                mutParams.put(ncField, u.fieldValue)
+            } else {
+                mutParams.put(ncField, u)
+            }
+        }
+        scope.sqlParam = mutParams
+
+
+        //sql语句中[]处理
+        when (scope.db.dbType) {
+            DBMSType.MySql -> scope.sqlString = scope.sqlString.replace('[', '`').replace(']', '`')
+            else           -> scope.sqlString = scope.sqlString.replace('[', '"').replace(']', '"')
+        }
+        return scope
+    }
+    private fun searchFields(sql: String, fields: MutableList<String>, patternStr: String = "\\[(.*?)\\]"): MutableList<String> {
+//        var fields: MutableList<String> = mutableListOf()
+        val findParametersPattern = Pattern.compile(patternStr)
+        val matcher = findParametersPattern.matcher(sql)
+        while (matcher.find()) {
+            val key = matcher.group().trimStart('[').trimEnd(']').trimStart('@')
+            if (key !in fields) fields.add(key)
+
+        }
+        return fields
+    }
 
 }
 

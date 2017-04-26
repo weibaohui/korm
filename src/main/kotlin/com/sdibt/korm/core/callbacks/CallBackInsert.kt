@@ -30,7 +30,7 @@ class CallBackInsert(db: KormSqlSession) {
         defaultCallBack.insert().reg("InsertDateTime") { insertDateTimeCallback(it) }
         defaultCallBack.insert().reg("InsertOperator") { insertOperatorCallback(it) }
         defaultCallBack.insert().reg("Insert") { insertCallback(it) }
-        defaultCallBack.insert().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.insert().reg("sqlProcess") { CallBackCommon().sqlProcess(it)}
         defaultCallBack.insert().reg("exec") { execCallback(it) }
         defaultCallBack.insert().reg("afterInsert") { afterInsertCallback(it) }
     }

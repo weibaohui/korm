@@ -30,7 +30,7 @@ class CallBackUpdate(db: KormSqlSession) {
         defaultCallBack.update().reg("updateDateTime") { updateDateTimeCallback(it) }
         defaultCallBack.update().reg("updateOperator") { updateOperatorCallback(it) }
         defaultCallBack.update().reg("update") { updateCallback(it) }
-        defaultCallBack.update().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.update().reg("sqlProcess") {  CallBackCommon().sqlProcess(it) }
         defaultCallBack.update().reg("exec") { execCallback(it) }
         defaultCallBack.update().reg("afterUpdate") { afterUpdateCallback(it) }
     }

@@ -165,7 +165,7 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     //endregion
 
-    //region execute raw sql
+    //region execute  sql with sqlProcess
     fun execute(sql: String, params: Map<String, Any?>): Int {
         return this.newScope(sql, params).callCallbacks(this.callbacks.executes).rowsAffected
     }

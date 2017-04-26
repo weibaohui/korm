@@ -24,7 +24,7 @@ class CallBackExecute(db: KormSqlSession) {
     val defaultCallBack = DefaultCallBack.instance.getCallBack(db)
 
     fun init() {
-        defaultCallBack.execute().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.execute().reg("sqlProcess") {  CallBackCommon().sqlProcess(it) }
         defaultCallBack.execute().reg("exec") { execCallback(it) }
     }
 

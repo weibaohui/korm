@@ -26,7 +26,7 @@ class CallBackDelete(db: KormSqlSession) {
     fun init() {
         defaultCallBack.delete().reg("beforeDelete") { beforeDeleteCallback(it) }
         defaultCallBack.delete().reg("delete") { deleteCallback(it) }
-        defaultCallBack.delete().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.delete().reg("sqlProcess") { CallBackCommon().sqlProcess(it) }
         defaultCallBack.delete().reg("exec") { execCallback(it) }
         defaultCallBack.delete().reg("afterDelete") { afterDeleteCallback(it) }
     }

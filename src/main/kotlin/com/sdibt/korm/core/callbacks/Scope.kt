@@ -117,7 +117,7 @@ class Scope(var db: KormSqlSession) {
         }
 
         //执行日志记录
-        CallBackLog().logCallback(scope)
+        CallBackCommon().logCallback(scope)
 
         return scope
     }

@@ -25,7 +25,7 @@ class CallBackSelect(db: KormSqlSession) {
 
     fun init() {
         defaultCallBack.select().reg("beforeSelect") { beforeSelectCallback(it) }
-        defaultCallBack.select().reg("sqlProcess") { CallBackSave().sqlProcessCallback(it) }
+        defaultCallBack.select().reg("sqlProcess") {  CallBackCommon().sqlProcess(it) }
         defaultCallBack.select().reg("exec") { execCallback(it) }
         defaultCallBack.select().reg("afterSelect") { afterSelectCallback(it) }
     }

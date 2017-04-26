@@ -17,6 +17,9 @@
 
 package com.sdibt.korm.core.callbacks
 
+/** callBack
+ * <功能详细描述>
+ */
 class CallBackProcessors {
     var name: String? = null              // current callback's name
     var before: String? = null            // register current callback before a callback

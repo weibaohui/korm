@@ -15,12 +15,11 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.callbacks
+package com.sdibt.korm.utils
 
 import java.util.*
 
 /**绘制console表格
- * <功能详细描述>
  *
  */
 internal class ConsoleTable {
