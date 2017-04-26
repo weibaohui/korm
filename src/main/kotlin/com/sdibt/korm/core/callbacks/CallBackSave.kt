@@ -45,7 +45,7 @@ class CallBackSave {
             //先转换@Column注解中的定义，如果没有就按规则转换
             var field = if (columns != null && columns!![it] != null) columns!![it]?.name else it
             if (field == null) field = it
-            val nc = scope.db.nameConvert.dbColumnName(field)
+            val nc = scope.db.nameConvert.format(field)
             scope.sqlString = scope.sqlString
                     .replace("[$it]", "[$nc]", ignoreCase = true)
                     .replace("@$it", "@$nc", ignoreCase = true)
@@ -55,7 +55,7 @@ class CallBackSave {
         scope.sqlParam.forEach { t, u ->
             var field = if (columns != null && columns!![t] != null) columns!![t]?.name else t
             if (field == null) field = t
-            val ncField = scope.db.nameConvert.dbColumnName(field!!)
+            val ncField = scope.db.nameConvert.format(field!!)
 
 
             if (u is TableNameField) {

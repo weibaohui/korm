@@ -18,11 +18,8 @@
 package com.sdibt.korm.core.mapping
 
 class CamelCaseNameConvert : BaseNameConvert {
-    override fun dbTableName(name: String): String {
-        return camelCaseToUnderscore(name)
-    }
 
-    override fun dbColumnName(name: String): String {
+    override fun format(name: String): String {
         return camelCaseToUnderscore(name)
     }
 
@@ -59,8 +56,8 @@ class CamelCaseNameConvert : BaseNameConvert {
 }
 
 fun main(args: Array<String>) {
-    val list = arrayOf("AdminPage", "Admin_Page", "admin_page")
+    val list = arrayOf("AdminPage", "Admin_Page", "admin_page", "HTTPUrl","HTTPURL","sourceUserID","sourceURL")
     list.forEach {
-        println("$it = ${CamelCaseNameConvert().dbColumnName(it)}")
+        println("$it = ${CamelCaseNameConvert().format(it)}")
     }
 }

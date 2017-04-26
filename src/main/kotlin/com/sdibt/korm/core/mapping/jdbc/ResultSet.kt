@@ -112,7 +112,7 @@ fun <T> ResultSet.toBean(rs: ResultSet, nc: BaseNameConvert, type: Class<T>): T 
     Arrays.fill(columnPropsIndex, -1)//默认填充-1
     for (col in 1..rsw.columnCount) {
         for (i in props.indices) {
-            val propName = nc.dbColumnName(props[i].name)
+            val propName = nc.format(props[i].name)
             if (propName.equals(rsw.getColumnName(col), true)) {
                 columnPropsIndex[col] = i
                 break

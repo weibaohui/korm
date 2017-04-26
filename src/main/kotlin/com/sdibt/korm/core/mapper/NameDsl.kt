@@ -31,7 +31,7 @@ class NameDsl(private var sqlSession: KormSqlSession,
 
     fun exec(): Any? {
         val entity = EntityFieldsCache.item(entityClass.newInstance() as EntityBase)
-        val table = entity.tableName ?: nc.dbTableName(entityClass.simpleName)
+        val table = entity.tableName ?: nc.format(entityClass.simpleName)
         var (sql, params, _) = NameProcessBuilder(this.name)
                 .setDBMSType(sqlSession.dbType)
                 .getExecType()
