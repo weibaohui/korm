@@ -37,22 +37,22 @@ import javax.sql.DataSource
  * Date: 2017/3/20
  * Time: 20:31
  */
-open class KormSqlSession(var dataSource: DataSource) {
+open class KormSqlSession(internal var dataSource: DataSource) {
 
 
-    var mapperBuilder: MapperBuilder = DefaultMapperBuilder(this)
+    internal var mapperBuilder: MapperBuilder = DefaultMapperBuilder(this)
 
 
     //默认名称转换器
-    var nameConvert: BaseNameConvert = CamelCaseNameConvert()
-    var dbType: DBMSType = DBMSType.MySql
+    internal var nameConvert: BaseNameConvert = CamelCaseNameConvert()
+    internal var dbType: DBMSType = DBMSType.MySql
 
 
-    var Error: Any? = null
+    internal var Error: Any? = null
 
-    var db: KormSqlSession = this
+    internal var db: KormSqlSession = this
 
-    var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
+    internal var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
 
     constructor(dbmsType: DBMSType, ds: DataSource, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this(ds) {
         this.dbType = dbmsType
@@ -68,19 +68,19 @@ open class KormSqlSession(var dataSource: DataSource) {
     }
 
     //region scope
-    fun newScope(entity: EntityBase): Scope {
+    private fun newScope(entity: EntityBase): Scope {
         return Scope(entity, this)
     }
 
-    fun newScope(q: OQL): Scope {
+    private fun newScope(q: OQL): Scope {
         return Scope(q, this).setSqlString(q.toString()).setSqlParam(q.sqlParam).setActionType(ActionType.ObjectQL)
     }
 
-    fun newScope(q: OQL, sqlString: String, sqlParam: Map<String, Any?>): Scope {
+    private fun newScope(q: OQL, sqlString: String, sqlParam: Map<String, Any?>): Scope {
         return Scope(q, this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.ObjectQL)
     }
 
-    fun newScope(sqlString: String, sqlParam: Map<String, Any?>): Scope {
+    private fun newScope(sqlString: String, sqlParam: Map<String, Any?>): Scope {
         return Scope(this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.ObjectQL)
     }
 
