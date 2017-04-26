@@ -24,7 +24,7 @@ class Callback {
     var updates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var deletes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var selects: MutableList<(scope: Scope) -> Scope> = mutableListOf()
-    var rowQueries: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+    var executes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
 
     fun reset() {
         processors.clear()
@@ -32,7 +32,7 @@ class Callback {
         updates.clear()
         deletes.clear()
         selects.clear()
-        rowQueries.clear()
+        executes.clear()
     }
 
 
@@ -50,6 +50,10 @@ class Callback {
 
     fun select(): CallBackProcessors {
         return CallBackProcessors("select", this)
+    }
+
+    fun execute(): CallBackProcessors {
+        return CallBackProcessors("execute", this)
     }
 }
 

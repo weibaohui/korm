@@ -64,6 +64,7 @@ open class KormSqlSession(var dataSource: DataSource) {
         CallBackUpdate(this).init()
         CallBackInsert(this).init()
         CallBackSelect(this).init()
+        CallBackExecute(this).init()
     }
 
     //region scope
@@ -155,7 +156,6 @@ open class KormSqlSession(var dataSource: DataSource) {
                 generatedKeys = rs.getObject(1)
             }
         } catch (ex: Exception) {
-            println("ex.message = ${ex.message}")
             this.Error = ex
         }
 
@@ -165,6 +165,11 @@ open class KormSqlSession(var dataSource: DataSource) {
 
     //endregion
 
+    //region execute raw sql
+    fun execute(sql: String, params: Map<String, Any?>): Int {
+        return this.newScope(sql, params).callCallbacks(this.callbacks.executes).rowsAffected
+    }
+    //endregion
 
     //region query
 

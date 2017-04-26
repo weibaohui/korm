@@ -41,6 +41,7 @@ class CallBackProcessors {
             "delete" -> this.parent.deletes.add(block)
             "update" -> this.parent.updates.add(block)
             "select" -> this.parent.selects.add(block)
+            "execute" -> this.parent.executes.add(block)
         }
     }
 

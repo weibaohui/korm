@@ -352,7 +352,7 @@ internal class DBTest {
         println("u.genDDL() = ${u.genDDL()}")
 
 
-        getDB().executeUpdate(u.genDDL(), mapOf())
+        getDB().execute(u.genDDL(), mapOf())
     }
 
 
