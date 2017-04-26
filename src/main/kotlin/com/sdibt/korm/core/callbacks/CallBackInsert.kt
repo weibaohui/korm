@@ -91,7 +91,7 @@ class CallBackInsert(db: KormSqlSession) {
 
         when (scope.actionType) {
             ActionType.Entity -> return scope.insertEntity()
-            ActionType.OQL    -> return scope.insertOQL()
+            ActionType.ObjectQL    -> return scope.insertOQL()
         }
 
     }

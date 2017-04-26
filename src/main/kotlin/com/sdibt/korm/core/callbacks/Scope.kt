@@ -65,7 +65,7 @@ class Scope(var db: KormSqlSession) {
         this.oql = oql
         this.db = db
         this.entity = oql.currEntity
-        this.actionType = ActionType.OQL
+        this.actionType = ActionType.ObjectQL
     }
 
     /** 调用entity中定义的Method

@@ -23,5 +23,5 @@ package com.sdibt.korm.core.callbacks
  * @return Entity, OQL
  */
 enum class ActionType {
-    Entity, OQL
+    Entity, ObjectQL
 }

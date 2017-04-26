@@ -72,15 +72,15 @@ open class KormSqlSession(var dataSource: DataSource) {
     }
 
     fun newScope(q: OQL): Scope {
-        return Scope(q, this).setSqlString(q.toString()).setSqlParam(q.sqlParam).setActionType(ActionType.OQL)
+        return Scope(q, this).setSqlString(q.toString()).setSqlParam(q.sqlParam).setActionType(ActionType.ObjectQL)
     }
 
     fun newScope(q: OQL, sqlString: String, sqlParam: Map<String, Any?>): Scope {
-        return Scope(q, this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.OQL)
+        return Scope(q, this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.ObjectQL)
     }
 
     fun newScope(sqlString: String, sqlParam: Map<String, Any?>): Scope {
-        return Scope(this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.OQL)
+        return Scope(this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.ObjectQL)
     }
 
     //endregion
@@ -103,7 +103,7 @@ open class KormSqlSession(var dataSource: DataSource) {
             val conn = this.dataSource.connection
             val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
             for ((key, fieldValue) in params) {
-                statement.setObject(key, "$fieldValue")
+                statement.setObject(key, fieldValue)
             }
 
             var rs: ResultSet? = null
@@ -146,7 +146,7 @@ open class KormSqlSession(var dataSource: DataSource) {
             val conn = this.dataSource.connection
             val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
             for ((key, fieldValue) in params) {
-                statement.setObject(key, "$fieldValue")
+                statement.setObject(key, fieldValue)
             }
 
             rowsAffected = statement.executeUpdate()
