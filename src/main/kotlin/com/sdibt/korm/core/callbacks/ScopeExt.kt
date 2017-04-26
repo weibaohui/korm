@@ -62,6 +62,7 @@ fun Scope.deleteOQL(): Scope {
     val oql = this.oql ?: return this
     var whereString = oql.oqlString
     if (whereString.length < 8) {
+        //没有where 部分
         whereString = " Where 1=1 "
         //去除下一次生成重复的条件
         oql.oqlString = whereString
@@ -70,7 +71,7 @@ fun Scope.deleteOQL(): Scope {
         this.entity = oql.currEntity
         this.sqlString = this.deleteEntity().sqlString
     } else {
-
+        //已经有where部分了
         this.sqlString = "DELETE FROM [${oql.currEntity.tableName}]  \r\n $whereString"
     }
 
@@ -224,7 +225,7 @@ fun Scope.insertOQL(): Scope {
         var Items = ""
         var ItemValues = ""
 
-        var sqlInsert = "INSERT INTO [" + q.currEntity.tableName+"] "
+        var sqlInsert = "INSERT INTO [" + q.currEntity.tableName + "] "
 
         this.setAutoIdParam(q.currEntity)
 
