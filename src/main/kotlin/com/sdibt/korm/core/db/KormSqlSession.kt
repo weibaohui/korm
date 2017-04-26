@@ -297,12 +297,9 @@ open class KormSqlSession(var dataSource: DataSource) {
     }
 
     fun save(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
-        val scope = this.newScope(entity).saveChangedOnly(saveChangedOnly)
-        scope.callCallbacks(this.callbacks.updates)
-        if (scope.db.Error == null && scope.rowsAffected == 0) {
-            scope.callCallbacks(this.callbacks.inserts)
-        }
-        return scope.rowsAffected
+        var rowsAffected = this.update(entity, saveChangedOnly)
+        if (rowsAffected == 0) rowsAffected = this.insert(entity, saveChangedOnly)
+        return rowsAffected
     }
 
 
