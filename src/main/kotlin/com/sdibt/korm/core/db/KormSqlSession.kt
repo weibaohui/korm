@@ -99,15 +99,15 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         var rowsAffected = 0
         var generatedKeys: Any? = null
         var result: Any? = null
-
+        val conn = this.dataSource.connection
+        var rs: ResultSet? = null
+        val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
-            val conn = this.dataSource.connection
-            val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
+
+
             for ((key, fieldValue) in params) {
                 statement.setObject(key, fieldValue)
             }
-
-            var rs: ResultSet? = null
             rs = statement.executeQuery()
             when {
                 isList || returnList -> {
@@ -131,8 +131,13 @@ open class KormSqlSession(internal var dataSource: DataSource) {
                 }
             }
 
+
         } catch (ex: Exception) {
             this.Error = ex
+        } finally {
+            statement.close()
+            rs?.close()
+            conn.close()
         }
 
         return sqlResult(rowsAffected, generatedKeys, result)
@@ -143,9 +148,10 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
         var rowsAffected = 0
         var generatedKeys: Any? = null
+        val conn = this.dataSource.connection
+        val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
-            val conn = this.dataSource.connection
-            val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
+
             for ((key, fieldValue) in params) {
                 statement.setObject(key, fieldValue)
             }
@@ -157,6 +163,9 @@ open class KormSqlSession(internal var dataSource: DataSource) {
             }
         } catch (ex: Exception) {
             this.Error = ex
+        } finally {
+            statement.close()
+            conn.close()
         }
 
 
