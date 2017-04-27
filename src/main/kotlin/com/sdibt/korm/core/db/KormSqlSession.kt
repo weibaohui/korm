@@ -135,9 +135,9 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         } catch (ex: Exception) {
             this.Error = ex
         } finally {
-            statement.close()
-            rs?.close()
-            conn.close()
+            if (!statement.isClosed) statement.close()
+            if (rs != null && !rs.isClosed) rs.close()
+            if (!conn.isClosed) conn.close()
         }
 
         return sqlResult(rowsAffected, generatedKeys, result)
@@ -164,8 +164,9 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         } catch (ex: Exception) {
             this.Error = ex
         } finally {
-            statement.close()
-            conn.close()
+
+            if (!statement.isClosed) statement.close()
+            if (!conn.isClosed) conn.close()
         }
 
 
