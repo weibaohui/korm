@@ -30,6 +30,7 @@ class Logger {
 
         val t = ConsoleTable()
 
+        //todo:组合成可执行的sql语句
         t.appendRow().appendColumn("sqlString").appendColumn(scope.sqlString)
 
 
