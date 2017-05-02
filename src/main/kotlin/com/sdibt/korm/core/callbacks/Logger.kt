@@ -42,6 +42,16 @@ class Logger {
 
         t.appendRow().appendColumn("rowsAffected").appendColumn("${scope.rowsAffected}")
 
+        if (scope.sqlParam.count() > 0) {
+            var finalSql = scope.sqlString
+            scope.sqlParam.filter { it.key.isNotBlank() }.forEach {
+                t, u ->
+                val key = if (t.startsWith('@')) t else "@$t"
+                finalSql = finalSql.replace(key, "'$u'", ignoreCase = true)
+            }
+            t.appendRow().appendColumn("finalSql").appendColumn(finalSql)
+        }
+
         scope.generatedKeys?.apply {
             t.appendRow().appendColumn("generatedKeys").appendColumn("${scope.generatedKeys}")
         }
