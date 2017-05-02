@@ -38,21 +38,17 @@ class TestBook : EntityBase() {
     @delegate:AutoID var testId: String? by korm()
 
     @delegate:Comment("测试名称")
-            //    @delegate:Column(name = "test_n66666ame", length = 30)
     var testName: String? by korm()
     var testURL: String? by korm()
     var testCount: Int? by korm()
-    var dd: Date? by korm()
+
     @delegate:CreatedBy var createdBy: String? by korm()
-
     @delegate:CreatedAt var createdAt: Date? by korm()
-
     @delegate:UpdatedBy var updatedBy: String? by korm()
-
     @delegate:UpdatedAt var updatedAt: Date? by korm()
 //    @delegate:DeletedAt var deletedAt: Date? by korm()
-
-//    @delegate:Column(name = "version", length = 30)
+//
+//    @delegate:Column(name = "version")
 //    @delegate:Version var version: Int? by korm()
 
 

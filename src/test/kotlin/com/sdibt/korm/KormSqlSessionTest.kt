@@ -32,9 +32,6 @@ class KormSqlSessionTest {
     var userName = "root"
     var password = "root"
 
-
-//	var ds = MysqlDataSource(dbURL, userName, password)
-
     var db: KormSqlSession
 
     init {
@@ -42,11 +39,6 @@ class KormSqlSessionTest {
         dds.url = dbURL
         dds.username = userName
         dds.password = password
-
-//        dds.url = "jdbc:oracle:thin:@192.168.110.165:49161:xe"
-//        dds.username = "system"
-//        dds.password = "oracle"
-
         db = KormSqlSession(DBMSType.MySql, dds)
     }
 

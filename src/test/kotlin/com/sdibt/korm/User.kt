@@ -27,14 +27,10 @@ import javax.persistence.Id
  * Date: 2017/3/3
  * Time: 14:02
  */
+
 class User : EntityBase() {
-
-
-    @delegate:Id
-    var id: String? by korm()
+    @delegate:Id var id: String? by korm()
     var name: String? by korm()
     var age: Int ? by korm()
-
-
 }
 

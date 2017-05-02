@@ -24,16 +24,11 @@ import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
 import com.sdibt.korm.core.extension.toJson
 import com.sdibt.korm.core.oql.OQL
-import com.sdibt.korm.core.oql.OQLCompare
-import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
-import java.util.*
 
-
-internal class DBTest {
+class DBTest {
     var dbURL = "jdbc:mysql://a.com:3306/test?useUnicode=true&characterEncoding=UTF-8"
     var userName = "root"
     var password = "root"
@@ -47,17 +42,6 @@ internal class DBTest {
         return KormSqlSession(dds)
     }
 
-    @Before
-    fun setUp() {
-
-        println("Start ")
-    }
-
-    @After
-    fun tearDown() {
-        getDB()
-        println("over")
-    }
 
     @Test
     fun deleteEntity() {
@@ -71,13 +55,8 @@ internal class DBTest {
     fun insertEntity() {
         val tb = TestBook()
         tb.testName = "test"
-        tb.dd = Date()
-        getDB().insert(tb)
-
-        val tb1 = TestBook()
-        tb1.testName = "test"
-        tb1.testCount = 9
-        getDB().insert(tb1, false)
+        val rowsInserted = getDB().insert(tb)
+        Assert.assertTrue(rowsInserted > 0)
     }
 
 
@@ -96,16 +75,12 @@ internal class DBTest {
     @Test
     fun DeleteOQL() {
 
-        var book2 = TestBook()
-        book2.testName = "abcInsertOQLWidthKeys"
-        book2.testURL = "InsertOQLWidthKeys"
-        val saveCount = getDB().save(book2)
-        Assert.assertTrue(saveCount > 0)
+        val book2 = TestBook()
 
-        var q = OQL.From(book2).Delete()
+        val q = OQL.From(book2).Delete()
                 .Where {
                     cmp ->
-                    cmp.Comparer(book2.testName, "=", "abcInsertOQLWidthKeys")
+                    cmp.Comparer(book2.testName, "=", "abcInsertOQLWidthKeysssssss")
                 }
                 .END
         val count = getDB().delete(q)
@@ -213,9 +188,15 @@ internal class DBTest {
         val tb = TestBook()
         tb.testId = "50"
         tb.testName = "test"
-//        tb.version = 1
         getDB().update(tb)
-//        getDB().update(tb, false)
+    }
+
+    @Test
+    fun updateEntityAllFields() {
+        val tb = TestBook()
+        tb.testId = "50"
+        tb.testName = "test"
+        getDB().update(tb, saveChangedOnly = false)
     }
 
     @Test
@@ -224,7 +205,6 @@ internal class DBTest {
         var book2 = TestBook()
         book2.testName = "abcUpdateOQLWidthKeys"
         book2.testURL = "UpdateOQLWidthKeys"
-//        book2.version = 1
         var q = OQL.From(book2).Update(book2.testName, book2.testURL)
                 .Where {
                     cmp ->
@@ -252,26 +232,34 @@ internal class DBTest {
 
     @Test
     fun testReadWithPage() {
-//        testInsertEntityWidthKeys()
-//        testInsertFrom()
-        var book = TestBook()
+
+        val book = TestBook()
         book.testName = "testnamevalue"
 
 
-        val countOQL = OQL.From(book).Select().Count(book.testId).END
+        val countOQL = OQL.From(book).Select().Count(book.testId).Where {
+            cmp ->
+            cmp.Comparer(book.testId, ">", "1")
+        }.END
         val count = getDB().selectSingle<Int>(countOQL)
-        println("count = ${count}")
+        println("共有记录${count}条")
+
+
         count?.apply {
-            val qq = OQL.From(book)
-            val cmp = OQLCompare(qq).Comparer(book.testId, ">", "1")
-            val q = qq.Limit(10, 1, true).Select().Where(cmp).END
+
+            val q = OQL.From(book).Limit(10, 1, true).Select().Where {
+                cmp ->
+                cmp.Comparer(book.testId, ">", "1")
+            }.END
+
             q.PageWithAllRecordCount = count
+
             val resultList = getDB().select<TestBook>(q)
             resultList?.forEach {
-                println("it = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
+                println("条目 = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
             }
 
-            println("resultList?.toJson() = ${resultList?.toJson()}")
+            println("toJson = ${resultList?.toJson()}")
         }
 
 
@@ -279,41 +267,38 @@ internal class DBTest {
 
     @Test
     fun testInsertEntityWidthKeys() {
-        var book2 = TestBook()
+        val book2 = TestBook()
         book2.testName = "abc"
         book2.testURL = "22222"
-        val keysInserted = getDB().insert(book2, true, true)
+        val keysInserted = getDB().insert(book2)
         println("InsertEntity新插入条目的ID = ${keysInserted}")
+        Assert.assertTrue("$keysInserted".isNotBlank())
     }
 
     @Test
-    fun testInsert() {
+    fun testInsertOQL() {
 
-        var book2 = TestBook()
+        val book2 = TestBook()
         book2.testName = "abcInsertOQL"
         book2.testURL = "InsertOQL"
-        var q = OQL.From(book2).Insert(book2.testName, book2.testURL).END
+        val q = OQL.From(book2).Insert(book2.testName, book2.testURL).END
         val rowsInserted = getDB().insert(q)
-        if (rowsInserted > 0) {
-            System.out.println("A new user was inserted successfully!")
-        }
-
-
+        Assert.assertTrue(rowsInserted > 0)
     }
 
 
     @Test
     fun testInsertOQLWidthKeys() {
 
-        var book2 = TestBook()
+        val book2 = TestBook()
         book2.testName = "abcInsertOQLWidthKeys"
         book2.testURL = "InsertOQLWidthKeys"
-        var q = OQL.From(book2).Insert(book2.testName, book2.testURL).END
 
+        val q = OQL.From(book2).Insert(book2.testName, book2.testURL).END
 
         val keysInserted = getDB().insert(q, true)
         println("InsertOQL新插入条目的ID = ${keysInserted}")
-
+        Assert.assertTrue("$keysInserted".isNotBlank())
 
     }
 
