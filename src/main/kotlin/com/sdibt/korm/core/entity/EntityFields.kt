@@ -18,7 +18,7 @@
 package com.sdibt.korm.core.entity
 
 import com.sdibt.korm.core.annotatoin.*
-import com.sdibt.korm.core.db.Column
+import com.sdibt.korm.core.db.ColumnInfo
 import com.sdibt.korm.core.idworker.IdWorkerType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -68,7 +68,7 @@ class EntityFields {
     /**
      * SQL DDL columns info Map
      */
-    var columns: Map<String, Column> = mapOf()
+    var columns: Map<String, ColumnInfo> = mapOf()
 
 
     /**
@@ -214,7 +214,7 @@ class EntityFields {
      * @return Unit
      */
     private fun fillColumnInfo(clazz: Class<*>) {
-        val columnMap: MutableMap<String, Column> = mutableMapOf()
+        val columnMap: MutableMap<String, ColumnInfo> = mutableMapOf()
 
         clazz.declaredFields
                 .filterNot { it.name == "\$\$delegatedProperties" }
@@ -236,11 +236,11 @@ class EntityFields {
                     }
 
                     val type: Any = it.kotlinProperty?.returnType?.javaType ?: it.type
-                    var column: Column
+                    var column: ColumnInfo
                     if (it.isAnnotationPresent(javax.persistence.Column::class.java)) {
                         //使用了column注解
                         val an = it.getAnnotation(javax.persistence.Column::class.java)
-                        column = Column(
+                        column = ColumnInfo(
                                 name = an.name,
                                 unique = an.unique,
                                 nullable = an.nullable,
@@ -255,7 +255,7 @@ class EntityFields {
 
                         )
                     } else {
-                        column = Column(
+                        column = ColumnInfo(
                                 name = fieldName,
                                 type = type
                         )

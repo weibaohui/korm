@@ -17,7 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
-import com.sdibt.korm.core.db.Column
+import com.sdibt.korm.core.db.ColumnInfo
 import com.sdibt.korm.core.entity.EntityFieldsCache
 import com.sdibt.korm.core.enums.DBMSType
 import com.sdibt.korm.core.oql.TableNameField
@@ -38,7 +38,7 @@ class CallBackCommon {
         fields = searchFields(scope.sqlString, fields, "\\[(.*?)\\]")
         fields = searchFields(scope.sqlString, fields, "(?<!')(@[\\w]+)(?!')")
 
-        var columns: Map<String, Column>? = null
+        var columns: Map<String, ColumnInfo>? = null
         scope.entity?.apply {
             columns = EntityFieldsCache.item(scope.entity!!).columns
         }

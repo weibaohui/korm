@@ -17,7 +17,10 @@
 
 package com.sdibt.korm.core.db
 
-data class Column(
+/** 实体字段信息
+ * <功能详细描述>
+ */
+data class ColumnInfo(
         /**
          * (Optional) The name of the column. Defaults to
          * the property or field name.
