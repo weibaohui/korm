@@ -53,6 +53,7 @@ class Scope(var db: KormSqlSession) {
     init {
         this.sqlString = ""
         this.sqlParam.clear()
+        this.db.Error = null
     }
 
     constructor(entity: EntityBase, db: KormSqlSession) : this(db) {

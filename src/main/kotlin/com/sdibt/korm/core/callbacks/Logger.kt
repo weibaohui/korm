@@ -42,8 +42,9 @@ class Logger {
 
         t.appendRow().appendColumn("rowsAffected").appendColumn("${scope.rowsAffected}")
 
+
+        var finalSql = scope.sqlString
         if (scope.sqlParam.count() > 0) {
-            var finalSql = scope.sqlString
             scope.sqlParam.filter { it.key.isNotBlank() }.forEach {
                 t, u ->
                 val key = if (t.startsWith('@')) t else "@$t"
@@ -102,6 +103,7 @@ class Logger {
             Log.error(t.toString())
         } else {
             Log.debug(t.toString())
+            Log.debug(finalSql.replace('\r', ' ').replace('\n', ' '))
         }
 
         return scope

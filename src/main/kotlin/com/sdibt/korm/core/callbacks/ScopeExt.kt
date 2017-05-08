@@ -268,7 +268,7 @@ fun Scope.insertEntity(): Scope {
 
     var Items = ""
     var ItemValues = ""
-    var sqlInsert = "INSERT INTO " + entity.tableName
+    var sqlInsert = "INSERT INTO [" + entity.tableName + "]"
     this.setAutoIdParam(entity)
     this.sqlParam.forEach {
         pkey, _ ->
