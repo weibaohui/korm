@@ -68,9 +68,9 @@ open class OQL4(private val currentOQL: OQL) : IOQL4 {
      *
      * @return 返回类型说明
      */
-    fun OrderBy(orderBy: String): OQL4 {
-        val strTemp = orderBy
-        strTemp.split(',').forEach {
+    fun OrderBy(orderBy: String?): OQL4 {
+
+        orderBy?.split(',')?.forEach {
             val strs = it.trim()
             when {
                 strs.endsWith("asc", ignoreCase = true)  -> {
