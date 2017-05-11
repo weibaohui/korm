@@ -111,7 +111,23 @@ class DBTest {
         var ss = getDB().select<Map<String, Any?>>(select1.END)
         println("ss = ${ss}")
     }
+    @Test
+    fun testOrderBy() {
 
+        var book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+
+
+
+
+        var select1 = OQL.From(book).Select()
+                .OrderBy("testName desc,testId asc")
+
+
+        var ss = getDB().select<Map<String, Any?>>(select1.END)
+        println("ss = ${ss}")
+    }
 
     @Test
     fun testCountSelect() {

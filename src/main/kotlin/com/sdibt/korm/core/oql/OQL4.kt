@@ -24,7 +24,7 @@ open class OQL4(private val currentOQL: OQL) : IOQL4 {
             return this.currentOQL
         }
 
-    fun AddOrderType(orderType: String) {
+    private fun AddOrderType(orderType: String) {
         currentOQL.oqlString += orderType
     }
 
@@ -60,5 +60,48 @@ open class OQL4(private val currentOQL: OQL) : IOQL4 {
 //
 //        return this
 //    }
+
+
+    /** OrderBy("testId asc,testName desc")
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    fun OrderBy(orderBy: String): OQL4 {
+        val strTemp = orderBy
+        strTemp.split(',').forEach {
+            val strs = it.trim()
+            when {
+                strs.endsWith("asc", ignoreCase = true)  -> {
+                    var filed = strs.substring(0, strs.length - 3).trim()
+                    filed = filed.substring(0, 1).toUpperCase() + filed.substring(1)
+                    val method = this.currentOQL.currEntity::class.java.getMethod("get$filed")
+                    if (method != null) {
+                        method.invoke(this.currentOQL.currEntity)
+                        val temp = if (currentOQL.haveOrderBy) "," else "\r\n                 ORDER BY "
+                        currentOQL.haveOrderBy = true
+                        currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " ASC"
+                    }
+
+
+                }
+                strs.endsWith("desc", ignoreCase = true) -> {
+                    var filed = strs.substring(0, strs.length - 4).trim()
+                    filed = filed.substring(0, 1).toUpperCase() + filed.substring(1)
+                    val method = this.currentOQL.currEntity::class.java.getMethod("get$filed")
+                    if (method != null) {
+                        method.invoke(this.currentOQL.currEntity)
+                        val temp = if (currentOQL.haveOrderBy) "," else "\r\n                 ORDER BY "
+                        currentOQL.haveOrderBy = true
+                        currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " DESC"
+                    }
+                }
+            }
+        }
+
+
+        return this
+    }
 
 }
