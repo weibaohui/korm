@@ -118,12 +118,12 @@ class DBTest {
         book.testName = "abc"
         book.testId = "777"
 
-
-
-
         var select1 = OQL.From(book).Select()
-                .OrderBy("testName desc,testId asc")
-
+                .Where {
+                    cmp->
+                    cmp.Comparer(book.testName,"=","abc")
+                }
+                .OrderBy("test_name desc,testId asc")
 
         var ss = getDB().select<Map<String, Any?>>(select1.END)
         println("ss = ${ss}")

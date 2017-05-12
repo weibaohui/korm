@@ -46,7 +46,7 @@ open class OQL4(private val currentOQL: OQL) : IOQL4 {
         if (strTemp != "asc" && strTemp != "desc") {
             throw Exception("排序类型错误！")
         }
-        val temp = if (currentOQL.haveOrderBy) "," else "\r\n                 ORDER BY "
+        val temp = if (currentOQL.haveOrderBy) "," else "\r\nORDER BY "
         currentOQL.haveOrderBy = true
         currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " " + orderType
 
@@ -72,36 +72,28 @@ open class OQL4(private val currentOQL: OQL) : IOQL4 {
 
         orderBy?.split(',')?.forEach {
             val strs = it.trim()
+            val temp = if (currentOQL.haveOrderBy) "," else "\r\nORDER BY "
+
             when {
                 strs.endsWith("asc", ignoreCase = true)  -> {
                     var filed = strs.substring(0, strs.length - 3).trim()
-                    filed = filed.substring(0, 1).toUpperCase() + filed.substring(1)
-                    val method = this.currentOQL.currEntity::class.java.getMethod("get$filed")
-                    if (method != null) {
-                        method.invoke(this.currentOQL.currEntity)
-                        val temp = if (currentOQL.haveOrderBy) "," else "\r\n                 ORDER BY "
-                        currentOQL.haveOrderBy = true
-                        currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " ASC"
-                    }
+                    this.currentOQL.currEntity.getField(filed)
+                    currentOQL.haveOrderBy = true
+                    currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " ASC"
 
 
                 }
                 strs.endsWith("desc", ignoreCase = true) -> {
                     var filed = strs.substring(0, strs.length - 4).trim()
-                    filed = filed.substring(0, 1).toUpperCase() + filed.substring(1)
-                    val method = this.currentOQL.currEntity::class.java.getMethod("get$filed")
-                    if (method != null) {
-                        method.invoke(this.currentOQL.currEntity)
-                        val temp = if (currentOQL.haveOrderBy) "," else "\r\n                 ORDER BY "
-                        currentOQL.haveOrderBy = true
-                        currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " DESC"
-                    }
+                    this.currentOQL.currEntity.getField(filed)
+                    currentOQL.haveOrderBy = true
+                    currentOQL.oqlString += temp + currentOQL.takeOneStackFields().sqlFieldName + " DESC"
+
                 }
             }
         }
 
-
-        return this
+         return this
     }
 
 }
