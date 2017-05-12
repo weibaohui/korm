@@ -181,6 +181,9 @@ open class KormSqlSession(internal var dataSource: DataSource) {
     }
     //endregion
 
+
+    //todo:增加一个select count
+
     //region query
 
     //region selectSingle without q
