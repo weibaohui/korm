@@ -159,7 +159,7 @@ class DBTest {
 //         getDB().DeleteByPk(book)
         getDB().insert(book)
 
-        var q = OQL.From(book).Limit(1, 1).Select().Where {
+        var q = OQL.From(book).Limit(1,1).Select().Where {
             cmp ->
             cmp.Comparer(book.testName, "=", "671")
         }.END
@@ -263,7 +263,7 @@ class DBTest {
 
         count?.apply {
 
-            val q = OQL.From(book).Limit(10, 1,true).Select().Where {
+            val q = OQL.From(book).Limit(60,3,true).Select().Where {
                 cmp ->
                 cmp.Comparer(book.testId, ">", "1")
             }.END

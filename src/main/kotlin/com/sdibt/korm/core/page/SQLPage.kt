@@ -130,7 +130,7 @@ object SQLPage {
 
         val offset = PageSize * (PageNumber - 1)
 
-        if (offsetString == ",") {//MySQL
+        if (offsetString == " , ") {//MySQL
             return strSQLInfo + "\r\n LIMIT " + offset + offsetString + PageSize
         } else { //PostgreSQL
             return strSQLInfo + "\r\n LIMIT " + PageSize + offsetString + offset
