@@ -33,123 +33,165 @@ import java.util.*
 abstract class EntityBase {
 
 
-    internal var entityMap = EntityMapType.Table
+    //region 额外信息
+    private var extraInfo: MutableMap<String, Any?> = mutableMapOf()
 
-    //属性值
+    fun extra(key: String): Any? {
+        return extraInfo[key]
+    }
 
-    internal var fieldValues: MutableList<Any> = mutableListOf()
-        set(value) {
-            changedList = BooleanArray(names.size)
-            field = value
-        }
-    //属性字段名列表
+    fun setExtra(key: String, value: Any?) {
+        extraInfo[key] = value
+    }
 
-    internal var fieldNames: Array<String>
-        get() {
-            if (names.isEmpty()) {
-                this.setFieldNames()
-                changedList = BooleanArray(names.size)
-            }
-            return names
-        }
-        set(value) {
-            names = value
-            changedList = BooleanArray(names.size)
-        }
+    //获取当前查询的页码总数
+    fun takePageCountAll(): Int {
+        val count = extraInfo["pageCountAll"]?.toString()
+        return count?.toInt() ?: 0
+    }
 
-    internal var tableName: String = ""
-        private set
-        get() {
-            return EntityFieldsCache.item(this).tableName ?: this.javaClass.simpleName
-        }
+    //endregion
 
-    internal var schema: String = ""
-        private set
-        get() {
-            return EntityFieldsCache.item(this).schema ?: ""
-        }
-    // sql statement 需要的parameters
-//    //todo 去掉TableNameField，直接取值
-//    internal var parameters: Map<String, TableNameField> = mutableMapOf()
-//        get() {
-//            val params: MutableMap<String, TableNameField> = mutableMapOf()
-//            for (i in this.fieldNames.indices) {
-//                val tnf = TableNameField(this.fieldNames[i],
-//                        this, i,
-//                        this.fieldValues[i])
-//                params.put(this.fieldNames[i], tnf)
-//            }
-//            return params
-//        }
-    internal var sqlParams: Map<String, Any?> = mutableMapOf()
-        get() {
-            val params: MutableMap<String, Any?> = mutableMapOf()
-            for (i in this.fieldNames.indices) {
-                params.put(this.fieldNames[i], this.fieldValues[i])
-            }
-            return params
-        }
-    //    //更改过的字段表
-//    internal  var changedFields: Map<String, TableNameField> = mutableMapOf()
-//        get() {
-//            val params: MutableMap<String, TableNameField> = mutableMapOf()
-//            for (i in this.fieldNames.indices) {
-//                if (changedList[i]) {
-//                    val tnf = TableNameField(this.fieldNames[i],
-//                            this, i,
-//                            this.fieldValues[i])
-//                    params.put(this.fieldNames[i], tnf)
-//                }
-//            }
-//            return params
-//        }
-    //更改过的字段表
-    internal var changedSqlParams: Map<String, Any?> = mutableMapOf()
-        get() {
-            val params: MutableMap<String, Any?> = mutableMapOf()
-            for (i in this.fieldNames.indices) {
-                if (changedList[i]) {
-                    params.put(this.fieldNames[i], this.fieldValues[i])
-                }
-            }
-            return params
-        }
+    //实体对应模式
+     fun entityMap(): EntityMapType {
+        return EntityMapType.Table
+    }
 
-    internal var primaryKeys: List<String> = listOf()
-        private set
-        get() {
-            if (field.isEmpty()) {
-                return autoIdFields.keys.toList()
-            } else {
-                return field
-            }
-        }
-    internal val autoIdFields: Map<String, IdWorkerType> = EntityFieldsCache.item(this).autoIdFields
-
-    internal var foreignKeys = ""
-    internal var changedList: BooleanArray = booleanArrayOf()
 
     //记录所有字段名称
-    internal var names: Array<String> = arrayOf()
-    //属性的索引号对应属性值的关系数组
-    internal var fieldValueIndex: IntArray
-    protected var channel = EventManager.INSTANCE.channel
+    private var names: Array<String> = arrayOf()
+    //属性值
+    private var fieldValues: MutableList<Any> = mutableListOf()
+        set(value) {
+            this.changedList = BooleanArray(names.size)
+            field = value
+        }
 
-    init {
-        channel.register(this)
-        fieldValueIndex = IntArray(EntityFieldsCache.item(this).fields.size, { -1 })
+    private fun fieldValues(): MutableList<Any> {
+        return fieldValues
     }
 
 
     /**
      * 设置实体类的对应的字段名称数组
      */
-    private fun setFieldNames() {
-//        this.names = names
+    fun fieldNames(): Array<String> {
+        if (names.isEmpty()) {
+            this.initFieldNames()
+            this.changedList = BooleanArray(names.size)
+        }
+        return names
+    }
+    /**
+     * 设置实体类的对应的字段名称数组
+     */
+    private fun initFieldNames() {
         val ef = EntityFieldsCache.item(this)
-        this.names = ef.fields
+        this.setFieldNames(ef.fields)
         this.fieldValues = ef.fieldValues.toList() as MutableList<Any>
     }
+    private fun setFieldNames(array: Array<String>) {
+        names = array
+        this.changedList = BooleanArray(names.size)
+    }
+
+
+    fun tableName(): String {
+        return EntityFieldsCache.item(this).tableName ?: this.javaClass.simpleName
+    }
+
+    fun schema(): String {
+        return EntityFieldsCache.item(this).schema ?: ""
+    }
+
+    /** 生成SQL用的需要的所有的参数
+     * <功能详细描述>
+     *
+     * @return 返回类型说明
+     */
+    fun sqlParams(): Map<String, Any?> {
+        val params: MutableMap<String, Any?> = mutableMapOf()
+        for (i in this.fieldNames().indices) {
+            params.put(this.fieldNames()[i], this.fieldValues()[i])
+        }
+        return params
+    }
+
+    /**生成SQL用的发生变化的参数
+     * <功能详细描述>
+     *
+     * @return 返回类型说明
+     */
+    fun changedSqlParams(): Map<String, Any?> {
+        val params: MutableMap<String, Any?> = mutableMapOf()
+        this.fieldNames().indices
+                .asSequence()
+                .filter { this.changedList()[it] }
+                .forEach { params.put(this.fieldNames()[it], this.fieldValues()[it]) }
+        return params
+    }
+
+    /** 主键列表
+     * <功能详细描述>
+     *
+     * @return 返回类型说明
+     */
+    private var primaryKeys: List<String> = listOf()
+
+    fun primaryKeys(): List<String> {
+        if (this.primaryKeys.isEmpty()) {
+            return autoIdFields.keys.toList()
+        }
+        return primaryKeys
+    }
+
+    /** 自动Id类型的字段
+     * <功能详细描述>
+     *
+     * @return 返回类型说明
+     */
+    private val autoIdFields: Map<String, IdWorkerType> = EntityFieldsCache.item(this).autoIdFields
+
+    fun autoIdFields(): Map<String, IdWorkerType> {
+        return EntityFieldsCache.item(this).autoIdFields
+    }
+
+    /** 外键
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    private var foreignKeys = ""
+
+    fun foreignKeys(): String {
+        return foreignKeys
+    }
+
+    /** 发生变化的字段列表
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    private var changedList: BooleanArray = booleanArrayOf()
+    private fun changedList(): BooleanArray {
+        return changedList
+    }
+
+
+    protected var channel = EventManager.INSTANCE.channel
+
+    //属性的索引号对应属性值的关系数组
+    private var fieldValueIndex: IntArray = intArrayOf()
+
+
+    init {
+        channel.register(this)
+        this.fieldValueIndex = IntArray(EntityFieldsCache.item(this).fields.size, { -1 })
+    }
+
+
 
 
     /**
@@ -168,8 +210,8 @@ abstract class EntityBase {
      * @param flag 是否已经修改
      */
     private fun resetChanges(flag: Boolean) {
-        for (i in changedList.indices) {
-            changedList[i] = flag
+        for (i in changedList().indices) {
+            this.changedList()[i] = flag
         }
     }
 
@@ -186,7 +228,7 @@ abstract class EntityBase {
         if (index == -1) {
             return null
         } else {
-            return fieldValues[index]
+            return fieldValues()[index]
         }
     }
 
@@ -218,9 +260,8 @@ abstract class EntityBase {
         if (propertyFieldName.isNullOrBlank()) {
             return -1
         }
-        return fieldNames.indices.firstOrNull {
-
-            fieldNames[it].equals(propertyFieldName, ignoreCase = true)
+        return fieldNames().indices.firstOrNull {
+            fieldNames()[it].equals(propertyFieldName, ignoreCase = true)
         } ?: -1
     }
 
@@ -254,10 +295,10 @@ abstract class EntityBase {
                 if (index == -1) {
                     return null
                 } else {
-                    fieldValueIndex[propertyIndex] = index
+                    this.fieldValueIndex[propertyIndex] = index
                 }
             }
-            return fieldValues[index]
+            return fieldValues()[index]
         } else {
             return getField(propertyFieldName)
         }
@@ -274,11 +315,11 @@ abstract class EntityBase {
             throw RuntimeException("当前实体类属性读取方法指定的 属性索引 值不能小于0 ")
         }
 
-        if (propertyIndex > fieldValueIndex.size) {
+        if (propertyIndex > this.fieldValueIndex.size) {
             throw RuntimeException("当前实体类属性读取方法指定的 属性索引 值（$propertyIndex）大于可用的实体类属性数量")
         }
 
-        return fieldValueIndex[propertyIndex]
+        return this.fieldValueIndex[propertyIndex]
     }
 
 
@@ -288,7 +329,7 @@ abstract class EntityBase {
      * @param propertyFieldName 属性字段名
      * @param Value 要设置的值
      */
-    fun   setField(propertyFieldName: String, Value: Any) {
+    fun setField(propertyFieldName: String, Value: Any) {
         setFieldValueAndLength(propertyFieldName, -1, Value, 0)
     }
 
@@ -344,7 +385,7 @@ abstract class EntityBase {
      * @param Value 属性值
      * @param length
      */
-    private fun   setFieldValueAndLength(propertyFieldName: String, propertyIndex: Int, Value: Any, length: Int) {
+    private fun setFieldValueAndLength(propertyFieldName: String, propertyIndex: Int, Value: Any, length: Int) {
 
         var index = getFieldNameIndex(propertyFieldName)
 
@@ -352,41 +393,41 @@ abstract class EntityBase {
 //			println("设置${this.javaClass.simpleName}.${propertyFieldName} = ${Value}")
 //			println("fieldValues = ${fieldValues}")
 
-            if(Value::class.java==Date::class.java){
-                val ss=Value as Date
-                fieldValues[index] = ss.UDateToLocalDateTime()
-            }else{
-                fieldValues[index] = Value
+            if (Value::class.java == Date::class.java) {
+                val ss = Value as Date
+                this.fieldValues()[index] = ss.UDateToLocalDateTime()
+            } else {
+                this.fieldValues()[index] = Value
             }
 
 
             this.onPropertyChanged(propertyFieldName)
-            changedList[index] = true
+            this.changedList()[index] = true
             return
         }
         //可能实体类来自Select 部分字段
         //备份原来的名值组
-        val namesTemp = fieldNames
-        val valuesTemp = fieldValues
-        val changesTemp = changedList
+        val namesTemp = fieldNames()
+        val valuesTemp = this.fieldValues()
+        val changesTemp = this.changedList()
 
         //重置字段名数组，names 为空,fieldNames调用将会触发调用子类重载的 SetFieldNames 方法。
         names = arrayOf()
 
         //复制值
         var setValueFlag = false
-        for (i in 0..fieldNames.size - 1) {
-            val name = fieldNames[i]
+        for (i in 0..fieldNames().size - 1) {
+            val name = fieldNames()[i]
             if (propertyFieldName == name) {
                 setValueFlag = true
-                fieldValues[i] = Value as Any
-                changedList[i] = true
+                this.fieldValues()[i] = Value as Any
+                this.changedList()[i] = true
             } else {
                 //如果未找到，说明原来实例对象的属性字段不在实体类的定义的属性字段中,否则，复制值
                 for (k in namesTemp.indices) {
                     if (namesTemp[k] == name) {
-                        fieldValues[i] = valuesTemp[k]
-                        changedList[i] = changesTemp[k]
+                        this.fieldValues()[i] = valuesTemp[k]
+                        this.changedList()[i] = changesTemp[k]
                         break
                     }
                 }
@@ -400,17 +441,15 @@ abstract class EntityBase {
 
 
     private fun setForeignKey(fieldName: String) {
-        this.foreignKeys += ",$fieldName@$tableName"
+        this.foreignKeys += ",$fieldName@${tableName()}"
     }
 
     private fun getForeignKey(): String {
-        for (str in this.foreignKeys.split(',', ignoreCase = true).toTypedArray()) {
-            val arr = str.split("[@]".toRegex()).toTypedArray()
-            if (tableName == arr[1]) {
-                return arr[0]
-            }
-        }
-        return ""
+        return this.foreignKeys.split(',', ignoreCase = true).toTypedArray()
+                       .map { it.split("[@]".toRegex()).toTypedArray() }
+                       .firstOrNull { tableName() == it[1] }
+                       ?.let { it[0] }
+               ?: ""
     }
 
 
@@ -459,7 +498,7 @@ abstract class EntityBase {
         val columns = EntityFieldsCache.item(this).columns
         val script = StringBuilder()
 
-        script.append("CREATE TABLE [${this.tableName}] ")
+        script.append("CREATE TABLE [${this.tableName()}] ")
         script.append("(")
         columns.forEach { t, u ->
             script.append("[${if (u.name.isBlank()) u.name else t}]")
@@ -506,7 +545,7 @@ abstract class EntityBase {
             script.append(",")
         }
 
-        script.append("PRIMARY KEY (${this.autoIdFields.keys.map { "[$it]" }.joinToString(",")}) ")
+        script.append("PRIMARY KEY (${this.autoIdFields().keys.map { "[$it]" }.joinToString(",")}) ")
         script.append(")")
 
         return script.toString()

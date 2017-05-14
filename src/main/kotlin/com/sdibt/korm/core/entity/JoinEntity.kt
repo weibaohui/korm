@@ -69,7 +69,7 @@ class JoinEntity(
 
             this.joinedString = String.format("\r\n%1\$s [%2\$s] %3\$s  ON %4\$s =%5\$s ",
                     joinType,
-                    joinedEntity.tableName,
+                    joinedEntity.tableName(),
                     this.mainOql.getTableAliases(joinedEntity),
                     leftString, rightString)
             this.mainOql.oqlString += this.joinedString

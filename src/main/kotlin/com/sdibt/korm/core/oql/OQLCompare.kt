@@ -176,9 +176,6 @@ class OQLCompare {
     }
 
 
-
-
-
     /**
      * 对一组OQLCompare 对象，执行CompareLogic 类型的比较，通常用于构造复杂的带括号的条件查询
      * <example>参见 http://www.cnblogs.com/bluedoctor/archive/2011/02/24/1963606.html </example>
@@ -198,20 +195,7 @@ class OQLCompare {
             return compares[0]
         }
         var cmp = OQLCompare(this.linkedOQL)
-        //string typeString = logic == CompareLogic.AND ? " And " : logic == CompareLogic.OR ? " Or " : " Not ";
-        //foreach (OQLCompare item in compares)
-        //{
-        //    cmp.CompareString += item.CompareString + typeString;
-        //    if (item.ComparedParameters != null)
-        //        foreach (string key in item.ComparedParameters.Keys)
-        //        {
-        //            cmp.ComparedParameters.Add(key, item.ComparedParameters[key]);
-        //        }
 
-        //}
-        //cmp.CompareString = cmp.CompareString.Substring(0, cmp.CompareString.Length - typeString.Length);
-        //cmp.CompareString = " ( " + cmp.CompareString + " ) ";
-        //return cmp;
         //
         //将列表转换成树
         for (item in compares) {
@@ -277,7 +261,7 @@ class OQLCompare {
         compare.ComparedType = type
         if (type == IS || type == IsNot) {
             if (oValue != null) {
-                val strValue = oValue.toString().toUpperCase().trim({ it <= ' ' })
+                val strValue = oValue.toString().toUpperCase().trim()
                 if (strValue == "NULL" || strValue == "NOT NULL") {
                     compare.ComparedParameterName = strValue
                 } else {
@@ -298,7 +282,7 @@ class OQLCompare {
                 }
             } else if (leftField != null && rightField == null) {
 //                compare.ComparedParameterName = compare.linkedOQL.createParameter(leftField, oValue)
-                compare.ComparedParameterName = compare.linkedOQL.createParameter( oValue)
+                compare.ComparedParameterName = compare.linkedOQL.createParameter(oValue)
             } else if (leftField == null && rightField != null) {
                 compare.ComparedFieldName = compare.linkedOQL.createParameter(rightField, field!!)
                 compare.ComparedParameterName = rightField.sqlFieldName
@@ -559,7 +543,6 @@ class OQLCompare {
     }
 
 
-
     /**
      * 将当前实体属性的值和要比较的值进行比较，得到一个新的实体比较对象
 
@@ -723,6 +706,7 @@ class OQLCompare {
         return typeStr
 
     }
+
     private fun getString2CompareType(cmpTypeString: String): CompareType {
 
         val typeStr = if (cmpTypeString.isNullOrBlank()) "=" else cmpTypeString.trim().toLowerCase()
@@ -743,6 +727,7 @@ class OQLCompare {
         }
         return ct
     }
+
     /**
      * 检查子节点的逻辑类型
 

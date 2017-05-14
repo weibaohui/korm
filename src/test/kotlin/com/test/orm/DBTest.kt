@@ -22,7 +22,6 @@ import com.sdibt.korm.BookDTO
 import com.sdibt.korm.core.User
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.db.TestBook
-import com.sdibt.korm.core.extension.toJson
 import com.sdibt.korm.core.oql.OQL
 import org.junit.Assert
 import org.junit.Assert.assertTrue
@@ -111,6 +110,7 @@ class DBTest {
         var ss = getDB().select<Map<String, Any?>>(select1.END)
         println("ss = ${ss}")
     }
+
     @Test
     fun testOrderBy() {
 
@@ -120,8 +120,8 @@ class DBTest {
 
         var select1 = OQL.From(book).Select()
                 .Where {
-                    cmp->
-                    cmp.Comparer(book.testName,"=","abc")
+                    cmp ->
+                    cmp.Comparer(book.testName, "=", "abc")
                 }
                 .OrderBy("test_name desc,testId asc")
 
@@ -159,7 +159,7 @@ class DBTest {
 //         getDB().DeleteByPk(book)
         getDB().insert(book)
 
-        var q = OQL.From(book).Limit(1,1).Select().Where {
+        var q = OQL.From(book).Limit(1, 1).Select().Where {
             cmp ->
             cmp.Comparer(book.testName, "=", "671")
         }.END
@@ -172,8 +172,7 @@ class DBTest {
             println("SelectSingleEntity = ${book2.createdAt}")
             println("SelectSingleEntity = ${book2.updatedBy}")
         }
-        val ss = book2?.toJson()
-        println("ss = ${ss}")
+
     }
 
 
@@ -263,7 +262,7 @@ class DBTest {
 
         count?.apply {
 
-            val q = OQL.From(book).Limit(60,3,true).Select().Where {
+            val q = OQL.From(book).Limit(3, 1, true).Select().Where {
                 cmp ->
                 cmp.Comparer(book.testId, ">", "1")
             }.END
@@ -275,8 +274,7 @@ class DBTest {
                 println("条目 = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
             }
 
-            println("toJson = ${resultList?.toJson()}")
-        }
+         }
 
 
     }

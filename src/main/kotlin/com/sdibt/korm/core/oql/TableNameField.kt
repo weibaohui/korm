@@ -32,7 +32,7 @@ class TableNameField {
      */
     val name: String?
         get() {
-            return entity.tableName
+            return entity.tableName()
         }
     /**
      * 原始字段名

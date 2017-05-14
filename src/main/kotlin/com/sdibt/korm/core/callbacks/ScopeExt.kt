@@ -23,18 +23,18 @@ import java.time.LocalDateTime
 
 fun Scope.deleteEntity(): Scope {
     val entity = this.entity ?: return this
-    entity.primaryKeys.isNotEmpty().apply {
+    entity.primaryKeys().isNotEmpty().apply {
         //需要有主键
         var sqlWhere = ""
-        val pks = entity.primaryKeys
-        entity.fieldNames.forEach {
+        val pks = entity.primaryKeys()
+        entity.fieldNames().forEach {
             field ->
             val isPk = pks.indices.any {
                 field.equals(pks[it], false)
             }
             //主键放到where 条件中
             if (isPk) {
-                val pkValue = entity.sqlParams[field]
+                val pkValue = entity.sqlParams()[field]
                 if (pkValue != null) {
                     sqlWhere += " AND [$field] = @$field"
                     this@deleteEntity.sqlParam.put(field, pkValue)
@@ -42,15 +42,15 @@ fun Scope.deleteEntity(): Scope {
             }
         }
         if (sqlWhere == "") {
-            throw RuntimeException("表" + entity.tableName + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
+            throw RuntimeException("表" + entity.tableName() + "没有没有指定主键或值 ,无法生成 Where 条件，无法生成Delete语句！")
         }
-        this@deleteEntity.sqlString = "DELETE FROM [${entity.tableName}]  \r\nWHERE 1=1 $sqlWhere"
+        this@deleteEntity.sqlString = "DELETE FROM [${entity.tableName()}]  \r\nWHERE 1=1 $sqlWhere"
 
         val deletedAt = EntityFieldsCache.item(entity).deletedAt
         deletedAt?.apply {
             //软删除标记
             sqlParam.put(deletedAt, LocalDateTime.now())
-            this@deleteEntity.sqlString = "UPDATE  [${entity.tableName}] SET [$deletedAt]=@$deletedAt  \r\nWHERE 1=1 $sqlWhere"
+            this@deleteEntity.sqlString = "UPDATE  [${entity.tableName()}] SET [$deletedAt]=@$deletedAt  \r\nWHERE 1=1 $sqlWhere"
         }
 
     }
@@ -72,14 +72,14 @@ fun Scope.deleteOQL(): Scope {
         this.sqlString = this.deleteEntity().sqlString
     } else {
         //已经有where部分了
-        this.sqlString = "DELETE FROM [${oql.currEntity.tableName}]  \r\n $whereString"
+        this.sqlString = "DELETE FROM [${oql.currEntity.tableName()}]  \r\n $whereString"
     }
 
     val deletedAt = EntityFieldsCache.item(oql.currEntity).deletedAt
     deletedAt?.apply {
         //软删除标记
         this@deleteOQL.sqlParam.put(deletedAt, LocalDateTime.now())
-        this@deleteOQL.sqlString = "UPDATE  [${oql.currEntity.tableName}] SET \r\n [$deletedAt]=@$deletedAt  \r\n $whereString"
+        this@deleteOQL.sqlString = "UPDATE  [${oql.currEntity.tableName()}] SET \r\n [$deletedAt]=@$deletedAt  \r\n $whereString"
     }
     return this
 }
@@ -88,15 +88,15 @@ fun Scope.updateEntity(): Scope {
 
 
     val entity = this.entity ?: return this
-    val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
+    val params = if (this.saveChangedOnly) entity.changedSqlParams() else entity.sqlParams()
 
     params.forEach { t, u -> if (t !in this.sqlParam.keys) this.sqlParam.put(t, u) }
 
 
-    if (entity.primaryKeys.isNotEmpty()) {
-        var sqlUpdate = "UPDATE [" + entity.tableName + "] SET "
+    if (entity.primaryKeys().isNotEmpty()) {
+        var sqlUpdate = "UPDATE [" + entity.tableName() + "] SET "
         var sqlWhere = ""
-        val pks = entity.primaryKeys
+        val pks = entity.primaryKeys()
 
 
         //entity中有version值
@@ -136,7 +136,7 @@ fun Scope.updateEntity(): Scope {
 
 
     } else {
-        throw RuntimeException("表" + entity.tableName + "没有指定主键，无法生成Update语句！")
+        throw RuntimeException("表" + entity.tableName() + "没有指定主键，无法生成Update语句！")
     }
     return this
 }
@@ -145,9 +145,9 @@ fun Scope.updateOQL(): Scope {
     val q = this.oql ?: return this
     this.entity = q.currEntity
 
-    var sqlUpdate = "UPDATE [${q.currEntity.tableName}] SET "
+    var sqlUpdate = "UPDATE [${q.currEntity.tableName()}] SET "
     var sqlWhere = if (q.oqlString.isNotBlank()) q.oqlString else "\r\nWHERE 1=1 "
-    val pks = q.currEntity.primaryKeys
+    val pks = q.currEntity.primaryKeys()
 
 
     //entity中有version值
@@ -211,7 +211,7 @@ fun Scope.insertOQL(): Scope {
     val q = this.oql ?: return this
     if (q.optFlag == 5 && q.insertFromOql != null) {
         //todo insert from 的情况 是否自动添加时间？处理人？
-        var sqlInsert = "INSERT INTO [" + q.currEntity.tableName + "] ("
+        var sqlInsert = "INSERT INTO [" + q.currEntity.tableName() + "] ("
 
         q.selectedFieldInfo.forEach {
             sqlInsert += "[${it.field}],"
@@ -225,7 +225,7 @@ fun Scope.insertOQL(): Scope {
         var Items = ""
         var ItemValues = ""
 
-        var sqlInsert = "INSERT INTO [" + q.currEntity.tableName + "] "
+        var sqlInsert = "INSERT INTO [" + q.currEntity.tableName() + "] "
 
         this.setAutoIdParam(q.currEntity)
 
@@ -262,13 +262,13 @@ fun Scope.insertOQL(): Scope {
 fun Scope.insertEntity(): Scope {
 
     val entity = this.entity ?: return this
-    val params = if (this.saveChangedOnly) entity.changedSqlParams else entity.sqlParams
+    val params = if (this.saveChangedOnly) entity.changedSqlParams() else entity.sqlParams()
     params.forEach { t, u -> if (t !in this.sqlParam.keys) this.sqlParam.put(t, u) }
 
 
     var Items = ""
     var ItemValues = ""
-    var sqlInsert = "INSERT INTO [" + entity.tableName + "]"
+    var sqlInsert = "INSERT INTO [" + entity.tableName() + "]"
     this.setAutoIdParam(entity)
     this.sqlParam.forEach {
         pkey, _ ->
@@ -285,7 +285,7 @@ fun Scope.insertEntity(): Scope {
 private fun Scope.setAutoIdParam(entity: EntityBase): Scope {
 
     //主键未设置
-    entity.autoIdFields
+    entity.autoIdFields()
             .filterNot { it.key in this.sqlParam.keys }
             .forEach { id, idType ->
                 //主键值未设置
@@ -297,7 +297,7 @@ private fun Scope.setAutoIdParam(entity: EntityBase): Scope {
             }
 
     //主键值是null
-    entity.autoIdFields
+    entity.autoIdFields()
             .forEach { id, idType ->
                 if (id in this.sqlParam.keys && this.sqlParam[id] == null) {
                     //主键值设置为null

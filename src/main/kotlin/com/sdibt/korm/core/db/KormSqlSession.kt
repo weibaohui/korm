@@ -54,6 +54,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
     internal var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
 
+
     constructor(dbmsType: DBMSType, ds: DataSource, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this(ds) {
         this.dbType = dbmsType
         this.nameConvert = nameConvert
@@ -184,6 +185,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
     //todo:增加一个select count
 
+
     //region query
 
     //region selectSingle without q
@@ -240,11 +242,11 @@ open class KormSqlSession(internal var dataSource: DataSource) {
             if (pageCount == 0) {
                 val pageCountSql = SQLPage.makePageSQL(this.dbType, sql, "", q.PageSize, q.PageNumber, 0)
                 pageCount = selectSingle(Int::class.java, q, pageCountSql, q.sqlParam) ?: 0
+                q.currEntity.setExtra("pageCountAll", pageCount)
                 if (pageCount == 0) return null
             }
             sql = SQLPage.makePageSQL(this.dbType, sql, "", q.PageSize, q.PageNumber, pageCount)
         }
-
 
         val result = this.newScope(q, sql, q.sqlParam).resultType(clazz).returnList(true).callCallbacks(this.callbacks.selects).result
         return result as List<T>?

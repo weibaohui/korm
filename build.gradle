@@ -64,10 +64,9 @@ dependencies {
 
 
     compile 'javax.persistence:persistence-api:1.0.2'
-    compile 'commons-beanutils:commons-beanutils:1.9.2'
+//    compile 'commons-beanutils:commons-beanutils:1.9.2'
     compile 'com.google.guava:guava:21.0'
     compile 'com.alibaba:druid:1.0.28'
-    compile 'com.alibaba:fastjson:1.2.31'
     compile 'org.modelmapper:modelmapper:0.7.7'
 
 

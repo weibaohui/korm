@@ -140,9 +140,9 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         get() = this
 
     init {
-        mainTableName = currEntity.tableName
+        mainTableName = currEntity.tableName()
         sql_table = mainTableName
-        entityMap = currEntity.entityMap
+        entityMap = currEntity.entityMap()
     }
 
     constructor(parent: OQL, e: EntityBase) : this(e) {
@@ -155,7 +155,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         for (entity in others) {
             val aliases = "T" + dictAliases.size
             dictAliases.put(entity, aliases)
-            oqlString += String.format(",%1\$s %2\$s", entity.tableName, aliases)
+            oqlString += String.format(",%1\$s %2\$s", entity.tableName(), aliases)
         }
     }
 
@@ -737,7 +737,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 //        }
 //
 //
-//        var sqlInsert = "INSERT INTO " + this.currEntity.tableName
+//        var sqlInsert = "INSERT INTO " + this.currentity.tableName()
 //
 //        sqlInsert += "(" + Items.trimEnd(',') + ") Values (" + ItemValues.trimEnd(',') + ")"
 //
@@ -806,7 +806,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
             sql_fields = sql_fields.trimEnd(',')
 
-            sql_from = "[${this.currEntity.tableName}] M "
+            sql_from = "[${this.currEntity.tableName()}] M "
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
                 if (selectStar) {
                     sql_fields = "*"
@@ -819,13 +819,13 @@ open class OQL(var currEntity: EntityBase) : IOQL {
             }
         } else {
             sql_fields = selectedFieldNames.toTypedArray().joinToString(",")
-            sql_from = "[${this.currEntity.tableName}]"
+            sql_from = "[${this.currEntity.tableName()}]"
             if (sql_fields == "" && sqlFunctionString.isEmpty()) {
                 if (selectStar) {
                     sql_fields = "*"
                 } else {
 
-                    this.currEntity.fieldNames.forEach {
+                    this.currEntity.fieldNames().forEach {
                         sql_fields += "[$it],"
                     }
                     sql_fields = sql_fields.trimEnd(',')
@@ -833,7 +833,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
                 }
             }
             if (haveChildOql) {
-                sql_from = "[${this.currEntity.tableName}] M "
+                sql_from = "[${this.currEntity.tableName()}] M "
             }
         }
 
@@ -881,10 +881,10 @@ open class OQL(var currEntity: EntityBase) : IOQL {
 
         if (this.PageEnable) {
             if (this.PageField == "" && sql.toLowerCase().indexOf("order by") <= 0) {
-                if (this.currEntity.primaryKeys.isEmpty()) {
+                if (this.currEntity.primaryKeys().isEmpty()) {
                     throw Exception("OQL 分页错误，没有指明分页标识字段，也未给当前实体类设置主键。")
                 }
-                this.PageField = this.currEntity.primaryKeys[0]
+                this.PageField = this.currEntity.primaryKeys()[0]
             }
         }
         return sql
@@ -959,7 +959,7 @@ open class OQL(var currEntity: EntityBase) : IOQL {
         if (this.haveChildOql || this.haveJoinOpt) {
             return ""
         } else {
-            return this.currEntity.tableName
+            return this.currEntity.tableName()
         }
     }
 
