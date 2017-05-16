@@ -64,6 +64,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         CallBackDelete(this).init()
         CallBackUpdate(this).init()
         CallBackInsert(this).init()
+        CallBackBatchInsert(this).init()
         CallBackSelect(this).init()
         CallBackExecute(this).init()
     }
@@ -71,6 +72,10 @@ open class KormSqlSession(internal var dataSource: DataSource) {
     //region scope
     private fun newScope(entity: EntityBase): Scope {
         return Scope(entity, this)
+    }
+
+    private fun newScope(entitys: List<EntityBase>): Scope {
+        return Scope(entitys, this)
     }
 
     private fun newScope(q: OQL): Scope {
@@ -144,6 +149,41 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         return sqlResult(rowsAffected, generatedKeys, result)
     }
 
+    internal fun executeBatchUpdate(sql: String, params: MutableMap<EntityBase, MutableMap<String, Any?>>): sqlResult {
+
+
+        var rowsAffected: IntArray = intArrayOf()
+        var generatedKeys: Any? = null
+        val conn = this.dataSource.connection
+        val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
+        try {
+
+            params.forEach { _, u ->
+                for ((key, fieldValue) in u) {
+                    statement.setObject(key, fieldValue)
+                }
+                statement.addBatch()
+            }
+
+
+            rowsAffected = statement.executeBatch()
+            val rs = statement.generatedKeys
+            while (rs.next()) {
+                generatedKeys = "$generatedKeys,${rs.getObject(1)}"
+            }
+            generatedKeys = "$generatedKeys".replace("null,", "")
+        } catch (ex: Exception) {
+            this.Error = ex
+        } finally {
+
+            if (!statement.isClosed) statement.close()
+            if (!conn.isClosed) conn.close()
+        }
+
+
+        return sqlResult(rowsAffected.sum(), generatedKeys, null)
+    }
+
     internal fun executeUpdate(sql: String, params: Map<String, Any?>): sqlResult {
 
 
@@ -181,9 +221,6 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         return this.newScope(sql, params).callCallbacks(this.callbacks.executes).rowsAffected
     }
     //endregion
-
-
-    //todo:增加一个select count
 
 
     //region query
@@ -279,6 +316,10 @@ open class KormSqlSession(internal var dataSource: DataSource) {
     fun insert(entity: EntityBase, saveChangedOnly: Boolean = true, withReturnKeys: Boolean = true): Any? {
         val scope = this.newScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.inserts)
         return if (withReturnKeys) scope.generatedKeys else null
+    }
+
+    fun insertBatch(entitys: List<EntityBase>): Int {
+        return this.newScope(entitys).callCallbacks(this.callbacks.batchInserts).rowsAffected
     }
     //endregion
 

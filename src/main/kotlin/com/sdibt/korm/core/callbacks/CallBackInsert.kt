@@ -64,7 +64,7 @@ class CallBackInsert(db: KormSqlSession) {
         if (scope.entity == null) return scope
         val item = EntityFieldsCache.item(scope.entity!!)
         item.createdBy?.apply {
-            scope.sqlParam.put("${item.createdBy}", "zhangsanfeng")
+            scope.sqlParam.put("${item.createdBy}", scope.callMethodGetOperator("getOperator"))
         }
         item.updatedBy?.apply {
             scope.sqlParam.put("${item.updatedBy}", scope.callMethodGetOperator("getOperator"))

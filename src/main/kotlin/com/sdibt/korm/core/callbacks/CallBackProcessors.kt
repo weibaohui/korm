@@ -40,11 +40,12 @@ class CallBackProcessors {
         this.processor = block
         this.parent.processors.add(this)
         when (this.kind) {
-            "insert" -> this.parent.inserts.add(block)
-            "delete" -> this.parent.deletes.add(block)
-            "update" -> this.parent.updates.add(block)
-            "select" -> this.parent.selects.add(block)
-            "execute" -> this.parent.executes.add(block)
+            "insert"      -> this.parent.inserts.add(block)
+            "delete"      -> this.parent.deletes.add(block)
+            "update"      -> this.parent.updates.add(block)
+            "select"      -> this.parent.selects.add(block)
+            "execute"     -> this.parent.executes.add(block)
+            "batchInsert" -> this.parent.batchInserts.add(block)
         }
     }
 

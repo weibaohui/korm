@@ -29,6 +29,11 @@ class Scope(var db: KormSqlSession) {
     var entity: EntityBase? = null
     var oql: OQL? = null
 
+    //batchEntitys只有batchInsert使用
+    var batchEntitys: List<EntityBase>? = null
+    //batchSqlParam只有batchInsert使用
+    var batchSqlParam: MutableMap<EntityBase, MutableMap<String, Any?>> = mutableMapOf()
+
     var sqlString = ""
     var sqlParam: MutableMap<String, Any?> = mutableMapOf()
     var saveChangedOnly = true//默认只保存变化了的字段
@@ -54,6 +59,13 @@ class Scope(var db: KormSqlSession) {
         this.sqlString = ""
         this.sqlParam.clear()
         this.db.Error = null
+    }
+
+    constructor(entitys: List<EntityBase>, db: KormSqlSession) : this(db) {
+        this.db = db
+        this.entity = entitys.firstOrNull()
+        this.batchEntitys = entitys
+        this.actionType = ActionType.Entity
     }
 
     constructor(entity: EntityBase, db: KormSqlSession) : this(db) {

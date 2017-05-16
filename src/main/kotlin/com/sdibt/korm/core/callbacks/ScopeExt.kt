@@ -17,7 +17,6 @@
 
 package com.sdibt.korm.core.callbacks
 
-import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.entity.EntityFieldsCache
 import java.time.LocalDateTime
 
@@ -227,7 +226,7 @@ fun Scope.insertOQL(): Scope {
 
         var sqlInsert = "INSERT INTO [" + q.currEntity.tableName() + "] "
 
-        this.setAutoIdParam(q.currEntity)
+        this.setAutoIdParam()
 
         q.selectedFieldInfo.indices.forEach {
             i ->
@@ -269,7 +268,7 @@ fun Scope.insertEntity(): Scope {
     var Items = ""
     var ItemValues = ""
     var sqlInsert = "INSERT INTO [" + entity.tableName() + "]"
-    this.setAutoIdParam(entity)
+    this.setAutoIdParam()
     this.sqlParam.forEach {
         pkey, _ ->
         Items += "[$pkey],"
@@ -282,10 +281,59 @@ fun Scope.insertEntity(): Scope {
     return this
 }
 
-private fun Scope.setAutoIdParam(entity: EntityBase): Scope {
+fun Scope.batchInsertEntity(): Scope {
+
+    val batchEntity = this.batchEntitys ?: return this
+    this.setBatchAutoIdParam()
+    batchEntity.forEach {
+        entity ->
+        //        val params: MutableMap<String, Any?>? = this.batchSqlParam[entity] ?: entity.sqlParams().toMutableMap()
+//        params?.forEach {
+//            t, u ->
+//            if (t !in entity.sqlParams().keys) {
+//                this.sqlParam.put(t, u)
+//            }
+//        }
+
+
+
+        val params = entity.sqlParams()
+        params.forEach { t, u ->
+            if (t !in this.batchSqlParam[entity]!!.keys) {
+                this.batchSqlParam[entity]?.put(t, u)
+            }
+        }
+
+
+    }
+    batchEntity.first().apply {
+
+        var Items = ""
+        var ItemValues = ""
+        var sqlInsert = "INSERT INTO [" + this@apply.tableName() + "]"
+
+        this@batchInsertEntity.batchSqlParam[this@apply]?.forEach {
+            pkey, _ ->
+            Items += "[$pkey],"
+            ItemValues += "@$pkey,"
+
+        }
+
+        sqlInsert += "\r\n(" + Items.trimEnd(',') + ") \r\n Values \r\n(" + ItemValues.trimEnd(',') + ")"
+        this@batchInsertEntity.sqlString = sqlInsert
+    }
+
+
+
+    return this
+}
+
+private fun Scope.setAutoIdParam(): Scope {
+
+    if (this.entity==null) return this
 
     //主键未设置
-    entity.autoIdFields()
+    this.entity!!.autoIdFields()
             .filterNot { it.key in this.sqlParam.keys }
             .forEach { id, idType ->
                 //主键值未设置
@@ -297,7 +345,7 @@ private fun Scope.setAutoIdParam(entity: EntityBase): Scope {
             }
 
     //主键值是null
-    entity.autoIdFields()
+    this.entity!!.autoIdFields()
             .forEach { id, idType ->
                 if (id in this.sqlParam.keys && this.sqlParam[id] == null) {
                     //主键值设置为null
@@ -308,6 +356,41 @@ private fun Scope.setAutoIdParam(entity: EntityBase): Scope {
                     }
                 }
             }
+
+    return this
+}
+private fun Scope.setBatchAutoIdParam(): Scope {
+
+    if (this.batchEntitys==null || this.batchEntitys!!.isEmpty()) return this
+
+    this.batchSqlParam.forEach { entity, sqlParam ->
+
+        //主键未设置
+        entity.autoIdFields()
+                .filterNot { it.key in sqlParam.keys }
+                .forEach { id, idType ->
+                    //主键值未设置
+                    val nextId = idType.getNextId()
+//                    println("主键未设置nextId =$id ${nextId}")
+                    nextId?.apply {
+                        this@setBatchAutoIdParam.batchSqlParam[entity]?.put(id, nextId)
+                    }
+                }
+
+        //主键值是null
+        this.entity!!.autoIdFields()
+                .forEach { id, idType ->
+                    if (id in sqlParam.keys && sqlParam[id] == null) {
+                        //主键值设置为null
+                        val nextId = idType.getNextId()
+//                        println("主键值是null = $id= ${nextId}")
+                        nextId?.apply {
+                            this@setBatchAutoIdParam.batchSqlParam[entity]?.put(id, nextId)
+                         }
+                    }
+                }
+    }
+
 
     return this
 }

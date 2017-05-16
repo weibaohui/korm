@@ -25,7 +25,7 @@ enum class SnowFlakeGenerator {
 
     fun nextId(): Long {
         val ss = sf.nextId()
-        println("ss = ${ss}")
+//        println("ss = ${ss}")
         return ss
     }
 }

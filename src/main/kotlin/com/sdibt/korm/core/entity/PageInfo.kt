@@ -20,11 +20,8 @@ package com.sdibt.korm.core.entity
 import java.io.Serializable
 
 
-class PageInfo<T>(list: List<T>?, var totalRows: Int = 0) : Serializable {
-    //当前页
-    var pageNum: Int = 0
-    //每页的数量
-    var pageSize: Int = 0
+class PageInfo<T>(list: List<T>?, var totalRows: Int = 0, var pageSize: Int = 10, var pageNum: Int = 1) : Serializable {
+
     //当前页的数量
     var size: Int = 0
 
@@ -48,9 +45,9 @@ class PageInfo<T>(list: List<T>?, var totalRows: Int = 0) : Serializable {
     var nextPage: Int = 0
 
     //是否为第一页
-    var isIsFirstPage = false
+    var isFirstPage = false
     //是否为最后一页
-    var isIsLastPage = false
+    var isLastPage = false
     //是否有前一页
     var isHasPreviousPage = false
     //是否有下一页
@@ -69,8 +66,8 @@ class PageInfo<T>(list: List<T>?, var totalRows: Int = 0) : Serializable {
 
     init {
         if (list != null && list.isNotEmpty()) {
-            this.pageNum = 1
-            this.pageSize = list.size
+
+
 
             this.list = list
             this.size = list.size
@@ -146,8 +143,8 @@ class PageInfo<T>(list: List<T>?, var totalRows: Int = 0) : Serializable {
      * 判定页面边界
      */
     private fun judgePageBoudary() {
-        isIsFirstPage = pageNum == 1
-        isIsLastPage = pageNum == totalPages
+        isFirstPage = pageNum == 1
+        isLastPage = pageNum == totalPages
         isHasPreviousPage = pageNum > 1
         isHasNextPage = pageNum < totalPages
     }
@@ -180,8 +177,8 @@ class PageInfo<T>(list: List<T>?, var totalRows: Int = 0) : Serializable {
         sb.append(", list=").append(list)
         sb.append(", prePage=").append(prePage)
         sb.append(", nextPage=").append(nextPage)
-        sb.append(", isFirstPage=").append(isIsFirstPage)
-        sb.append(", isLastPage=").append(isIsLastPage)
+        sb.append(", isFirstPage=").append(isFirstPage)
+        sb.append(", isLastPage=").append(isLastPage)
         sb.append(", hasPreviousPage=").append(isHasPreviousPage)
         sb.append(", hasNextPage=").append(isHasNextPage)
         sb.append(", navigatePages=").append(navigatePages)

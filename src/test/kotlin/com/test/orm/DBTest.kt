@@ -274,7 +274,7 @@ class DBTest {
                 println("条目 = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
             }
 
-         }
+        }
 
 
     }
@@ -408,6 +408,20 @@ class DBTest {
             println("dto.test = ${dto.first().testCount}")
             println("dto.test = ${dto.first().testURL}")
         }
+    }
+
+    @Test
+    fun batchInsertTest() {
+        val list: MutableList<TestBook> = mutableListOf()
+        for (i in 1..100) {
+            var tb = TestBook()
+            tb.testCount = i
+            tb.testName = "${i}-name-${i}"
+            tb.testURL = "${i}-url-${i}"
+            list.add(tb)
+        }
+
+        getDB().insertBatch(list)
     }
 }
 

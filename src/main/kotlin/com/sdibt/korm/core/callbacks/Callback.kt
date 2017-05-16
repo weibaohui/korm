@@ -21,6 +21,7 @@ package com.sdibt.korm.core.callbacks
 class Callback {
     var processors: MutableList<CallBackProcessors> = mutableListOf()
     var inserts: MutableList<(scope: Scope) -> Scope> = mutableListOf()
+    var batchInserts: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var updates: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var deletes: MutableList<(scope: Scope) -> Scope> = mutableListOf()
     var selects: MutableList<(scope: Scope) -> Scope> = mutableListOf()
@@ -29,6 +30,7 @@ class Callback {
     fun reset() {
         processors.clear()
         inserts.clear()
+        batchInserts.clear()
         updates.clear()
         deletes.clear()
         selects.clear()
@@ -46,6 +48,10 @@ class Callback {
 
     fun insert(): CallBackProcessors {
         return CallBackProcessors("insert", this)
+    }
+
+    fun batchInsert(): CallBackProcessors {
+        return CallBackProcessors("batchInsert", this)
     }
 
     fun select(): CallBackProcessors {

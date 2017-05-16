@@ -53,6 +53,7 @@ class CallBackCommon {
                     .replace("@$it", "@$nc", ignoreCase = true)
 
         }
+
         val mutParams: MutableMap<String, Any?> = mutableMapOf()
         scope.sqlParam.forEach { t, u ->
             var field = if (columns != null && columns!![t] != null) columns!![t]?.name else t
@@ -69,6 +70,28 @@ class CallBackCommon {
         scope.sqlParam = mutParams
 
 
+
+
+        scope.batchSqlParam.forEach { entity, sqlParam ->
+            val batchMutParams: MutableMap<String, Any?> = mutableMapOf()
+
+            sqlParam.forEach { t, u ->
+
+                var field = if (columns != null && columns!![t] != null) columns!![t]?.name else t
+                if (field == null) field = t
+                val ncField = scope.db.nameConvert.format(field!!)
+
+
+                if (u is TableNameField) {
+                    batchMutParams.put(ncField, u.fieldValue)
+                } else {
+                    batchMutParams.put(ncField, u)
+                }
+            }
+            scope.batchSqlParam[entity] = batchMutParams
+        }
+
+
         //sql语句中[]处理
         when (scope.db.dbType) {
             DBMSType.MySql -> scope.sqlString = scope.sqlString.replace('[', '`').replace(']', '`')
@@ -76,6 +99,7 @@ class CallBackCommon {
         }
         return scope
     }
+
     private fun searchFields(sql: String, fields: MutableList<String>, patternStr: String = "\\[(.*?)\\]"): MutableList<String> {
 //        var fields: MutableList<String> = mutableListOf()
         val findParametersPattern = Pattern.compile(patternStr)
