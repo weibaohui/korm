@@ -84,7 +84,6 @@ class MapperJavaProxy : InvocationHandler {
         val mapperMethod = cachedMapperMethod(method)
         return mapperMethod.execute(db, args, entityClass!!)
 
-        return null
     }
 
 

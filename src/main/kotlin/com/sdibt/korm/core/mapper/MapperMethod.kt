@@ -46,18 +46,18 @@ class MapperMethod(private val mapperInterface: Class<*>, private val method: Me
 
         if (args != null) {
             when (methodSignature.name) {
-                "select"          -> return execSelect(sqlSession, entityClass, args)
-                "selectSingle"    -> return execSelectSingle(sqlSession, entityClass, args)
-                "save"            -> return execSave(sqlSession, args)
-                "update"          -> return execUpdate(sqlSession, args)
+                "select"       -> return execSelect(sqlSession, entityClass, args)
+                "selectSingle" -> return execSelectSingle(sqlSession, entityClass, args)
+                "save"         -> return execSave(sqlSession, args)
+                "update"       -> return execUpdate(sqlSession, args)
 //                "execute"         -> return execExecute(sqlSession, args)
-                "insert"          -> return execInsert(sqlSession, args)
-                "delete"          -> return execDelete(sqlSession, args)
+                "insert"       -> return execInsert(sqlSession, args)
+                "delete"       -> return execDelete(sqlSession, args)
 //                "deleteByPk"      -> return execDeleteByPk(sqlSession, args)
 //                "deleteBatchByPk" -> return execDeleteBatchByPk(sqlSession, args)
-//                "insertBatch"     -> return execInsertBatch(sqlSession, args)
+                "insertBatch"  -> return execInsertBatch(sqlSession, args)
 //                "updateBatch"     -> return execUpdateBatch(sqlSession, args)
-                else              -> return NameDsl(sqlSession, entityClass, methodSignature.name, args, methodSignature.returnType).exec()
+                else           -> return NameDsl(sqlSession, entityClass, methodSignature.name, args, methodSignature.returnType).exec()
             }
         } else {
             when (methodSignature.name) {
@@ -152,6 +152,12 @@ class MapperMethod(private val mapperInterface: Class<*>, private val method: Me
             }
         }
         return null
+    }
+
+    private fun execInsertBatch(sqlSession: KormSqlSession, args: Array<Any>): Any? {
+        if (args.size != 1) return null
+        val list = args[0] as List<EntityBase>
+        return sqlSession.insertBatch(list)
     }
 
     private fun execDelete(sqlSession: KormSqlSession, args: Array<Any>): Any? {

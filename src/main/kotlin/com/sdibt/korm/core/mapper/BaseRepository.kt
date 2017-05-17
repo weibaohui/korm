@@ -41,6 +41,7 @@ interface BaseRepository<T> {
     fun insert(entity: EntityBase): Int
     fun insert(entity: EntityBase, saveChangedOnly: Boolean = true): Int
     fun insert(entity: EntityBase, saveChangedOnly: Boolean = true, withReturnKeys: Boolean = true): Any?
+    fun insertBatch(list: List<EntityBase>): Int
 
     fun insert(q: OQL): Int
     fun insert(q: OQL, returnKeys: Boolean): Any?
