@@ -54,7 +54,7 @@ class Logger {
         }
 
         scope.generatedKeys?.apply {
-            t.appendRow().appendColumn("generatedKeys").appendColumn("${scope.generatedKeys}")
+            t.appendRow().appendColumn("generatedKeys").appendColumn(subStrWithChar("${scope.generatedKeys}"))
         }
 
         scope.result?.apply {
@@ -107,6 +107,21 @@ class Logger {
         }
 
         return scope
+    }
+
+
+    /** 截取字符串，并添加...
+     * <功能详细描述>
+     * @param str String 目标字符串.
+     *
+     * @return String
+     */
+    private fun subStrWithChar(str: String): String {
+        str.length > 100.apply {
+            return str.substring(0, 100) + "..."
+        }
+
+        return str
     }
 }
 
