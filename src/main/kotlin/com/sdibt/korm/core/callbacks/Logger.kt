@@ -118,8 +118,8 @@ class Logger {
      * @return String
      */
     private fun subStrWithChar(str: String): String {
-        str.length > 100.apply {
-            return str.substring(0, 100) + "..."
+        if (str.length > 90) {
+            return str.substring(0, 90) + "..."
         }
 
         return str
