@@ -91,28 +91,59 @@ class DBTest {
         Assert.assertTrue(count > 0)
     }
 
+    @Test
+    fun testWhereMultiple() {
+
+        val book = TestBook()
+        book.testName = "abc"
+        book.testId = "777"
+
+        val cname = "0000"
+
+
+
+        val q = OQL
+                .From(book)
+                .Select()
+                .Where {
+                    cmp ->
+                    cmp.Comparer(book.testId, ">", "55") OR
+                            (
+                                    cmp.Comparer(book.testName, "=", cname) AND
+                                            (
+                                                    cmp.Comparer(book.testId,"<>", 10) OR
+                                                            cmp.Comparer(book.testId, ">", 19)
+                                            )
+                            )
+                }
+                .END
+
+        val ss:List<TestBook>? = getDB().select<TestBook>(q)
+        println("List TestBook = ${ss}")
+    }
+
 
     @Test
     fun testJoinTable() {
-        var user = User()
+        val user = User()
         user.name = "abc"
         user.age = 19
 
 
-        var book = TestBook()
+        val book = TestBook()
         book.testName = "abc"
         book.testId = "777"
 
 
-        var select1 = OQL.From(user)
+        val select1 = OQL.From(user)
                 .LeftJoin(book).On(book.testName, user.name)
                 .Limit(10, 1, true)
                 .Select(user.id, book.testId, user.name, book.testName)
                 .Where(book.testName, user.name)
                 .OrderBy(user.id, "desc")
+                .END
 
-
-        var ss = getDB().select<Map<String, Any?>>(select1.END)
+        val ss = getDB().select<Map<String, Any?>>(select1)
         println("ss = ${ss}")
     }
 
@@ -251,7 +282,7 @@ class DBTest {
 
 
     @Test
-    fun testReadWithPage() {
+    fun testSelectCount() {
 
         val book = TestBook()
         book.testName = "testnamevalue"
@@ -265,23 +296,27 @@ class DBTest {
         println("共有记录${count}条")
 
 
-        count?.apply {
+    }
 
-            val q = OQL.From(book).Limit(3, 1, true).Select().Where {
-                cmp ->
-                cmp.Comparer(book.testId, ">", "1")
-            }.END
 
-            q.PageWithAllRecordCount = count
+    @Test
+    fun testReadWithPage() {
 
-            val resultList = getDB().select<TestBook>(q)
-            resultList?.forEach {
-                println("条目 = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
-            }
+        val book = TestBook()
+        book.testName = "testnamevalue"
 
+        val q = OQL.From(book).Limit(10, 2, true).Select().Where {
+            cmp ->
+            cmp.Comparer(book.testId, ">", "1")
+        }.END
+
+        val count = book.takePageCountAll()
+        q.PageWithAllRecordCount = count
+
+        val resultList = getDB().select<TestBook>(q)
+        resultList?.forEach {
+            println("条目 = ${it.testId},${it.testURL}, ${it.testName},${it.testCount}")
         }
-
-
     }
 
     @Test
