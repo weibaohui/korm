@@ -17,6 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.DataSourceType
 import com.sdibt.korm.core.db.KormSqlSession
 
 class CallBackDelete(db: KormSqlSession) {
@@ -27,6 +28,7 @@ class CallBackDelete(db: KormSqlSession) {
         defaultCallBack.delete().reg("beforeDelete") { beforeDeleteCallback(it) }
         defaultCallBack.delete().reg("delete") { deleteCallback(it) }
         defaultCallBack.delete().reg("sqlProcess") { CallBackCommon().sqlProcess(it) }
+        defaultCallBack.delete().reg("setDataSource") { CallBackCommon().setDataSoure(it) }
         defaultCallBack.delete().reg("exec") { execCallback(it) }
         defaultCallBack.delete().reg("afterDelete") { afterDeleteCallback(it) }
     }
@@ -49,7 +51,11 @@ class CallBackDelete(db: KormSqlSession) {
 
     fun execCallback(scope: Scope): Scope {
         if (scope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
+            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(
+                    scope.sqlString, scope.sqlParam,
+                    dsName = scope.dsName,
+                    dsType = DataSourceType.WRITE
+            )
             scope.rowsAffected = rowsAffected
             scope.generatedKeys = generatedKeys
             scope.result = rowsAffected

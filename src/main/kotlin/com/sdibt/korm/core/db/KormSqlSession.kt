@@ -54,13 +54,40 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
     internal var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
 
+    private var dsList: MutableMap<String, DataSource> = mutableMapOf()
 
     constructor(dbmsType: DBMSType, ds: DataSource, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this(ds) {
         this.dbType = dbmsType
         this.nameConvert = nameConvert
     }
 
+
+    fun setDs(name: String, ds: DataSource) {
+        dsList.put(name, ds)
+    }
+
+    /** 获取数据源
+     * <功能详细描述>
+     * @param name 名称.
+     * @param type 读写分离.
+     *
+     * @return 返回类型说明
+     */
+    fun getDs(name: String, dsType: DataSourceType = DataSourceType.RW): DataSource {
+        if (name in dsList.keys) {
+            println("获取数据源name = ${name}")
+            return dsList[name]!!
+        }
+        println("数据源${name}不存在")
+        throw Exception("数据源${name}不存在")
+//        return this.dataSource
+    }
+
+
     init {
+
+        this.setDs("default", this.dataSource)
+
         CallBackDelete(this).init()
         CallBackUpdate(this).init()
         CallBackInsert(this).init()
@@ -95,7 +122,10 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
     //region db execute
 
-    internal fun executeQuery(clazz: Class<*>, sql: String, params: Map<String, Any?>, returnList: Boolean = false): sqlResult {
+    internal fun executeQuery(clazz: Class<*>, sql: String, params: Map<String, Any?>,
+                              returnList: Boolean = false,
+                              dsName: String = "default",
+                              dsType: DataSourceType = DataSourceType.RW): sqlResult {
 
         //todo return Any?类型导致多次转换，性能受影响如何测试
         val isList: Boolean = List::class.java.isAssignableFrom(clazz)
@@ -105,7 +135,9 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         var rowsAffected = 0
         var generatedKeys: Any? = null
         var result: Any? = null
-        val conn = this.dataSource.connection
+//        val conn = this.dataSource.connection
+        val conn = this.getDs(dsName, dsType).connection
+
         var rs: ResultSet? = null
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
@@ -149,12 +181,14 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         return sqlResult(rowsAffected, generatedKeys, result)
     }
 
-    internal fun executeBatchUpdate(sql: String, params: MutableMap<EntityBase, MutableMap<String, Any?>>): sqlResult {
+    internal fun executeBatchUpdate(sql: String, params: MutableMap<EntityBase, MutableMap<String, Any?>>,
+                                    dsName: String = "default",
+                                    dsType: DataSourceType = DataSourceType.WRITE): sqlResult {
 
 
         var rowsAffected: IntArray = intArrayOf()
         var generatedKeys: Any? = null
-        val conn = this.dataSource.connection
+        val conn = this.getDs(dsName, dsType).connection
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
 
@@ -184,12 +218,14 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         return sqlResult(rowsAffected.sum(), generatedKeys, null)
     }
 
-    internal fun executeUpdate(sql: String, params: Map<String, Any?>): sqlResult {
+    internal fun executeUpdate(sql: String, params: Map<String, Any?>,
+                               dsName: String = "default",
+                               dsType: DataSourceType = DataSourceType.WRITE): sqlResult {
 
 
         var rowsAffected = 0
         var generatedKeys: Any? = null
-        val conn = this.dataSource.connection
+        val conn = this.getDs(dsName, dsType).connection
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
 

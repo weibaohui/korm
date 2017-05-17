@@ -57,6 +57,7 @@ class Logger {
             t.appendRow().appendColumn("generatedKeys").appendColumn(subStrWithChar("${scope.generatedKeys}"))
         }
 
+
         scope.result?.apply {
             t.appendRow().appendColumn("result")
             val result = scope.result

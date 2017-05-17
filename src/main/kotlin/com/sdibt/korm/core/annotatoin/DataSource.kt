@@ -15,28 +15,9 @@
  *  limitations under the License.
  */
 
-package com.sdibt.korm.core.callbacks
-
-import com.sdibt.korm.core.db.KormSqlSession
+package com.sdibt.korm.core.annotatoin
 
 
-/** 单例管理callback注册
- * <功能详细描述>
- * @param name description.
- *
- * @return 返回类型说明
- */
-enum class DefaultCallBack {
-    instance;
-
-    private val callBackMap: MutableMap<KormSqlSession, Callback> = mutableMapOf()
-    fun getCallBack(db: KormSqlSession): Callback {
-        if (callBackMap.containsKey(db)) {
-            return callBackMap[db]!!
-        } else {
-            val cb = Callback()
-            callBackMap.put(db, cb)
-            return cb
-        }
-    }
-}
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class DataSource(val value: String = "default")

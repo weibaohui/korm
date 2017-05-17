@@ -28,6 +28,12 @@ import java.util.regex.Pattern
 class CallBackCommon {
 
 
+    /**处理SQL语句及参数，进行格式化
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
     fun sqlProcess(scope: Scope): Scope {
 
 
@@ -110,6 +116,18 @@ class CallBackCommon {
 
         }
         return fields
+    }
+
+
+    /** 设置数据源
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    fun setDataSoure(scope: Scope): Scope {
+        scope.dsName = scope.entity?.dataSource() ?: "defaultDataSource"
+        return scope
     }
 
 }

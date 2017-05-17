@@ -17,6 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.DataSourceType
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.entity.EntityBase
 import com.sdibt.korm.core.oql.OQL
@@ -37,6 +38,13 @@ class Scope(var db: KormSqlSession) {
     var sqlString = ""
     var sqlParam: MutableMap<String, Any?> = mutableMapOf()
     var saveChangedOnly = true//默认只保存变化了的字段
+
+
+    //数据源名称
+    var dsName: String = ""
+    //读写类型
+    var dsType: DataSourceType = DataSourceType.RW
+
 
     var skipLeft = false//跳过callbacks
 
@@ -63,6 +71,7 @@ class Scope(var db: KormSqlSession) {
 
     constructor(entitys: List<EntityBase>, db: KormSqlSession) : this(db) {
         this.db = db
+        //此处要拿第一个出来赋值，后续逻辑基于entity取部分属性，简化操作
         this.entity = entitys.firstOrNull()
         this.batchEntitys = entitys
         this.actionType = ActionType.Entity

@@ -104,6 +104,16 @@ abstract class EntityBase {
         return EntityFieldsCache.item(this).schema ?: ""
     }
 
+    /**获取数据库表的数据源
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    fun dataSource():String{
+        return EntityFieldsCache.item(this).dataSource
+    }
+
     /** 生成SQL用的需要的所有的参数
      * <功能详细描述>
      *

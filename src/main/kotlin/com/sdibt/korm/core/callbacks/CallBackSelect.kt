@@ -17,6 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.DataSourceType
 import com.sdibt.korm.core.db.KormSqlSession
 
 class CallBackSelect(db: KormSqlSession) {
@@ -25,7 +26,8 @@ class CallBackSelect(db: KormSqlSession) {
 
     fun init() {
         defaultCallBack.select().reg("beforeSelect") { beforeSelectCallback(it) }
-        defaultCallBack.select().reg("sqlProcess") {  CallBackCommon().sqlProcess(it) }
+        defaultCallBack.select().reg("sqlProcess") { CallBackCommon().sqlProcess(it) }
+        defaultCallBack.select().reg("setDataSource") { CallBackCommon().setDataSoure(it) }
         defaultCallBack.select().reg("exec") { execCallback(it) }
         defaultCallBack.select().reg("afterSelect") { afterSelectCallback(it) }
     }
@@ -48,7 +50,9 @@ class CallBackSelect(db: KormSqlSession) {
                         scope.resultType!!,
                         scope.sqlString,
                         scope.sqlParam,
-                        scope.resultIsList
+                        scope.resultIsList,
+                        scope.dsName,
+                        DataSourceType.READ
                 )
                 scope.rowsAffected = rowsAffected
                 scope.result = result

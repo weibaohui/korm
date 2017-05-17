@@ -57,6 +57,7 @@ class EntityFields {
 
     var tableName: String? = null
     var schema: String? = null
+    var dataSource: String = ""
 
     var createdBy: String? = null
     var createdAt: String? = null
@@ -86,6 +87,10 @@ class EntityFields {
             val an = entityType.getAnnotation(Table::class.java)
             this.tableName = an.name
             this.schema = an.schema
+        }
+        if (entityType.isAnnotationPresent(DataSource::class.java)) {
+            val an = entityType.getAnnotation(DataSource::class.java)
+            this.dataSource = an.value
         }
 
 
@@ -269,5 +274,6 @@ class EntityFields {
 
         columns = columnMap.toMap()
     }
+
 
 }

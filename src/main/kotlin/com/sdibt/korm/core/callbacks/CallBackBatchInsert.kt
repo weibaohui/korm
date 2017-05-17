@@ -17,6 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.DataSourceType
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.entity.EntityFieldsCache
 import java.time.LocalDateTime
@@ -32,6 +33,7 @@ class CallBackBatchInsert(db: KormSqlSession) {
         defaultCallBack.batchInsert().reg("batchInsertOperator") { batchInsertOperatorCallback(it) }
         defaultCallBack.batchInsert().reg("batchInsert") { batchInsertCallback(it) }
         defaultCallBack.batchInsert().reg("sqlProcess") { CallBackCommon().sqlProcess(it) }
+        defaultCallBack.batchInsert().reg("setDataSource") { CallBackCommon().setDataSoure(it) }
         defaultCallBack.batchInsert().reg("exec") { execCallback(it) }
         defaultCallBack.batchInsert().reg("afterBatchInsert") { afterBatchInsertCallback(it) }
     }
@@ -129,7 +131,12 @@ class CallBackBatchInsert(db: KormSqlSession) {
         if (scope.batchEntitys == null || scope.batchEntitys!!.isEmpty()) return scope
 
         if (scope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = scope.db.executeBatchUpdate(scope.sqlString, scope.batchSqlParam)
+            val (rowsAffected, generatedKeys) = scope.db.executeBatchUpdate(
+                    scope.sqlString,
+                    scope.batchSqlParam,
+                    dsName = scope.dsName,
+                    dsType = DataSourceType.WRITE
+            )
             scope.rowsAffected = rowsAffected
             scope.generatedKeys = generatedKeys
             scope.result = rowsAffected

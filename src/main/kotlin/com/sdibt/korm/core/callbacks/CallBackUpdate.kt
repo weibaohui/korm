@@ -17,6 +17,7 @@
 
 package com.sdibt.korm.core.callbacks
 
+import com.sdibt.korm.core.db.DataSourceType
 import com.sdibt.korm.core.db.KormSqlSession
 import com.sdibt.korm.core.entity.EntityFieldsCache
 import java.time.LocalDateTime
@@ -31,6 +32,7 @@ class CallBackUpdate(db: KormSqlSession) {
         defaultCallBack.update().reg("updateOperator") { updateOperatorCallback(it) }
         defaultCallBack.update().reg("update") { updateCallback(it) }
         defaultCallBack.update().reg("sqlProcess") {  CallBackCommon().sqlProcess(it) }
+        defaultCallBack.update().reg("setDataSource") { CallBackCommon().setDataSoure(it) }
         defaultCallBack.update().reg("exec") { execCallback(it) }
         defaultCallBack.update().reg("afterUpdate") { afterUpdateCallback(it) }
     }
@@ -94,7 +96,11 @@ class CallBackUpdate(db: KormSqlSession) {
     fun execCallback(scope: Scope): Scope {
 
         if (scope.db.Error == null) {
-            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(scope.sqlString, scope.sqlParam)
+            val (rowsAffected, generatedKeys) = scope.db.executeUpdate(
+                    scope.sqlString, scope.sqlParam,
+                    dsName = scope.dsName,
+                    dsType = DataSourceType.WRITE
+            )
             scope.rowsAffected = rowsAffected
             scope.generatedKeys = generatedKeys
             scope.result = rowsAffected
