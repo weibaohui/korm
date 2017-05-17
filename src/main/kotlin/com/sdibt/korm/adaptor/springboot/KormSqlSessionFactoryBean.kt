@@ -28,7 +28,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationListener
-import org.springframework.util.Assert.notNull
 import javax.sql.DataSource
 
 /**
@@ -42,7 +41,8 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
         ApplicationListener<ApplicationEvent>,
         ApplicationContextAware, BeanNameAware {
 
-    internal var ds: DataSource? = null
+    private var ds: DataSource? = null
+    private var dsMap: Map<String, DataSource> = mapOf()
     /**
      * Spring上下文
      */
@@ -54,8 +54,12 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
 
     var nameConvert: BaseNameConvert = CamelCaseNameConvert()
 
-    fun setDataSource(springBootDataSource: DataSource) {
-        this.ds = springBootDataSource
+    fun setDefaultDataSource(ds: DataSource) {
+        this.ds = ds
+    }
+
+    fun setDataSourceMap(map: Map<String, DataSource>) {
+        this.dsMap = map
     }
 
     override fun getObjectType(): Class<*> {
@@ -69,15 +73,25 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
 
 
     override fun getObject(): KormSqlSession {
+        val sqlSession = KormSqlSession(DBMSType.MySql, nameConvert)
+        //设置默认数据源
+        if (this.ds != null) {
+            sqlSession.setDefaultDataSource(ds!!)
+        }
 
-        val sqlSession = KormSqlSession(DBMSType.MySql, ds!!, nameConvert)
+        //设置多数据源
+        this.dsMap.forEach { t, u ->
+            sqlSession.setDataSourceMap(t, u)
+        }
 
         return sqlSession
     }
 
 
     override fun afterPropertiesSet() {
-        notNull(ds, "'SqlDataSource'数据源是必须配置的")
+        if (ds == null && dsMap.isEmpty()) {
+            throw IllegalArgumentException("请使用setDataSource() 或 setDataSourceMap() 注册数据源")
+        }
     }
 
     /**

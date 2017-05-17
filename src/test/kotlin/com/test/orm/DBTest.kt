@@ -38,9 +38,10 @@ class DBTest {
         dds.url = dbURL
         dds.username = userName
         dds.password = password
-        val kss = KormSqlSession(dds)
-        kss.setDs("test1", dds)
-        kss.setDs("test2", dds)
+        val kss = KormSqlSession()
+        kss.setDefaultDataSource(dds)
+        kss.setDataSourceMap("test1", dds)
+        kss.setDataSourceMap("test2", dds)
         return kss
     }
 

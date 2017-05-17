@@ -57,7 +57,9 @@ class EntityFields {
 
     var tableName: String? = null
     var schema: String? = null
-    var dataSource: String = ""
+
+    //数据源如无特别说明，就取默认default
+    var dataSource: String = "default"
 
     var createdBy: String? = null
     var createdAt: String? = null

@@ -37,7 +37,7 @@ import javax.sql.DataSource
  * Date: 2017/3/20
  * Time: 20:31
  */
-open class KormSqlSession(internal var dataSource: DataSource) {
+open class KormSqlSession() {
 
 
     internal var mapperBuilder: MapperBuilder = DefaultMapperBuilder(this)
@@ -56,13 +56,23 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
     private var dsList: MutableMap<String, DataSource> = mutableMapOf()
 
-    constructor(dbmsType: DBMSType, ds: DataSource, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this(ds) {
+    constructor(dbmsType: DBMSType, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this() {
         this.dbType = dbmsType
         this.nameConvert = nameConvert
     }
 
 
-    fun setDs(name: String, ds: DataSource) {
+    /** 设置默认的数据源,如果不设置default，那么就需要明确数据源名称
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    fun setDefaultDataSource(ds: DataSource) {
+        this.setDataSourceMap("default", ds)
+    }
+
+    fun setDataSourceMap(name: String, ds: DataSource) {
         dsList.put(name, ds)
     }
 
@@ -73,7 +83,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
      *
      * @return 返回类型说明
      */
-    fun getDs(name: String, dsType: DataSourceType = DataSourceType.RW): DataSource {
+    fun getDataSource(name: String, dsType: DataSourceType = DataSourceType.RW): DataSource {
         if (name in dsList.keys) {
             println("获取数据源name = ${name}")
             return dsList[name]!!
@@ -86,7 +96,6 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
     init {
 
-        this.setDs("default", this.dataSource)
 
         CallBackDelete(this).init()
         CallBackUpdate(this).init()
@@ -136,7 +145,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
         var generatedKeys: Any? = null
         var result: Any? = null
 //        val conn = this.dataSource.connection
-        val conn = this.getDs(dsName, dsType).connection
+        val conn = this.getDataSource(dsName, dsType).connection
 
         var rs: ResultSet? = null
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
@@ -188,7 +197,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
         var rowsAffected: IntArray = intArrayOf()
         var generatedKeys: Any? = null
-        val conn = this.getDs(dsName, dsType).connection
+        val conn = this.getDataSource(dsName, dsType).connection
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
 
@@ -225,7 +234,7 @@ open class KormSqlSession(internal var dataSource: DataSource) {
 
         var rowsAffected = 0
         var generatedKeys: Any? = null
-        val conn = this.getDs(dsName, dsType).connection
+        val conn = this.getDataSource(dsName, dsType).connection
         val statement: NamedParamStatement = NamedParamStatement(dbType, conn, sql)
         try {
 
