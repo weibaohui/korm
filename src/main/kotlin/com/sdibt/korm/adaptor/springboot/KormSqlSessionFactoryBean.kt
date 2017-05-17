@@ -81,7 +81,7 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
 
         //设置多数据源
         this.dsMap.forEach { t, u ->
-            sqlSession.setDataSourceMap(t, u)
+            sqlSession.addDataSource(t, u)
         }
 
         return sqlSession
@@ -90,7 +90,7 @@ class KormSqlSessionFactoryBean : FactoryBean<KormSqlSession>,
 
     override fun afterPropertiesSet() {
         if (ds == null && dsMap.isEmpty()) {
-            throw IllegalArgumentException("请使用setDataSource() 或 setDataSourceMap() 注册数据源")
+            throw IllegalArgumentException("请使用setDataSource() 或 addDataSource() 注册数据源")
         }
     }
 

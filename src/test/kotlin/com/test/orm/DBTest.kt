@@ -40,8 +40,9 @@ class DBTest {
         dds.password = password
         val kss = KormSqlSession()
         kss.setDefaultDataSource(dds)
-        kss.setDataSourceMap("test1", dds)
-        kss.setDataSourceMap("test2", dds)
+        kss.addDataSource("test1:read1", dds)
+        kss.addDataSource("test1:read2", dds)
+        kss.addDataSource("test1:master", dds)
         return kss
     }
 

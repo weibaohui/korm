@@ -20,4 +20,4 @@ package com.sdibt.korm.core.annotatoin
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class DataSource(val value: String = "default")
+annotation class DataSource(val value: String = "defaultDataSource")

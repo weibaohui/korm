@@ -31,7 +31,7 @@ import javax.persistence.Table
  * Time: 14:02
  */
 
-//@DataSource("test3")
+@DataSource("test1")
 @Table(name = "Test_Book")
 class TestBook : EntityBase() {
 

@@ -28,11 +28,30 @@ import com.sdibt.korm.core.mapping.jdbc.*
 import com.sdibt.korm.core.oql.OQL
 import com.sdibt.korm.core.page.SQLPage
 import java.sql.ResultSet
+import java.util.concurrent.ThreadLocalRandom
 import javax.sql.DataSource
 
 
 /**
  * Usage:
+ *
+多数据源用法：
+表注释@DataSource(source1)
+主从（读写分离）
+默认更新类语句取写库链接，读取类语句走读库连接
+数据源名称规则：
+名称后面加英文冒号，加标志，带有read/slave为读取库，带有master/write为写库
+只有名称没有冒号视为写库
+
+var dds = DruidDataSource()
+dds.url = dbURL
+dds.username = userName
+dds.password = password
+val kss = KormSqlSession()
+kss.setDefaultDataSource(dds) //数据源没有指定的时候
+kss.addDataSource("test1:read1", dds) //test1的读库
+kss.addDataSource("test1:read2", dds) //test1的读库
+kss.addDataSource("test1:master", dds) //test1的写库
  * User: weibaohui
  * Date: 2017/3/20
  * Time: 20:31
@@ -41,19 +60,12 @@ open class KormSqlSession() {
 
 
     internal var mapperBuilder: MapperBuilder = DefaultMapperBuilder(this)
-
-
     //默认名称转换器
     internal var nameConvert: BaseNameConvert = CamelCaseNameConvert()
     internal var dbType: DBMSType = DBMSType.MySql
-
-
     internal var Error: Any? = null
-
     internal var db: KormSqlSession = this
-
-    internal var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
-
+    private var callbacks: Callback = DefaultCallBack.instance.getCallBack(this)
     private var dsList: MutableMap<String, DataSource> = mutableMapOf()
 
     constructor(dbmsType: DBMSType, nameConvert: BaseNameConvert = CamelCaseNameConvert()) : this() {
@@ -69,10 +81,10 @@ open class KormSqlSession() {
      * @return 返回类型说明
      */
     fun setDefaultDataSource(ds: DataSource) {
-        this.setDataSourceMap("default", ds)
+        this.addDataSource("defaultDataSource", ds)
     }
 
-    fun setDataSourceMap(name: String, ds: DataSource) {
+    fun addDataSource(name: String, ds: DataSource) {
         dsList.put(name, ds)
     }
 
@@ -84,13 +96,58 @@ open class KormSqlSession() {
      * @return 返回类型说明
      */
     fun getDataSource(name: String, dsType: DataSourceType = DataSourceType.RW): DataSource {
+
+
         if (name in dsList.keys) {
-            println("获取数据源name = ${name}")
-            return dsList[name]!!
+            //数据源名称完全匹配
+            return dsList[name] ?: throw Exception("数据源${name}不存在")
+        } else {
+
+            if (dsType == DataSourceType.READ) {
+                //只读,随机返回
+                val readList = getReadOnlyDataSource(name)
+                //没有读的就找可写的
+                if (readList.isEmpty()) return getWriteDataSource(name)
+
+                val index = ThreadLocalRandom.current().nextInt(readList.size)
+                return readList[index]
+            } else {
+                return getWriteDataSource(name)
+            }
+
         }
-        println("数据源${name}不存在")
-        throw Exception("数据源${name}不存在")
-//        return this.dataSource
+
+
+    }
+
+    /** 获取只读数据源列表
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    private fun getReadOnlyDataSource(name: String): List<DataSource> {
+        val readList = dsList.filter { it.key.startsWith(name) }
+                .filterNot { it.key.contains("write".toRegex()) || it.key.contains("master".toRegex()) }
+                .values.toList()
+        return readList
+    }
+
+
+    /**获取可写的数据源
+     * <功能详细描述>
+     * @param name description.
+     *
+     * @return 返回类型说明
+     */
+    private fun getWriteDataSource(name: String): DataSource {
+        //写或读写随意,取写
+        val writeList = dsList.filter { it.key.startsWith(name) }
+                .filterNot { it.key.contains("read".toRegex()) || it.key.contains("slave".toRegex()) }
+                .values.toList()
+        if (writeList.isEmpty()) throw Exception("数据源${name}不存在")
+        val index = ThreadLocalRandom.current().nextInt(writeList.size)
+        return writeList[index]
     }
 
 
@@ -126,10 +183,10 @@ open class KormSqlSession() {
         return Scope(this).setSqlString(sqlString).setSqlParam(sqlParam).setActionType(ActionType.ObjectQL)
     }
 
-    //endregion
+//endregion
 
 
-    //region db execute
+//region db execute
 
     internal fun executeQuery(clazz: Class<*>, sql: String, params: Map<String, Any?>,
                               returnList: Boolean = false,
@@ -259,16 +316,16 @@ open class KormSqlSession() {
         return sqlResult(rowsAffected, generatedKeys, null)
     }
 
-    //endregion
+//endregion
 
     //region execute  sql with sqlProcess
     fun execute(sql: String, params: Map<String, Any?>): Int {
         return this.newScope(sql, params).callCallbacks(this.callbacks.executes).rowsAffected
     }
-    //endregion
+//endregion
 
 
-    //region query
+//region query
 
     //region selectSingle without q
     inline fun <reified T> selectSingle(sqlString: String, sqlParam: Map<String, Any?>): T? {
@@ -280,7 +337,7 @@ open class KormSqlSession() {
         return result as T?
     }
 
-    //endregion
+//endregion
 
     //region selectSingle q
     inline fun <reified T> selectSingle(q: OQL): T? {
@@ -296,7 +353,7 @@ open class KormSqlSession() {
         return result as T?
     }
 
-    //endregion
+//endregion
 
     //region select without q
     inline fun <reified T> select(sqlString: String, sqlParam: Map<String, Any?>): List<T>? {
@@ -308,7 +365,7 @@ open class KormSqlSession() {
         return result as List<T>?
     }
 
-    //endregion
+//endregion
 
     //region select q
     inline fun <reified T> select(q: OQL): List<T>? {
@@ -333,13 +390,13 @@ open class KormSqlSession() {
         val result = this.newScope(q, sql, q.sqlParam).resultType(clazz).returnList(true).callCallbacks(this.callbacks.selects).result
         return result as List<T>?
     }
-    //endregion
+//endregion
 
 
-    //endregion
+//endregion
 
 
-    //region insert
+//region insert
 
     fun insert(q: OQL): Int {
         return this.newScope(q).callCallbacks(this.callbacks.inserts).rowsAffected
@@ -366,7 +423,7 @@ open class KormSqlSession() {
     fun insertBatch(entitys: List<EntityBase>): Int {
         return this.newScope(entitys).callCallbacks(this.callbacks.batchInserts).rowsAffected
     }
-    //endregion
+//endregion
 
 
     //region delete
@@ -378,10 +435,10 @@ open class KormSqlSession() {
         return this.newScope(entity).callCallbacks(this.callbacks.deletes).rowsAffected
     }
 
-    //endregion
+//endregion
 
 
-    //region update
+//region update
 
     fun update(q: OQL): Int {
         return this.newScope(q).callCallbacks(this.callbacks.updates).rowsAffected
@@ -394,7 +451,7 @@ open class KormSqlSession() {
     fun update(entity: EntityBase, saveChangedOnly: Boolean = true): Int {
         return this.newScope(entity).saveChangedOnly(saveChangedOnly).callCallbacks(this.callbacks.updates).rowsAffected
     }
-    //endregion
+//endregion
 
 
     //region save
@@ -409,7 +466,7 @@ open class KormSqlSession() {
     }
 
 
-    //endregion
+//endregion
 
 }
 
