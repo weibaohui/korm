@@ -104,7 +104,7 @@ class Logger {
             Log.error(t.toString())
         } else {
             Log.debug(t.toString())
-            Log.debug(finalSql.replace('\r', ' ').replace('\n', ' '))
+            Log.debug("\r\n" + finalSql.replace('\r', ' ').replace('\n', ' '))
         }
 
         return scope
