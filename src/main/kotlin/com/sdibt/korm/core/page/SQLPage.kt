@@ -119,7 +119,7 @@ object SQLPage {
             strSQLInfo = "SELECT * FROM \r\n ($strSQLInfo) temptable0 \r\nWHERE\r\n $strWhere"
         }
         if (AllCount == 0) {
-            return "SELECT count(1) FROM " +
+            return "SELECT count(*) FROM " +
                    "\r\n ($strSQLInfo) P_Count  " +
                     if (strWhere.isNullOrBlank()) "" else "WHERE $strWhere"
         }
